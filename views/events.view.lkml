@@ -32,9 +32,8 @@ view: events {
     type: count
     group_label: "event_counts"
     label: "Count Events"
-    html: <ul><li>Domain: {{events.principal__hostname}}</li>
-    <li>Risk Score: {{events.latest_risk_score}}</li>
-    <li>{{events.domain_risk_score}} Risk : {{value}}</li></ul>;;
+    # html: <ul><li>{{events.principal__hostname}}:{{value}}</li>
+    # <li>Risk Score: {{events__security_result.risk_score}}</li></ul>;;
     drill_fields: [ events.principal__hostname, events__security_result.risk_score , events.event_timestamp_time, events.metadata__id]
   }
   dimension: domain_risk_score {
@@ -48,6 +47,12 @@ view: events {
     # group_label: "event_counts"
     label: "latest_risk_score"
     sql: ${events__security_result.risk_score} limit 1;;
+  }
+  dimension: risk_score_threshold_for_filter {
+    type: number
+    # group_label: "event_counts"
+    label: "risk_score_threshold"
+    sql: ${events__security_result.risk_score} ;;
   }
   # dimension_group: event_timestamp {
   #   type: time
