@@ -56,11 +56,15 @@ def get_and_ingest_logs(
     print("Unable to fetch reference list. Error", error)
     allow_list_domains = []
 
+  print("Start checking in memorystore")
+  
   # skip domains which is already present in redis
   for domain in domain_list:
     data = client.hget(domain, 'value')
     if data or (domain in allow_list_domains):
       domain_list.remove(domain)
+  
+  print("End checking in memorystore")   
 
   # domain_tool_client_object = domaintool_client.DomainToolClient()
 
@@ -74,7 +78,7 @@ def get_and_ingest_logs(
     queue_len = len(domain_list)
     while queue_len > 0:
       queued_domains_part = domain_list[start_len:end_len]
-      if queued_domains_part > 0:
+      if len(queued_domains_part) > 0:
         response = domain_tool_client_object.enrich(queued_domains_part)
         all_responses.append(response)
       
