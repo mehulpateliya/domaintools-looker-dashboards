@@ -16,6 +16,7 @@ ENV_DOMAINTOOL_USER = "DOMAINTOOL_USER"
 ENV_DOMAINTOOL_PASSWORD = "DOMAINTOOL_PASSWORD"
 ENV_CHRONICLE_DATA_TYPE = "CHRONICLE_DATA_TYPE"
 ENV_PARSER_LABEL = "PARSER_LABEL"
+ENV_PARSER_LABEL_FILE_PATH = "PARSER_LABEL_FILE_PATH"
 ENV_PROVISIONAL_TTL = "PROVISIONAL_TTL"
 ENV_NON_PROVISIONAL_TTL = "NON_PROVISIONAL_TTL"
 ENV_ALLOW_LIST = "ALLOW_LIST"
@@ -139,7 +140,7 @@ def main(request) -> str:
   storage_client = storage.Client()
   current_bucket = storage_client.get_bucket(gcp_bucket_name)
   try:
-    blob = current_bucket.blob("DomainTools/parser_labels.txt")
+    blob = current_bucket.blob(utils.get_env_var(ENV_PARSER_LABEL_FILE_PATH))
     parser_labels = blob.download_as_text()
   except Exception as e:
     print("An error occurred:", e)

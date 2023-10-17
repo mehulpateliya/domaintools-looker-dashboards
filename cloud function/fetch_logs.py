@@ -16,7 +16,7 @@ SERVICE_ACCOUNT_FILE = "CHRONICLE_CREDS_FILE"
 
 LIST_USER_ALIASES_URL = ""
 
-
+ENV_CHECKPOINT_FILE_PATH = "CHECKPOINT_FILE_PATH"
 
 class fechLogs:
 
@@ -42,7 +42,7 @@ class fechLogs:
         gcp_bucket_name = utils.get_env_var(env_constants.ENV_GCP_BUCKET_NAME)
         storage_client = storage.Client()
         current_bucket = storage_client.get_bucket(gcp_bucket_name)
-        blob = current_bucket.blob("DomainTools/checkpoint.json")
+        blob = current_bucket.blob(utils.get_env_var(ENV_CHECKPOINT_FILE_PATH))
         try:
             with blob.open(mode="r") as json_file:
                 checkpoint_data = json.load(json_file)
