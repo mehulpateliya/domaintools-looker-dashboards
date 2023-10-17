@@ -156,9 +156,6 @@ class fechLogs:
             print(err)
             return []
 
-
-
-
     def divide_lable(self) -> list[str]:
         parser_labels = [label.strip() for label in self.parser_label.split(",")]
         return parser_labels
