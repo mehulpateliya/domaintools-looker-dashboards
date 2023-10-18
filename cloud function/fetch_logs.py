@@ -78,8 +78,6 @@ class fechLogs:
             # List of aliases returned for further processing
             print("Start fetching domains from logs")
             domain_list = set()
-            another_list = set()
-            tmp_fields = set()
             data = json.loads(aliases.decode("utf-8"))
             temp_log_count = 0
             if data.get("events"):
@@ -127,10 +125,8 @@ class fechLogs:
                   ]
                   for field in fields:
                     if field is not None:
-                      tmp_fields.add(field)
+                      domain_list.add(field)
             print("End fetching domains from logs")
-            
-            print("Start checking in memorystore")
 
             # for field in tmp_fields:
             #   cached_data = client.hgetall(field)
@@ -138,8 +134,6 @@ class fechLogs:
             #   if not cached_data:
             #     # Add the principal_hostname to the domain_list
             #     domain_list.add(field)
-
-            print("End checking in memorystore")   
             
             print(f"Total {temp_log_count} of log fetched from chronicle.")
 
