@@ -5,8 +5,6 @@ from google.cloud import storage
 from common import utils
 from common import env_constants
 from datetime import datetime, timedelta
-import time
-import redis
 
 BACKSTORY_API_V1_URL = "https://backstory.googleapis.com/v1"
 
@@ -27,40 +25,43 @@ class fechLogs:
     def fetch_data(self) -> list[str]:
         
         labels = self.divide_lable()
-        parse_query = "("
         label_size = len(labels)
-
+        if label_size > 0:
+            parse_query = "("
+        else:
+            parse_query = ""
         for val in range(len(labels)):
             parse_query += 'metadata.log_type+%3D+"{}"'.format(labels[val])
             if val < label_size-1:
                 parse_query += "+or+"
-        parse_query += ")"
+        if label_size > 0:
+            parse_query += ")%20AND%20("
 
         # client = redis.StrictRedis(host=redis_host, port=redis_port, decode_responses=True)
-
-        parse_query += '%20AND%20(hostname%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20domain%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20principal.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20about.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20src.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20target.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20intermediary.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20observer.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20metadata.url_back_to_product%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20security_result.url_back_to_product%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F)'
+        
+        parse_query += 'hostname%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20domain%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20principal.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20about.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20src.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20target.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20intermediary.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20observer.url%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20metadata.url_back_to_product%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F%20or%20security_result.url_back_to_product%20%3D%20%2F%5E(%3F:https%3F:%5C%2F%5C%2F)%3F(%3F:%5B%5E@%5C%2F%5Cn%5D%2B@)%3F(%3F:www%5C.)%3F(%5B%5E:%5C%2F%3F%5Cn%5D%2B)%2F'
+        if label_size > 0:
+            parse_query += ")"
         gcp_bucket_name = utils.get_env_var(env_constants.ENV_GCP_BUCKET_NAME)
         storage_client = storage.Client()
         current_bucket = storage_client.get_bucket(gcp_bucket_name)
         blob = current_bucket.blob(utils.get_env_var(ENV_CHECKPOINT_FILE_PATH))
         try:
-            with blob.open(mode="r") as json_file:
-                checkpoint_data = json.load(json_file)
-                if (checkpoint_data.get('time') == ""):
-                    start_time = datetime.now()
-                    dt_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
-                    new_data = {"time": dt_str}
-                    with blob.open(mode="w", encoding="utf-8") as json_file:
-                        json_file.write(json.dumps(new_data))
-                else:
-                    start_time = datetime.strptime(checkpoint_data.get('time'), "%Y-%m-%d %H:%M:%S")
-        except Exception:  
-            pass
+            if blob.exists():
+                with blob.open(mode="r") as json_file:
+                    checkpoint_data = json.load(json_file)
+                    if (checkpoint_data.get("time") is None or checkpoint_data.get('time') == ""):
+                        start_time = datetime.now()
+                    else:
+                        start_time = datetime.strptime(checkpoint_data.get('time'), "%Y-%m-%d %H:%M:%S")
+            else:
+                start_time = datetime.now()
+        except Exception as err:  
+            print("Unable to get the file from bucket", err)
         end_time = start_time + timedelta(minutes=1)
 
         query_start_time = f"{start_time.year}-{start_time.month}-{start_time.day}T{start_time.hour}%3A{start_time.minute}%3A{start_time.second}Z"
         query_end_time = f"{end_time.year}-{end_time.month}-{end_time.day}T{end_time.hour}%3A{end_time.minute}%3A{end_time.second}Z"
-
 
         LIST_USER_ALIASES_URL = '{}/events:udmSearch?query={}&time_range.start_time={}&time_range.end_time={}'.format(BACKSTORY_API_V1_URL, parse_query, query_start_time, query_end_time)
 
@@ -81,16 +82,6 @@ class fechLogs:
             data = json.loads(aliases.decode("utf-8"))
             temp_log_count = 0
             if data.get("events"):
-              # check reading for memorystore
-              # for val in data["events"]:
-              #   principal_hostname = val.get("udm").get("principal").get("hostname")
-              #   domain_list.add(principal_hostname)
-              # print("Start reading from memorystore")
-              # for val in domain_list:
-              #   cached_data = client.hgetall(val)
-              #   if not cached_data:
-              #     another_list.add(val)
-              # print("End reading from memorystore")
 
               for val in data["events"]:
                   temp_log_count += 1
@@ -127,23 +118,14 @@ class fechLogs:
                     if field is not None:
                       domain_list.add(field)
             print("End fetching domains from logs")
-
-            # for field in tmp_fields:
-            #   cached_data = client.hgetall(field)
-            #   # print("Complete checking data in cache")
-            #   if not cached_data:
-            #     # Add the principal_hostname to the domain_list
-            #     domain_list.add(field)
             
             print(f"Total {temp_log_count} of log fetched from chronicle.")
 
             new_dt_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
             new_checkpoint = {"time": new_dt_str}
-            with blob.open(mode="w", encoding="utf-8") as json_file:
-                json_file.write(json.dumps(new_checkpoint))
 
             print(domain_list)
-            return list(domain_list)
+            return list(domain_list), blob, new_checkpoint
         else:
             # An error occurred. See the response for details.
             err = response[1]

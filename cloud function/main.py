@@ -1,6 +1,7 @@
 import domaintool_client
 from google.cloud import storage
 import fetch_logs
+import json
 from common import ingest
 from common import utils
 from common import env_constants
@@ -145,19 +146,27 @@ def main(request) -> str:
   current_bucket = storage_client.get_bucket(gcp_bucket_name)
   try:
     blob = current_bucket.blob(utils.get_env_var(ENV_PARSER_LABEL_FILE_PATH))
-    parser_labels = blob.download_as_text()
+    if blob.exists():
+      parser_labels = blob.download_as_text()
+    else:
+      parser_labels = ""
+      print("Parser Label file does not exist. Considering all logs from chronicle...")
   except Exception as e:
     print("An error occurred:", e)
     return "Ingestion not Completed"
   object_fetch_log = fetch_logs.fechLogs(parser_labels)
-  domain_list = object_fetch_log.fetch_data()
+  domain_list, checkpoint_blob, new_checkpoint = object_fetch_log.fetch_data()
   print("End process of log fetching")
 
   if not domain_list:
     print("No logs found from chronicle")
+    with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
+      json_file.write(json.dumps(new_checkpoint))
     return "Ingestion not Completed"
   else:
     print("Started execution of ingestion scripts.")
     get_and_ingest_logs(chronicle_label, domain_list)
     print("Completed execution of ingestion scripts in time")
+    with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
+      json_file.write(json.dumps(new_checkpoint))
   return "Ingestion Completed"
