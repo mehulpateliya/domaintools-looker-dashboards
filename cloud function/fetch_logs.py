@@ -133,5 +133,7 @@ class fechLogs:
             return []
 
     def divide_lable(self) -> list[str]:
+        if self.parser_label == "":
+            return []
         parser_labels = [label.strip() for label in self.parser_label.split(",")]
         return parser_labels
