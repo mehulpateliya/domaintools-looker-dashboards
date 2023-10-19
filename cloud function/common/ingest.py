@@ -178,7 +178,7 @@ def _send_logs_to_chronicle(
     ) from err
 
 def get_reference_list(list_name):
-  print("Getting Reference list for ", list_name)
+  print("Fetching Reference list data for {}.".format(list_name))
   http_session = initialize_http_session(
     SERVICE_ACCOUNT_DICT, scopes=AUTHORIZATION_SCOPES
   )

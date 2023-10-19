@@ -10,16 +10,17 @@ BACKSTORY_API_V1_URL = "https://backstory.googleapis.com/v1"
 
 SCOPES = ["https://www.googleapis.com/auth/chronicle-backstory"]
 
-SERVICE_ACCOUNT_FILE = "CHRONICLE_CREDS_FILE"
+SERVICE_ACCOUNT_FILE = "CHRONICLE_SERVICE_ACCOUNT"
 
 LIST_USER_ALIASES_URL = ""
 
 ENV_CHECKPOINT_FILE_PATH = "CHECKPOINT_FILE_PATH"
+ENV_LOG_FETCH_DURATION = "LOG_FETCH_DURATION"
 
 class fechLogs:
 
-    def __init__(self, parser_label: str) -> None:
-        self.parser_label = parser_label
+    def __init__(self, log_types: str) -> None:
+        self.log_types = log_types
         
 
     def fetch_data(self) -> list[str]:
@@ -51,75 +52,75 @@ class fechLogs:
                 with blob.open(mode="r") as json_file:
                     checkpoint_data = json.load(json_file)
                     if (checkpoint_data.get("time") is None or checkpoint_data.get('time') == ""):
-                        start_time = datetime.now()
+                        end_time = datetime.now()
+                        start_time = end_time - timedelta(seconds=1)
                     else:
                         start_time = datetime.strptime(checkpoint_data.get('time'), "%Y-%m-%d %H:%M:%S")
+                        end_time = start_time + timedelta(seconds=int(utils.get_env_var(ENV_LOG_FETCH_DURATION)))
             else:
-                start_time = datetime.now()
+                end_time = datetime.now()
+                start_time = end_time - timedelta(seconds=1)
         except Exception as err:  
             print("Unable to get the file from bucket", err)
-        end_time = start_time + timedelta(minutes=1)
-
         query_start_time = f"{start_time.year}-{start_time.month}-{start_time.day}T{start_time.hour}%3A{start_time.minute}%3A{start_time.second}Z"
         query_end_time = f"{end_time.year}-{end_time.month}-{end_time.day}T{end_time.hour}%3A{end_time.minute}%3A{end_time.second}Z"
 
         LIST_USER_ALIASES_URL = '{}/events:udmSearch?query={}&time_range.start_time={}&time_range.end_time={}'.format(BACKSTORY_API_V1_URL, parse_query, query_start_time, query_end_time)
 
-        print("Start fetching logs from chronicle")
         service_account_json = json.loads(utils.get_env_var(SERVICE_ACCOUNT_FILE, is_secret=True))
         credentials = service_account.Credentials.from_service_account_info(service_account_json, scopes=SCOPES)
         http_client = _auth.authorized_http(credentials)
 
         response = http_client.request(LIST_USER_ALIASES_URL, "GET")
-        print("End fetching logs from chronicle")
 
         if response[0].status == 200:
             aliases = response[1]
-
             # List of aliases returned for further processing
-            print("Start fetching domains from logs")
+            print("Fetching domains from logs fetched from the Chronicle.")
             domain_list = set()
             data = json.loads(aliases.decode("utf-8"))
             temp_log_count = 0
             if data.get("events"):
+                if data.get("moreDataAvailable"):
+                    new_end_time = data['events'][len(data['events'])-1].get("udm", {}).get("metadata", {}).get("ingestedTimestamp")
+                    end_time = datetime.strptime(new_end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+                for val in data["events"]:
+                    temp_log_count += 1
+                    principal_hostname = val.get("udm", {}).get("principal", {}).get("hostname")
+                    src_hostname = val.get("udm", {}).get("src", {}).get("hostname")
+                    target_hostname = val.get("udm", {}).get("target", {}).get("hostname")
+                    intermediary_hostname = val.get("udm", {}).get("intermediary", [{}])[0].get("hostname")
+                    observer_hostname = val.get("udm", {}).get("observer", {}).get("hostname")
+                    principal_asset_hostname = val.get("udm", {}).get("principal", {}).get("asset", {}).get("hostname")
+                    src_asset_hostname = val.get("udm", {}).get("src", {}).get("asset", {}).get("hostname")
+                    target_asset_hostname = val.get("udm", {}).get("target", {}).get("asset", {}).get("hostname")
 
-              for val in data["events"]:
-                  temp_log_count += 1
-                  principal_hostname = val.get("udm", {}).get("principal", {}).get("hostname")
-                  src_hostname = val.get("udm", {}).get("src", {}).get("hostname")
-                  target_hostname = val.get("udm", {}).get("target", {}).get("hostname")
-                  intermediary_hostname = val.get("udm", {}).get("intermediary", [{}])[0].get("hostname")
-                  observer_hostname = val.get("udm", {}).get("observer", {}).get("hostname")
-                  principal_asset_hostname = val.get("udm", {}).get("principal", {}).get("asset", {}).get("hostname")
-                  src_asset_hostname = val.get("udm", {}).get("src", {}).get("asset", {}).get("hostname")
-                  target_asset_hostname = val.get("udm", {}).get("target", {}).get("asset", {}).get("hostname")
+                    network_dns_domain = val.get("udm", {}).get("network", {}).get("dns_domain")
+                    network_dns_questions_name = val.get("udm", {}).get("network", {}).get("dns", {}).get("questions", [{}])[0].get("name")
+                    principal_administrative_domain = val.get("udm", {}).get("principal", {}).get("administrative_domain")
+                    target_administrative_domain = val.get("udm", {}).get("target", {}).get("administrative_domain")
+                    about_administrative_domain = val.get("udm", {}).get("about", [{}])[0].get("administrative_domain")
+                    target_hostname = val.get("udm", {}).get("target", {}).get("hostname")
+                    target_asset_hostname = val.get("udm", {}).get("target", {}).get("asset", {}).get("hostname")
+                    principal_asset_network_domain = val.get("udm", {}).get("principal", {}).get("asset", {}).get("network_domain")
+                    target_asset_network_domain = val.get("udm", {}).get("target", {}).get("asset", {}).get("network_domain")
+                    about_asset_network_domain = val.get("udm", {}).get("about", [{}])[0].get("asset", {}).get("network_domain")
 
-                  network_dns_domain = val.get("udm", {}).get("network", {}).get("dns_domain")
-                  network_dns_questions_name = val.get("udm", {}).get("network", {}).get("dns", {}).get("questions", [{}])[0].get("name")
-                  principal_administrative_domain = val.get("udm", {}).get("principal", {}).get("administrative_domain")
-                  target_administrative_domain = val.get("udm", {}).get("target", {}).get("administrative_domain")
-                  about_administrative_domain = val.get("udm", {}).get("about", [{}])[0].get("administrative_domain")
-                  target_hostname = val.get("udm", {}).get("target", {}).get("hostname")
-                  target_asset_hostname = val.get("udm", {}).get("target", {}).get("asset", {}).get("hostname")
-                  principal_asset_network_domain = val.get("udm", {}).get("principal", {}).get("asset", {}).get("network_domain")
-                  target_asset_network_domain = val.get("udm", {}).get("target", {}).get("asset", {}).get("network_domain")
-                  about_asset_network_domain = val.get("udm", {}).get("about", [{}])[0].get("asset", {}).get("network_domain")
-
-                  fields = [
-                      principal_hostname, src_hostname, target_hostname, intermediary_hostname,
-                      observer_hostname, principal_asset_hostname, src_asset_hostname,
-                      target_asset_hostname, network_dns_domain, network_dns_questions_name,
-                      principal_administrative_domain, target_administrative_domain,
-                      about_administrative_domain, target_hostname, target_asset_hostname,
-                      principal_asset_network_domain, target_asset_network_domain,
-                      about_asset_network_domain
-                  ]
-                  for field in fields:
-                    if field is not None:
-                      domain_list.add(field)
-            print("End fetching domains from logs")
+                    fields = [
+                        principal_hostname, src_hostname, target_hostname, intermediary_hostname,
+                        observer_hostname, principal_asset_hostname, src_asset_hostname,
+                        target_asset_hostname, network_dns_domain, network_dns_questions_name,
+                        principal_administrative_domain, target_administrative_domain,
+                        about_administrative_domain, target_hostname, target_asset_hostname,
+                        principal_asset_network_domain, target_asset_network_domain,
+                        about_asset_network_domain
+                    ]
+                    for field in fields:
+                        if field is not None:
+                            domain_list.add(field)
+            print("Completed fetching domains from logs fetched from the Chronicle.")
             
-            print(f"Total {temp_log_count} of log fetched from chronicle.")
+            print(f"Total {temp_log_count} of log fetched from Chronicle.")
 
             new_dt_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
             new_checkpoint = {"time": new_dt_str}
@@ -129,11 +130,10 @@ class fechLogs:
         else:
             # An error occurred. See the response for details.
             err = response[1]
-            print(err)
-            return []
+            raise RuntimeError(err)
 
     def divide_lable(self) -> list[str]:
-        if self.parser_label == "":
+        if self.log_types == "":
             return []
-        parser_labels = [label.strip() for label in self.parser_label.split(",")]
-        return parser_labels
+        log_types_list = [label.strip() for label in self.log_types.split(",")]
+        return log_types_list
