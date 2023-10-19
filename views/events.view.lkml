@@ -16,6 +16,10 @@ view: events {
     group_label: "Metadata Ingested Timestamp"
     group_item_label: "Seconds_new"
   }
+  dimension: high_risk_threshold {
+    type: string
+    sql: {{_user_attributes['high_risk_threshold']}} ;;
+  }
   dimension: additional__fields {
     hidden: yes
     sql: ${TABLE}.additional.fields ;;
@@ -40,7 +44,7 @@ view: events {
     type: string
     # group_label: "event_counts"
     label: "domain_risk_score"
-    sql: case when ${events__security_result.risk_score} > 90 then 'high' when ${events__security_result.risk_score} > 80 and ${events__security_result.risk_score} <= 90 then 'medium' end;;
+    sql: case when ${events__security_result.risk_score} > ${high_risk_threshold} then 'high' when ${events__security_result.risk_score} > 80 and ${events__security_result.risk_score} <= ${high_risk_threshold} then 'medium' end;;
   }
   dimension: latest_risk_score {
     type: number
