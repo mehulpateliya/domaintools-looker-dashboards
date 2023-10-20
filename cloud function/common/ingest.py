@@ -25,13 +25,16 @@ from google.oauth2 import service_account
 from common import env_constants
 from common import utils
 
-AUTHORIZATION_SCOPES = ["https://www.googleapis.com/auth/malachite-ingestion", "https://www.googleapis.com/auth/chronicle-backstory"]
+AUTHORIZATION_SCOPES = [
+    "https://www.googleapis.com/auth/malachite-ingestion",
+    "https://www.googleapis.com/auth/chronicle-backstory",
+]
 CUSTOMER_ID = utils.get_env_var(env_constants.ENV_CHRONICLE_CUSTOMER_ID)
 REGION = utils.get_env_var(
-  env_constants.ENV_CHRONICLE_REGION, required=False, default="us"
+    env_constants.ENV_CHRONICLE_REGION, required=False, default="us"
 )
 SERVICE_ACCOUNT = utils.get_env_var(
-  env_constants.ENV_CHRONICLE_SERVICE_ACCOUNT, is_secret=True
+    env_constants.ENV_CHRONICLE_SERVICE_ACCOUNT, is_secret=True
 )
 
 # Base URL for ingestion API.
@@ -47,166 +50,172 @@ REFERENCE_LIST_API_BASE_URL = "backstory.googleapis.com"
 SIZE_THRESHOLD_BYTES = 950000
 
 try:
-  SERVICE_ACCOUNT_DICT = json.loads(SERVICE_ACCOUNT)
+    SERVICE_ACCOUNT_DICT = json.loads(SERVICE_ACCOUNT)
 except json.JSONDecodeError as error:
-  raise RuntimeError("Invalid Service Account JSON provided.") from error
+    raise RuntimeError("Invalid Service Account JSON provided.") from error
 
 
 def initialize_http_session(
-  service_account_json: Dict[Any, Any],
-  scopes: Optional[Sequence[str]] = None,
+    service_account_json: Dict[Any, Any],
+    scopes: Optional[Sequence[str]] = None,
 ) -> Requests.AuthorizedSession:
-  """Initializes an authenticated session with Google Chronicle.
+    """Initializes an authenticated session with Google Chronicle.
 
-  Args:
-  service_account_json (Dict): Service Account JSON.
-  scopes (Optional[Sequence[str]], optional): Required scopes.
-   Defaults to None.
+    Args:
+    service_account_json (Dict): Service Account JSON.
+    scopes (Optional[Sequence[str]], optional): Required scopes.
+      Defaults to None.
 
-  Returns:
-  Requests.AuthorizedSession: Authorized session object.
-  """
-  credentials = service_account.Credentials.from_service_account_info(
-    service_account_json,
-    scopes=scopes or AUTHORIZATION_SCOPES,
-  )
-  return Requests.AuthorizedSession(credentials)
+    Returns:
+    Requests.AuthorizedSession: Authorized session object.
+    """
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_json,
+        scopes=scopes or AUTHORIZATION_SCOPES,
+    )
+    return Requests.AuthorizedSession(credentials)
 
 
 def ingest(data: List[Any], log_type: str):
-  """Prepare the chunk size of 0.95MB and send it to Chronicle.
+    """Prepare the chunk size of 0.95MB and send it to Chronicle.
 
-  Args:
-  data (List[Any]): Raw logs to send to Google Chronicle.
-  log_type (str): Chronicle log type, for example: STIX
-  """
-  http_session = initialize_http_session(
-    SERVICE_ACCOUNT_DICT, scopes=AUTHORIZATION_SCOPES
-  )
+    Args:
+    data (List[Any]): Raw logs to send to Google Chronicle.
+    log_type (str): Chronicle log type, for example: STIX
+    """
+    http_session = initialize_http_session(
+        SERVICE_ACCOUNT_DICT, scopes=AUTHORIZATION_SCOPES
+    )
 
-  index = 0
-  namespace = os.getenv(env_constants.ENV_CHRONICLE_NAMESPACE)
+    index = 0
+    namespace = os.getenv(env_constants.ENV_CHRONICLE_NAMESPACE)
 
-  # JSON payload to be sent to Chronicle.
-  body = {
-    "customerId": CUSTOMER_ID,
-    "logType": log_type,
-    "entries": [],
-  }
-  if namespace:
-    body["namespace"] = namespace
+    # JSON payload to be sent to Chronicle.
+    body = {
+        "customerId": CUSTOMER_ID,
+        "logType": log_type,
+        "entries": [],
+    }
+    if namespace:
+        body["namespace"] = namespace
 
-  # Loop over the list of events to send to Chronicle.
-  while index < len(data):
-    # Chronicle Ingestion API can receive a maximum of 1 MB of data in a
-    # single execution. To be on a safer side, a chunk of size 0.95MB is
-    # created, keeping 0.05MB as a buffer.
-    if (
-      sys.getsizeof(json.dumps(data[index]))
-      + sys.getsizeof(json.dumps(body))
-      <= SIZE_THRESHOLD_BYTES
-    ):
-      temp_result = json.dumps(data[index]).encode("utf-8")
-      temp_result = str(temp_result, "utf-8")
-      body["entries"].append({"logText": temp_result})
-      index += 1
-    # A chunk of size 0.95MB is prepared. Hence sending data to Chronicle.
-    else:
-      _send_logs_to_chronicle(
-        http_session,
-        body,
-        REGION,
-      )
-      body["entries"].clear()
-  # If the data received to ingest is below 0.95MB, the above while loop is
-  # yet to send the data to Chronicle. Hence, sending the data now.
-  if body["entries"]:
-    _send_logs_to_chronicle(http_session, body, REGION)
+    # Loop over the list of events to send to Chronicle.
+    while index < len(data):
+        # Chronicle Ingestion API can receive a maximum of 1 MB of data in a
+        # single execution. To be on a safer side, a chunk of size 0.95MB is
+        # created, keeping 0.05MB as a buffer.
+        if (
+            sys.getsizeof(json.dumps(data[index])) + sys.getsizeof(json.dumps(body))
+            <= SIZE_THRESHOLD_BYTES
+        ):
+            temp_result = json.dumps(data[index]).encode("utf-8")
+            temp_result = str(temp_result, "utf-8")
+            body["entries"].append({"logText": temp_result})
+            index += 1
+        # A chunk of size 0.95MB is prepared. Hence sending data to Chronicle.
+        else:
+            _send_logs_to_chronicle(
+                http_session,
+                body,
+                REGION,
+            )
+            body["entries"].clear()
+    # If the data received to ingest is below 0.95MB, the above while loop is
+    # yet to send the data to Chronicle. Hence, sending the data now.
+    if body["entries"]:
+        _send_logs_to_chronicle(http_session, body, REGION)
 
 
 def _send_logs_to_chronicle(
-  http_session: Requests.AuthorizedSession,
-  body: Dict[str, List[Any]],
-  region: str,
+    http_session: Requests.AuthorizedSession,
+    body: Dict[str, List[Any]],
+    region: str,
 ):
-  """Sends unstructured log entries to the Chronicle backend for ingestion.
+    """Sends unstructured log entries to the Chronicle backend for ingestion.
 
-  Args:
-  http_session (Requests.AuthorizedSession): Authorized session for HTTP
-   requests.
-  body (Dict[str, List[Any]]): JSON payload to send to Chronicle
-   Ingestion API.
-  region (str): Region of Ingestion API.
+    Args:
+    http_session (Requests.AuthorizedSession): Authorized session for HTTP
+     requests.
+    body (Dict[str, List[Any]]): JSON payload to send to Chronicle
+     Ingestion API.
+    region (str): Region of Ingestion API.
 
-  Raises:
-  RuntimeError: Raises if any error occurred during log ingestion.
-  """
-  if region.lower() != "us":
-    url = (
-      "https://"
-      + region.lower()
-      + "-"
-      + INGESTION_API_BASE_URL
-      + "/v2/unstructuredlogentries:batchCreate"
-    )
-  else:
-    url = (
-      "https://"
-      + INGESTION_API_BASE_URL
-      + "/v2/unstructuredlogentries:batchCreate"
-    )
+    Raises:
+    RuntimeError: Raises if any error occurred during log ingestion.
+    """
+    if region.lower() != "us":
+        url = (
+            "https://"
+            + region.lower()
+            + "-"
+            + INGESTION_API_BASE_URL
+            + "/v2/unstructuredlogentries:batchCreate"
+        )
+    else:
+        url = (
+            "https://"
+            + INGESTION_API_BASE_URL
+            + "/v2/unstructuredlogentries:batchCreate"
+        )
 
-  header = {"Content-Type": "application/json"}
-  log_count = len(body["entries"])
-  print(f"Attempting to push {log_count} log(s) to Chronicle.")
+    header = {"Content-Type": "application/json"}
+    log_count = len(body["entries"])
+    print(f"Attempting to push {log_count} log(s) to Chronicle.")
 
-  # Calling the Chronicle Ingestion API.
-  # Reference - https://github.com/chronicle/api-samples-python/blob/master/
-  #   ingestion/create_unstructured_log_entries.py
-  response = http_session.request("POST", url, json=body, headers=header)
+    # Calling the Chronicle Ingestion API.
+    # Reference - https://github.com/chronicle/api-samples-python/blob/master/
+    #   ingestion/create_unstructured_log_entries.py
+    response = http_session.request("POST", url, json=body, headers=header)
 
-  try:
-    response.raise_for_status()
-    # If the Ingestion API execution is successful, it will return an empty
-    # dictionary.
-    if not response.json():
-      print(f"{log_count} log(s) pushed successfully to Chronicle.")
-  except Exception as err:
-    raise RuntimeError(
-      "Error occurred while pushing logs to Chronicle. "
-      f"Status code {response.status_code}. Reason: {response.json()}"
-    ) from err
+    try:
+        response.raise_for_status()
+        # If the Ingestion API successful, it will return an empty dictionary.
+        if not response.json():
+            print(f"{log_count} log(s) pushed successfully to Chronicle.")
+    except Exception as err:
+        raise RuntimeError(
+            "Error occurred while pushing logs to Chronicle. "
+            f"Status code {response.status_code}. Reason: {response.json()}"
+        ) from err
+
 
 def get_reference_list(list_name):
-  print("Fetching Reference list data for {}.".format(list_name))
-  http_session = initialize_http_session(
-    SERVICE_ACCOUNT_DICT, scopes=AUTHORIZATION_SCOPES
-  )
-  if REGION.lower() != "us":
-    url = (
-      "https://"
-      + REGION.lower()
-      + "-"
-      + REFERENCE_LIST_API_BASE_URL
-      + f"/v2/lists/{list_name}"
+    """
+
+    Args:
+        list_name (str): reference list name in chronicle
+
+    Raises:
+        RuntimeError: Raise error when list is not accessible
+
+    Returns:
+        list(str): The contents of the list
+    """
+    print("Fetching Reference list data for {}.".format(list_name))
+    http_session = initialize_http_session(
+        SERVICE_ACCOUNT_DICT, scopes=AUTHORIZATION_SCOPES
     )
-  else:
-    url = (
-      "https://"
-      + REFERENCE_LIST_API_BASE_URL
-      + f"/v2/lists/{list_name}"
-    )
-  header = {"Content-Type": "application/json"}
-  response = http_session.request("GET", url, headers=header)
-  try:
-    response.raise_for_status()
-    # If the Reference list API execution is successful, it will return a dictionary
-    if response:
-      list_content = response.json()['lines']
-      stripped_list_content = [s.strip() for s in list_content]
-      return stripped_list_content
-  except Exception as err:
-    raise RuntimeError(
-      "Error occurred while accessing reference list in Chronicle. "
-      f"Status code {response.status_code}. Reason: {response.json()}"
-    ) from err
+    if REGION.lower() != "us":
+        url = (
+            "https://"
+            + REGION.lower()
+            + "-"
+            + REFERENCE_LIST_API_BASE_URL
+            + f"/v2/lists/{list_name}"
+        )
+    else:
+        url = "https://" + REFERENCE_LIST_API_BASE_URL + f"/v2/lists/{list_name}"
+    header = {"Content-Type": "application/json"}
+    response = http_session.request("GET", url, headers=header)
+    try:
+        response.raise_for_status()
+        # If the Reference list API is successful, it will return a dictionary
+        if response:
+            list_content = response.json()["lines"]
+            stripped_list_content = [s.strip() for s in list_content]
+            return stripped_list_content
+    except Exception as err:
+        raise RuntimeError(
+            "Error occurred while accessing reference list in Chronicle. "
+            f"Status code {response.status_code}. Reason: {response.json()}"
+        ) from err

@@ -17,9 +17,7 @@ import http
 
 STATUS_OK = http.HTTPStatus.OK.value  # For status code 200.
 STATUS_BAD_REQUEST = http.HTTPStatus.BAD_REQUEST.value  # For status code 400.
-STATUS_UNAUTHORIZED = (
-  http.HTTPStatus.UNAUTHORIZED.value
-)  # For status code 401.
+STATUS_UNAUTHORIZED = http.HTTPStatus.UNAUTHORIZED.value  # For status code 401.
 STATUS_FORBIDDEN = http.HTTPStatus.FORBIDDEN.value  # For status code 403.
 STATUS_NOT_FOUND = http.HTTPStatus.NOT_FOUND.value  # For status code 404.
 # For status code 429.
