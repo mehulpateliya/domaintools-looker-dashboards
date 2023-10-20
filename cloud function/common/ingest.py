@@ -202,7 +202,9 @@ def get_reference_list(list_name):
     response.raise_for_status()
     # If the Reference list API execution is successful, it will return a dictionary
     if response:
-      return response.json()['lines']
+      list_content = response.json()['lines']
+      stripped_list_content = [s.strip() for s in list_content]
+      return stripped_list_content
   except Exception as err:
     raise RuntimeError(
       "Error occurred while accessing reference list in Chronicle. "

@@ -6,6 +6,7 @@ from common import ingest
 from common import utils
 from common import env_constants
 import redis
+import time
 from datetime import datetime
 from google.auth.transport import requests as Requests
 from google.oauth2 import service_account
@@ -57,13 +58,13 @@ def get_and_ingest_logs(
     allow_list_domains = []
 
   print("Checking domains in the memorystore.")
-  
+  temp_domains_list = domain_list.copy()
   # skip domains which is already present in redis
   for domain in domain_list:
     data = client.hget(domain, 'value')
     if data or (domain in allow_list_domains):
-      domain_list.remove(domain)
-  
+      temp_domains_list.remove(domain)
+  domain_list = temp_domains_list
   print("Completed checking domains in the memorystore.")   
 
   # domain_tool_client_object = domaintool_client.DomainToolClient()
@@ -79,7 +80,18 @@ def get_and_ingest_logs(
     while queue_len > 0:
       queued_domains_part = domain_list[start_len:end_len]
       if len(queued_domains_part) > 0:
-        response = domain_tool_client_object.enrich(queued_domains_part)
+        try_count = 0
+        max_retries = 2
+        while try_count < max_retries:
+          try:
+            response = domain_tool_client_object.enrich(queued_domains_part)
+            break
+          except Exception as e:
+              print(f"Attempt {try_count + 1} failed: {e}")
+              try_count += 1
+              if try_count < max_retries:
+                print(f"Retrying in 30 seconds...")
+                time.sleep(30)
         all_responses.append(response)
       
       queue_len -= 100
@@ -91,7 +103,18 @@ def get_and_ingest_logs(
         end_len = start_len + queue_len
   else:
     if len(domain_list) > 0:
-      response = domain_tool_client_object.enrich(domain_list)
+      try_count = 0
+      max_retries = 2
+      while try_count < max_retries:
+          try:
+              response = domain_tool_client_object.enrich(domain_list)
+              break
+          except Exception as e:
+              print(f"Attempt {try_count + 1} failed: {e}")
+              try_count += 1
+              if try_count < max_retries:
+                  print(f"Retrying in 30 seconds...")
+                  time.sleep(30)
       all_responses.append(response)
   print("Completed enriching domains from the DomainTools.")
 
@@ -149,7 +172,7 @@ def main(request) -> str:
   storage_client = storage.Client()
   current_bucket = storage_client.get_bucket(gcp_bucket_name)
   try:
-    blob = current_bucket.blob(utils.get_env_var(ENV_LOG_TYPE_FILE_PATH))
+    blob = current_bucket.blob(utils.get_env_var(ENV_LOG_TYPE_FILE_PATH, required=False, default="temp"))
     if blob.exists():
       log_types = blob.download_as_text()
     else:
