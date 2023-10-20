@@ -46,7 +46,7 @@ class fechLogs:
         gcp_bucket_name = utils.get_env_var(env_constants.ENV_GCP_BUCKET_NAME)
         storage_client = storage.Client()
         current_bucket = storage_client.get_bucket(gcp_bucket_name)
-        blob = current_bucket.blob(utils.get_env_var(ENV_CHECKPOINT_FILE_PATH))
+        blob = current_bucket.blob(utils.get_env_var(ENV_CHECKPOINT_FILE_PATH, required=False, default="checkpoint.json"))
         try:
             if blob.exists():
                 with blob.open(mode="r") as json_file:
