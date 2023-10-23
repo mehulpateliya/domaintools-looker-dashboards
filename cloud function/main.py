@@ -9,10 +9,14 @@ import fetch_logs
 from common import ingest
 from common import utils
 from common import env_constants
+from domaintools.exceptions import (
+    NotAuthorizedException,
+    ServiceUnavailableException,
+)
 
 # Environment variable constants
-ENV_DOMAINTOOL_USER = "DOMAINTOOL_USER"
-ENV_DOMAINTOOL_PASSWORD = "DOMAINTOOL_PASSWORD"
+ENV_DOMAINTOOLS_API_USERNAME = "DOMAINTOOLS_API_USERNAME"
+ENV_DOMAINTOOLS_API_KEY = "DOMAINTOOLS_API_KEY"
 ENV_CHRONICLE_DATA_TYPE = "CHRONICLE_DATA_TYPE"
 ENV_LOG_TYPE_FILE_PATH = "LOG_TYPE_FILE_PATH"
 ENV_PROVISIONAL_TTL = "PROVISIONAL_TTL"
@@ -36,13 +40,19 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
     Raises:
       RuntimeError: When logs could not be pushed to the Chronicle.
     """
-    domaintool_user = utils.get_env_var(ENV_DOMAINTOOL_USER, is_secret=True)
-    domaintool_password = utils.get_env_var(ENV_DOMAINTOOL_PASSWORD, is_secret=True)
+    domaintool_user = utils.get_env_var(ENV_DOMAINTOOLS_API_USERNAME, is_secret=True)
+    domaintool_password = utils.get_env_var(ENV_DOMAINTOOLS_API_KEY, is_secret=True)
 
-    provisional_ttl = utils.get_env_var(ENV_PROVISIONAL_TTL, required=False, default=1)
-    non_provisional_ttl = utils.get_env_var(
-        ENV_NON_PROVISIONAL_TTL, required=False, default=30
-    )
+    try:
+        provisional_ttl = utils.get_env_var(ENV_PROVISIONAL_TTL, required=False, default=1)
+        provisional_ttl = int(provisional_ttl)
+        non_provisional_ttl = utils.get_env_var(
+            ENV_NON_PROVISIONAL_TTL, required=False, default=30
+        )
+        non_provisional_ttl = int(non_provisional_ttl)
+    except ValueError as e:
+        print("Error occurred while storing domains in the memory store. An invalid value is provided for the TTL in the environment variable.")
+        raise e
 
     domain_tool_client_object = domaintool_client.DomainToolClient(
         domaintool_user, domaintool_password
@@ -86,12 +96,19 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
                     try:
                         response = domain_tool_client_object.enrich(queued_domains_part)
                         break
+                    except NotAuthorizedException as e:
+                        raise e
+                    except ServiceUnavailableException as e:
+                        raise e
                     except Exception as e:
                         print(f"Attempt {try_count + 1} failed: {e}")
                         try_count += 1
                         if try_count < max_retries:
                             print("Retrying in 30 seconds...")
                             time.sleep(30)
+                        else:
+                            print("API call to DomainTools failed. Rate limit exceeded.")
+                            raise e
                 all_responses.append(response)
 
             queue_len -= 100
@@ -109,12 +126,19 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
                 try:
                     response = domain_tool_client_object.enrich(domain_list)
                     break
+                except NotAuthorizedException as e:
+                    raise e
+                except ServiceUnavailableException as e:
+                    raise e
                 except Exception as e:
                     print(f"Attempt {try_count + 1} failed: {e}")
                     try_count += 1
                     if try_count < max_retries:
                         print("Retrying in 30 seconds...")
                         time.sleep(30)
+                    else:
+                        print("API call to DomainTools failed. Rate limit exceeded.")
+                        raise e
             all_responses.append(response)
     print("Completed enriching domains from the DomainTools.")
 
@@ -185,16 +209,24 @@ def main(request) -> str:
     object_fetch_log = fetch_logs.FetchLogs(log_types)
     try:
         domain_list, checkpoint_blob, new_checkpoint = object_fetch_log.fetch_data()
+    except ValueError:
+        return "Ingestion not Completed"
     except RuntimeError as err:
         print("Error in fetching log: ", err)
+        return "Ingestion not Completed"
     print("Completed fetching logs from Chronicle.")
 
     if not domain_list:
         print("No domains found in the fetched logs from Chronicle.")
         with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
             json_file.write(json.dumps(new_checkpoint))
+        print("The checkpoint is updated to {}.".format(new_checkpoint.get('time')))
         return "Ingestion not Completed"
-    get_and_ingest_logs(chronicle_label, domain_list)
+    try:
+        get_and_ingest_logs(chronicle_label, domain_list)
+    except Exception:
+        return "Ingestion not Completed"
     with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
         json_file.write(json.dumps(new_checkpoint))
+    print("The checkpoint is updated to {}.".format(new_checkpoint.get('time')))
     return "Ingestion Completed"
