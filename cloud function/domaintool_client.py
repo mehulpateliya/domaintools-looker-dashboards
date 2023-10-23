@@ -30,10 +30,11 @@ class DomainToolClient:
         try:
             response = self.api.iris_enrich(*list(queued_domains)).response()
         except NotAuthorizedException as e:
-            print(f"error: {e}")
-            raise Exception(dt_exception_messages.not_autorized)
-        except ServiceUnavailableException:
-            raise Exception(dt_exception_messages.service_not_available)
+            print("The credentials provided for DomainTools are invalid.")
+            raise e
+        except ServiceUnavailableException as e:
+            print("The Service for DomainTools are currently Unavailable.")
+            raise e
         except requests.exceptions.ProxyError as e:
             print(f"error: {e}")
         except requests.exceptions.SSLError as e:

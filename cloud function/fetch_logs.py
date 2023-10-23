@@ -69,9 +69,13 @@ class FetchLogs:
                         end_time = datetime.now()
                         start_time = end_time - timedelta(seconds=1)
                     else:
-                        start_time = datetime.strptime(
-                            checkpoint_data.get("time"), "%Y-%m-%d %H:%M:%S"
-                        )
+                        try:
+                            start_time = datetime.strptime(
+                                checkpoint_data.get("time"), "%Y-%m-%d %H:%M:%S"
+                            )
+                        except ValueError as e:
+                            print("Error occurred while fetching events from the Chronicle. Checkpoint time is not in the valid format.")
+                            raise e
                         end_time = start_time + timedelta(
                             seconds=int(
                                 utils.get_env_var(ENV_LOG_FETCH_DURATION)
@@ -80,8 +84,11 @@ class FetchLogs:
             else:
                 end_time = datetime.now()
                 start_time = end_time - timedelta(seconds=1)
+        except ValueError as e:
+            raise e
         except Exception as err:
             print("Unable to get the file from bucket", err)
+            raise err
         query_start_time = f"{start_time.year}-{start_time.month}-{start_time.day}T{start_time.hour}%3A{start_time.minute}%3A{start_time.second}Z"
         query_end_time = f"{end_time.year}-{end_time.month}-{end_time.day}T{end_time.hour}%3A{end_time.minute}%3A{end_time.second}Z"
 
