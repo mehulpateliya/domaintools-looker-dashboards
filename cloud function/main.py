@@ -220,6 +220,7 @@ def main(request) -> str:
         print("No domains found in the fetched logs from Chronicle.")
         with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
             json_file.write(json.dumps(new_checkpoint))
+        print("The checkpoint is updated to {}.".format(new_checkpoint.get('time')))
         return "Ingestion not Completed"
     try:
         get_and_ingest_logs(chronicle_label, domain_list)
@@ -227,4 +228,5 @@ def main(request) -> str:
         return "Ingestion not Completed"
     with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
         json_file.write(json.dumps(new_checkpoint))
+    print("The checkpoint is updated to {}.".format(new_checkpoint.get('time')))
     return "Ingestion Completed"
