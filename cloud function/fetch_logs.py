@@ -181,11 +181,11 @@ class FetchLogs:
                         .get("target", {})
                         .get("administrativeDomain")
                     )
-                    about_administrative_domain = (
-                        val.get("udm", {})
-                        .get("about", [{}])[0]
-                        .get("administrativeDomain")
-                    )
+                    about_administrative_domain = None
+                    for val in val.get("udm", {}).get("about", [{}]):
+                        about_administrative_domain = about_administrative_domain or (
+                            val.get("administrativeDomain")
+                        )
                     target_hostname = (
                         val.get("udm", {}).get("target", {}).get("hostname")
                     )
@@ -207,12 +207,11 @@ class FetchLogs:
                         .get("asset", {})
                         .get("networkDomain")
                     )
-                    about_asset_network_domain = (
-                        val.get("udm", {})
-                        .get("about", [{}])[0]
-                        .get("asset", {})
-                        .get("networkDomain")
-                    )
+                    about_asset_network_domain = None
+                    for val in val.get("udm", {}).get("about", [{}]):
+                        about_asset_network_domain = about_asset_network_domain or (
+                            val.get("asset", {}).get("networkDomain")
+                        )
 
                     fields = [
                         principal_hostname,
