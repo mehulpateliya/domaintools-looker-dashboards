@@ -33,7 +33,6 @@ class DomainToolClient:
             print("The credentials provided for DomainTools are invalid.")
             raise e
         except ServiceUnavailableException as e:
-            print("The Service for DomainTools are currently Unavailable.")
             raise e
         except requests.exceptions.ProxyError as e:
             print(f"error: {e}")
