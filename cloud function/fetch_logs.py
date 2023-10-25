@@ -1,12 +1,12 @@
 """Fetch the logs from chronicle"""
 import json
+import math
 from datetime import datetime, timedelta
 from google.oauth2 import service_account
 from googleapiclient import _auth
 from google.cloud import storage
 from common import utils
 from common import env_constants
-import math
 
 BACKSTORY_API_V1_URL = "https://backstory.googleapis.com/v1"
 
@@ -162,7 +162,7 @@ class FetchLogs:
                     )
 
                     network_dns_domain = (
-                        val.get("udm", {}).get("network", {}).get("dns_domain")
+                        val.get("udm", {}).get("network", {}).get("dnsDomain")
                     )
                     network_dns_questions_name = (
                         val.get("udm", {})
@@ -174,17 +174,17 @@ class FetchLogs:
                     principal_administrative_domain = (
                         val.get("udm", {})
                         .get("principal", {})
-                        .get("administrative_domain")
+                        .get("administrativeDomain")
                     )
                     target_administrative_domain = (
                         val.get("udm", {})
                         .get("target", {})
-                        .get("administrative_domain")
+                        .get("administrativeDomain")
                     )
                     about_administrative_domain = (
                         val.get("udm", {})
                         .get("about", [{}])[0]
-                        .get("administrative_domain")
+                        .get("administrativeDomain")
                     )
                     target_hostname = (
                         val.get("udm", {}).get("target", {}).get("hostname")
@@ -199,19 +199,19 @@ class FetchLogs:
                         val.get("udm", {})
                         .get("principal", {})
                         .get("asset", {})
-                        .get("network_domain")
+                        .get("networkDomain")
                     )
                     target_asset_network_domain = (
                         val.get("udm", {})
                         .get("target", {})
                         .get("asset", {})
-                        .get("network_domain")
+                        .get("networkDomain")
                     )
                     about_asset_network_domain = (
                         val.get("udm", {})
                         .get("about", [{}])[0]
                         .get("asset", {})
-                        .get("network_domain")
+                        .get("networkDomain")
                     )
 
                     fields = [
