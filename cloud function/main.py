@@ -17,7 +17,7 @@ from domaintools.exceptions import (
 # Environment variable constants
 ENV_DOMAINTOOLS_API_USERNAME = "DOMAINTOOLS_API_USERNAME"
 ENV_DOMAINTOOLS_API_KEY = "DOMAINTOOLS_API_KEY"
-ENV_CHRONICLE_DATA_TYPE = "CHRONICLE_DATA_TYPE"
+ENV_CHRONICLE_LOG_TYPE = "CHRONICLE_LOG_TYPE"
 ENV_LOG_TYPE_FILE_PATH = "LOG_TYPE_FILE_PATH"
 ENV_PROVISIONAL_TTL = "PROVISIONAL_TTL"
 ENV_NON_PROVISIONAL_TTL = "NON_PROVISIONAL_TTL"
@@ -188,7 +188,7 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
 def main(request) -> str:
     """Entry point for the script."""
     print("Fetching logs from Chronicle.")
-    chronicle_label = utils.get_env_var(ENV_CHRONICLE_DATA_TYPE)
+    chronicle_label = utils.get_env_var(ENV_CHRONICLE_LOG_TYPE)
     gcp_bucket_name = utils.get_env_var(env_constants.ENV_GCP_BUCKET_NAME)
     storage_client = storage.Client()
     current_bucket = storage_client.get_bucket(gcp_bucket_name)
