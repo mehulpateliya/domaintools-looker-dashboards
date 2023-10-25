@@ -208,10 +208,10 @@ def main(request) -> str:
         return "Ingestion not Completed"
     object_fetch_log = fetch_logs.FetchLogs(log_types)
     try:
-        domain_list, checkpoint_blob, new_checkpoint = object_fetch_log.fetch_data()
+        domain_list, checkpoint_blob, new_checkpoint = object_fetch_log.fetch_data_and_checkpoint()
     except ValueError:
         return "Ingestion not Completed"
-    except RuntimeError as err:
+    except Exception as err:
         print("Error in fetching log: ", err)
         return "Ingestion not Completed"
     print("Completed fetching logs from Chronicle.")
