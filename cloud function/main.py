@@ -99,8 +99,6 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
                     except NotAuthorizedException as e:
                         raise e
                     except ServiceUnavailableException as e:
-                        raise e
-                    except Exception as e:
                         print(f"Attempt {try_count + 1} failed: {e}")
                         try_count += 1
                         if try_count < max_retries:
@@ -109,6 +107,8 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
                         else:
                             print("API call to DomainTools failed. Rate limit exceeded.")
                             raise e
+                    except Exception as e:
+                        raise e
                 all_responses.append(response)
 
             queue_len -= 100
@@ -129,8 +129,6 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
                 except NotAuthorizedException as e:
                     raise e
                 except ServiceUnavailableException as e:
-                    raise e
-                except Exception as e:
                     print(f"Attempt {try_count + 1} failed: {e}")
                     try_count += 1
                     if try_count < max_retries:
@@ -139,6 +137,8 @@ def get_and_ingest_logs(chronicle_label: str, domain_list: list[str]) -> None:
                     else:
                         print("API call to DomainTools failed. Rate limit exceeded.")
                         raise e
+                except Exception as e:
+                    raise e
             all_responses.append(response)
     print("Completed enriching domains from the DomainTools.")
 
@@ -224,7 +224,8 @@ def main(request) -> str:
         return "Ingestion not Completed"
     try:
         get_and_ingest_logs(chronicle_label, domain_list)
-    except Exception:
+    except Exception as e:
+        print("Error: ", e)
         return "Ingestion not Completed"
     with checkpoint_blob.open(mode="w", encoding="utf-8") as json_file:
         json_file.write(json.dumps(new_checkpoint))
