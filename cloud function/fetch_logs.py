@@ -6,6 +6,7 @@ from googleapiclient import _auth
 from google.cloud import storage
 from common import utils
 from common import env_constants
+import math
 
 BACKSTORY_API_V1_URL = "https://backstory.googleapis.com/v1"
 
@@ -25,14 +26,10 @@ class FetchLogs:
     def __init__(self, log_types: str) -> None:
         self.log_types = log_types
 
-    def fetch_data(self):
-        """Fetch the data from chronicle and extract the domains
-
-        Returns:
-            list: list of domains
-            blob: blob of the checkpoint file
-            dict: new checkpoint
+    def fetch_data_and_checkpoint(self):
+        """Fetch the checkpoint and fetch the data from chronicle
         """
+        end_time_duration = int(utils.get_env_var(ENV_LOG_FETCH_DURATION))
         labels = self.divide_lable()
         label_size = len(labels)
         if label_size > 0:
@@ -77,10 +74,7 @@ class FetchLogs:
                             print("Error occurred while fetching events from the Chronicle. Checkpoint time is not in the valid format.")
                             raise e
                         end_time = start_time + timedelta(
-                            seconds=int(
-                                utils.get_env_var(ENV_LOG_FETCH_DURATION)
-                            )
-                        )
+                            seconds=end_time_duration)
             else:
                 end_time = datetime.now()
                 start_time = end_time - timedelta(seconds=1)
@@ -89,6 +83,16 @@ class FetchLogs:
         except Exception as err:
             print("Unable to get the file from bucket", err)
             raise err
+        return self.fetch_data(parse_query, start_time, end_time, end_time_duration, blob)
+
+    def fetch_data(self, parse_query, start_time, end_time, end_time_duration, blob):
+        """Fetch the data from chronicle and extract the domains
+
+        Returns:
+            list: list of domains
+            blob: blob of the checkpoint file
+            dict: new checkpoint
+        """
         query_start_time = f"{start_time.year}-{start_time.month}-{start_time.day}T{start_time.hour}%3A{start_time.minute}%3A{start_time.second}Z"
         query_end_time = f"{end_time.year}-{end_time.month}-{end_time.day}T{end_time.hour}%3A{end_time.minute}%3A{end_time.second}Z"
 
@@ -103,25 +107,26 @@ class FetchLogs:
             service_account_json, scopes=SCOPES
         )
         http_client = _auth.authorized_http(credentials)
-
-        response = http_client.request(LIST_USER_ALIASES_URL, "GET")
-
+        try:
+            response = http_client.request(LIST_USER_ALIASES_URL, "GET")
+        except Exception as e:
+            raise e
         if response[0].status == 200:
             aliases = response[1]
             # List of aliases returned for further processing
-            print("Fetching domains from logs fetched from the Chronicle.")
             domain_list = set()
             data = json.loads(aliases.decode("utf-8"))
             temp_log_count = 0
             if data.get("events"):
                 if data.get("moreDataAvailable"):
-                    new_end_time = (
-                        data["events"][len(data["events"]) - 1]
-                        .get("udm", {})
-                        .get("metadata", {})
-                        .get("ingestedTimestamp")
-                    )
-                    end_time = datetime.strptime(new_end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+                    if (start_time + timedelta(seconds=1)) == end_time:
+                        print("We are getting more than 10k logs for 1 second.")
+                    else:
+                        new_end_time_duration = math.ceil(end_time_duration/2)
+                        new_end_time = start_time + timedelta(seconds=new_end_time_duration)
+                        print("We are getting more than 10k logs. We will consider new end time as", new_end_time)
+                        return self.fetch_data(parse_query, start_time, new_end_time, new_end_time_duration, blob)
+                    print("Fetching domains from logs fetched from the Chronicle.")
                 for val in data["events"]:
                     temp_log_count += 1
                     principal_hostname = (
@@ -238,8 +243,8 @@ class FetchLogs:
 
             new_dt_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
             new_checkpoint = {"time": new_dt_str}
-
-            print(domain_list)
+            if len(domain_list) > 0:
+                print(domain_list)
             return list(domain_list), blob, new_checkpoint
         else:
             # An error occurred. See the response for details.
