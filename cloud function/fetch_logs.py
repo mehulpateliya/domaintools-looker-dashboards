@@ -21,15 +21,18 @@ ENV_LOG_FETCH_DURATION = "LOG_FETCH_DURATION"
 
 
 class FetchLogs:
-    """FetchLogs class
-    """
+    """FetchLogs class"""
+
     def __init__(self, log_types: str) -> None:
         self.log_types = log_types
 
     def fetch_data_and_checkpoint(self):
-        """Fetch the checkpoint and fetch the data from chronicle
-        """
-        end_time_duration = int(utils.get_env_var(ENV_LOG_FETCH_DURATION))
+        """Fetch the checkpoint and fetch the data from chronicle"""
+        try:
+            end_time_duration = int(utils.get_env_var(ENV_LOG_FETCH_DURATION))
+        except ValueError as e:
+            print("Please provide integer value for ENV_LOG_FETCH_DURATION.")
+            raise e
         labels = self.divide_lable()
         label_size = len(labels)
         if label_size > 0:
@@ -51,8 +54,7 @@ class FetchLogs:
         current_bucket = storage_client.get_bucket(gcp_bucket_name)
         blob = current_bucket.blob(
             utils.get_env_var(
-                ENV_CHECKPOINT_FILE_PATH, required=False,
-                default="checkpoint.json"
+                ENV_CHECKPOINT_FILE_PATH, required=False, default="checkpoint.json"
             )
         )
         try:
@@ -71,10 +73,11 @@ class FetchLogs:
                                 checkpoint_data.get("time"), "%Y-%m-%d %H:%M:%S"
                             )
                         except ValueError as e:
-                            print("Error occurred while fetching events from the Chronicle. Checkpoint time is not in the valid format.")
+                            print(
+                                "Error occurred while fetching events from the Chronicle. Checkpoint time is not in the valid format."
+                            )
                             raise e
-                        end_time = start_time + timedelta(
-                            seconds=end_time_duration)
+                        end_time = start_time + timedelta(seconds=end_time_duration)
             else:
                 end_time = datetime.now()
                 start_time = end_time - timedelta(seconds=1)
@@ -83,7 +86,9 @@ class FetchLogs:
         except Exception as err:
             print("Unable to get the file from bucket", err)
             raise err
-        return self.fetch_data(parse_query, start_time, end_time, end_time_duration, blob)
+        return self.fetch_data(
+            parse_query, start_time, end_time, end_time_duration, blob
+        )
 
     def fetch_data(self, parse_query, start_time, end_time, end_time_duration, blob):
         """Fetch the data from chronicle and extract the domains
@@ -119,13 +124,24 @@ class FetchLogs:
             temp_log_count = 0
             if data.get("events"):
                 if data.get("moreDataAvailable"):
-                    if (start_time + timedelta(seconds=1)) == end_time:
-                        print("We are getting more than 10k logs for 1 second.")
+                    if (start_time + timedelta(minutes=1)) >= end_time:
+                        print("We are getting more than 10k logs for 1 minute.")
                     else:
-                        new_end_time_duration = math.ceil(end_time_duration/2)
-                        new_end_time = start_time + timedelta(seconds=new_end_time_duration)
-                        print("We are getting more than 10k logs. We will consider new end time as", new_end_time)
-                        return self.fetch_data(parse_query, start_time, new_end_time, new_end_time_duration, blob)
+                        new_end_time_duration = math.ceil(end_time_duration / 2)
+                        new_end_time = start_time + timedelta(
+                            seconds=new_end_time_duration
+                        )
+                        print(
+                            "We are getting more than 10k logs. We will consider new end time as",
+                            new_end_time,
+                        )
+                        return self.fetch_data(
+                            parse_query,
+                            start_time,
+                            new_end_time,
+                            new_end_time_duration,
+                            blob,
+                        )
                     print("Fetching domains from logs fetched from the Chronicle.")
                 for val in data["events"]:
                     temp_log_count += 1
@@ -177,14 +193,12 @@ class FetchLogs:
                         .get("administrativeDomain")
                     )
                     target_administrative_domain = (
-                        val.get("udm", {})
-                        .get("target", {})
-                        .get("administrativeDomain")
+                        val.get("udm", {}).get("target", {}).get("administrativeDomain")
                     )
                     about_administrative_domain = None
-                    for val in val.get("udm", {}).get("about", [{}]):
+                    for value in val.get("udm", {}).get("about", [{}]):
                         about_administrative_domain = about_administrative_domain or (
-                            val.get("administrativeDomain")
+                            value.get("administrativeDomain")
                         )
                     target_hostname = (
                         val.get("udm", {}).get("target", {}).get("hostname")
@@ -208,9 +222,9 @@ class FetchLogs:
                         .get("networkDomain")
                     )
                     about_asset_network_domain = None
-                    for val in val.get("udm", {}).get("about", [{}]):
+                    for value in val.get("udm", {}).get("about", [{}]):
                         about_asset_network_domain = about_asset_network_domain or (
-                            val.get("asset", {}).get("networkDomain")
+                            value.get("asset", {}).get("networkDomain")
                         )
 
                     fields = [
