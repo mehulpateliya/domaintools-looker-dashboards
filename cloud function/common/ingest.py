@@ -215,7 +215,4 @@ def get_reference_list(list_name):
             stripped_list_content = [s.strip() for s in list_content]
             return stripped_list_content
     except Exception as err:
-        raise RuntimeError(
-            "Error occurred while accessing reference list in Chronicle. "
-            f"Status code {response.status_code}. Reason: {response.json()}"
-        ) from err
+        raise err
