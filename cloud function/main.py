@@ -163,6 +163,10 @@ def get_and_ingest_logs(
             logs.append(val)
             if function_mode == "bulk_enrichment":
                 continue
+            if function_mode == "monitoring_domain":
+                val["monitor_domain"] = True
+                val["timestamp"] = timestamp_monitoring_list
+                val["monitoring_domain_list_name"] = reference_list_name
             principal_hostname = val.get("domain")
             components_array = val.get("domain_risk", {}).get("components", [])
             evidence = ""
@@ -173,10 +177,6 @@ def get_and_ingest_logs(
                         break
             data_updated_time = val.get("data_updated_timestamp")
             current_timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
-            if function_mode == "monitoring_domain":
-                val["monitor_domain"] = True
-                val["timestamp"] = timestamp_monitoring_list
-                val["monitoring_domain_list_name"] = reference_list_name
             # Prepare a dictionary to store in the Redis Hash
             data_to_cache = {
                 "value": principal_hostname,
