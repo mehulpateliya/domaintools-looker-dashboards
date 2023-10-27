@@ -16,7 +16,7 @@ rule domain_with_specified_tag {
 
   events:
     $e.metadata.log_type = ""  // add log type 
-    $e.principal.process.file.tags  IN  %domaintool_tags_list    // replace domaintool_tags_list with your reference list name
+    $e.about.file.tags  IN  %domaintool_tags_list    // replace domaintool_tags_list with your reference list name
 
   outcome:
     // For a multi-event rule an aggregation function is required
