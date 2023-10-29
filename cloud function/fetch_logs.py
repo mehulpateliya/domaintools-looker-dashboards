@@ -152,9 +152,12 @@ class FetchLogs:
                     target_hostname = (
                         val.get("udm", {}).get("target", {}).get("hostname")
                     )
-                    intermediary_hostname = (
-                        val.get("udm", {}).get("intermediary", [{}])[0].get("hostname")
-                    )
+                    intermediary_hostname = []
+                    for value in val.get("udm", {}).get("intermediary", [{}]):
+                        if value.get("hostname"):
+                            intermediary_hostname.append(
+                                value.get("hostname")
+                            )
                     observer_hostname = (
                         val.get("udm", {}).get("observer", {}).get("hostname")
                     )
@@ -180,13 +183,12 @@ class FetchLogs:
                     network_dns_domain = (
                         val.get("udm", {}).get("network", {}).get("dnsDomain")
                     )
-                    network_dns_questions_name = (
-                        val.get("udm", {})
-                        .get("network", {})
-                        .get("dns", {})
-                        .get("questions", [{}])[0]
-                        .get("name")
-                    )
+                    network_dns_questions_name = []
+                    for value in val.get("udm", {}).get("network", {}).get("dns", {}).get("questions", [{}]):
+                        if value.get("name"):
+                            network_dns_questions_name.append(
+                                value.get("name")
+                            )
                     principal_administrative_domain = (
                         val.get("udm", {})
                         .get("principal", {})
@@ -195,11 +197,12 @@ class FetchLogs:
                     target_administrative_domain = (
                         val.get("udm", {}).get("target", {}).get("administrativeDomain")
                     )
-                    about_administrative_domain = None
+                    about_administrative_domain = []
                     for value in val.get("udm", {}).get("about", [{}]):
-                        about_administrative_domain = about_administrative_domain or (
-                            value.get("administrativeDomain")
-                        )
+                        if value.get("administrativeDomain"):
+                            about_administrative_domain.append(
+                                value.get("administrativeDomain")
+                            )
                     target_hostname = (
                         val.get("udm", {}).get("target", {}).get("hostname")
                     )
@@ -221,9 +224,9 @@ class FetchLogs:
                         .get("asset", {})
                         .get("networkDomain")
                     )
-                    about_asset_network_domain = None
+                    about_asset_network_domain = []
                     for value in val.get("udm", {}).get("about", [{}]):
-                        about_asset_network_domain = about_asset_network_domain or (
+                        about_asset_network_domain.append(
                             value.get("asset", {}).get("networkDomain")
                         )
 
@@ -231,21 +234,21 @@ class FetchLogs:
                         principal_hostname,
                         src_hostname,
                         target_hostname,
-                        intermediary_hostname,
+                        *intermediary_hostname,
                         observer_hostname,
                         principal_asset_hostname,
                         src_asset_hostname,
                         target_asset_hostname,
                         network_dns_domain,
-                        network_dns_questions_name,
+                        *network_dns_questions_name,
                         principal_administrative_domain,
                         target_administrative_domain,
-                        about_administrative_domain,
+                        *about_administrative_domain,
                         target_hostname,
                         target_asset_hostname,
                         principal_asset_network_domain,
                         target_asset_network_domain,
-                        about_asset_network_domain,
+                        *about_asset_network_domain,
                     ]
                     for field in fields:
                         if field is not None:
