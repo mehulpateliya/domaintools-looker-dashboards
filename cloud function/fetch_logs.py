@@ -253,7 +253,7 @@ class FetchLogs:
                         *about_administrative_domain,
                         target_hostname,
                         target_asset_hostname,
-                        about_hostname,
+                        *about_hostname,
                         principal_asset_network_domain,
                         target_asset_network_domain,
                         *about_asset_network_domain,
