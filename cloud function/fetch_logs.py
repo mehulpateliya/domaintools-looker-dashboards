@@ -255,7 +255,7 @@ class FetchLogs:
                             domain_list.add(field)
             print("Completed fetching domains from logs fetched from the Chronicle.")
 
-            print(f"Total {temp_log_count} of log fetched from Chronicle.")
+            print(f"Total {temp_log_count} logs fetched from Chronicle.")
 
             new_dt_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
             new_checkpoint = {"time": new_dt_str}

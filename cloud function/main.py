@@ -310,17 +310,20 @@ def entry(
                     monitoring_list_domains = ingest.get_reference_list(
                         monitoring_list_name
                     )
-                    get_and_ingest_logs(
-                        chronicle_label,
-                        monitoring_list_domains,
-                        "monitoring_domain",
-                        monitoring_list_name,
-                    )
+                    if not monitoring_list_domains:
+                        print("No domain found in the {}".format(monitoring_list_name))
+                    else:
+                        get_and_ingest_logs(
+                            chronicle_label,
+                            monitoring_list_domains,
+                            "monitoring_domain",
+                            monitoring_list_name,
+                        )
                 except Exception as error:
                     print("Unable to fetch reference list. Error:", error)
             else:
                 print(
-                    "Monitoring List reference list name is not provided in environment"
+                    "Monitoring List reference list name is not provided in environment variable."
                 )
         if bulk_enrichment:
             bulk_enrichment_name = utils.get_env_var(
@@ -331,14 +334,17 @@ def entry(
                     bulk_enrichment_domains = ingest.get_reference_list(
                         bulk_enrichment_name
                     )
-                    get_and_ingest_logs(
-                        chronicle_label, bulk_enrichment_domains, "bulk_enrichment"
-                    )
+                    if not bulk_enrichment_domains:
+                        print("No domain found in the {}".format(bulk_enrichment_name))
+                    else:
+                        get_and_ingest_logs(
+                            chronicle_label, bulk_enrichment_domains, "bulk_enrichment"
+                        )
                 except Exception as error:
                     print("Unable to fetch reference list. Error:", error)
             else:
                 print(
-                    "Bulk Enrichment reference list name is not provided in environment"
+                    "Bulk Enrichment reference list name is not provided in environment variable."
                 )
         if allow_list:
             allow_list_name = utils.get_env_var(
@@ -347,21 +353,25 @@ def entry(
             if allow_list_name != "":
                 try:
                     allow_list_domains = ingest.get_reference_list(allow_list_name)
-                    allow_list_dummy_events = generate_dummy_events(
-                        allow_list_domains, "allow_list", allow_list_name
-                    )
+                    if not allow_list_domains:
+                        print("No domain found in the {}".format(allow_list_name))
+                        allow_list_dummy_events = []
+                    else:
+                        allow_list_dummy_events = generate_dummy_events(
+                            allow_list_domains, "allow_list", allow_list_name
+                        )
                     if allow_list_dummy_events:
                         try:
-                            print("Start ingesting allow list dummy log into chronicle")
+                            print("Start ingesting allow list dummy log into Chronicle.")
                             ingest.ingest(allow_list_dummy_events, chronicle_label)
-                            print("End ingesting allow list dummy log into chronicle")
+                            print("End ingesting allow list dummy log into Chronicle.")
                         except Exception as error:
                             print("Unable to push data to Chronicle. Error:", error)
                             return "Ingestion not completed"
                 except Exception as error:
                     print("Unable to fetch reference list. Error:", error)
             else:
-                print("Allow List reference list name is not provided in environment")
+                print("Allow List reference list name is not provided in environment variable.")
         if monitoring_tags:
             monitoring_tags_name = utils.get_env_var(
                 ENV_MONITORING_TAGS, required=False, default=""
@@ -371,17 +381,21 @@ def entry(
                     monitoring_tags_list = ingest.get_reference_list(
                         monitoring_tags_name
                     )
-                    monitoring_tags_dummy_events = generate_dummy_events(
-                        monitoring_tags_list, "monitoring_tags", monitoring_tags_name
-                    )
+                    if not monitoring_tags_list:
+                        print("No domain found in the {}.".format(monitoring_tags_name))
+                        monitoring_tags_dummy_events = []
+                    else:
+                        monitoring_tags_dummy_events = generate_dummy_events(
+                            monitoring_tags_list, "monitoring_tags", monitoring_tags_name
+                        )
                     if monitoring_tags_dummy_events:
                         try:
                             print(
-                                "Start ingesting monitoring tags dummy log into chronicle"
+                                "Start ingesting monitoring tags dummy log into Chronicle."
                             )
                             ingest.ingest(monitoring_tags_dummy_events, chronicle_label)
                             print(
-                                "End ingesting monitoring tags dummy log into chronicle"
+                                "End ingesting monitoring tags dummy log into Chronicle."
                             )
                         except Exception as error:
                             print("Unable to push data to Chronicle. Error:", error)
@@ -390,7 +404,7 @@ def entry(
                     print("Unable to fetch reference list. Error:", error)
             else:
                 print(
-                    "Monitoring Tag reference list name is not provided in environment"
+                    "Monitoring Tag reference list name is not provided in environment variable."
                 )
         return "Ingestion Completed"
 
@@ -410,7 +424,7 @@ def check_valid_parameter(parameter_name, parameter):
     elif str(parameter) == "False" or str(parameter) == "false":
         return False
     else:
-        print(f"Please provide boolean value for {parameter_name} parameter")
+        print(f"Please provide boolean value for {parameter_name} parameter.")
         return False
 
 
@@ -420,9 +434,9 @@ def main(request) -> str:
         try:
             request_body = json.loads(request.data)
         except json.decoder.JSONDecodeError:
-            print("Please pass a valid json as parameter")
-            return "Ingestion not completed due to error in parameter\n"
-        print("Running in Adhoc mode")
+            print("Please pass a valid json as parameter.")
+            return "Ingestion not completed due to error in parameter.\n"
+        print("Running in Adhoc mode.")
         allow_list = False
         monitoring_list = False
         monitoring_tags = False
@@ -447,7 +461,7 @@ def main(request) -> str:
                     "bulk_enrichment", bulk_enrichment
                 )
             else:
-                print(f"Provided invalid key: {key}")
+                print(f"Provided invalid key: {key}.")
         if allow_list or monitoring_list or monitoring_tags or bulk_enrichment:
             return entry(
                 allow_list,
@@ -456,7 +470,7 @@ def main(request) -> str:
                 bulk_enrichment,
                 mode="adhoc",
             )
-        print("Didn't provide valid parameters for adhoc")
-        return "Didn't provide valid parameters for adhoc\n"
-    print("Running in Scheduler mode")
+        print("Provide valid parameters for adhoc.")
+        return "Provide valid parameters for adhoc.\n"
+    print("Running in Scheduler mode.")
     return entry()

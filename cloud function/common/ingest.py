@@ -213,6 +213,7 @@ def get_reference_list(list_name):
         if response:
             list_content = response.json()["lines"]
             stripped_list_content = [s.strip() for s in list_content]
+            stripped_list_content = [item for item in stripped_list_content if item != ""]
             return stripped_list_content
     except Exception as err:
         raise err
