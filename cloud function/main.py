@@ -436,41 +436,42 @@ def main(request) -> str:
         except json.decoder.JSONDecodeError:
             print("Please pass a valid json as parameter.")
             return "Ingestion not completed due to error in parameter.\n"
-        print("Running in Adhoc mode.")
-        allow_list = False
-        monitoring_list = False
-        monitoring_tags = False
-        bulk_enrichment = False
-        for key in request_body.keys():
-            if key == "allow_list":
-                allow_list = request_body["allow_list"]
-                allow_list = check_valid_parameter("allow_list", allow_list)
-            elif key == "monitoring_list":
-                monitoring_list = request_body["monitoring_list"]
-                monitoring_list = check_valid_parameter(
-                    "monitoring_list", monitoring_list
+        if request_body:
+            print("Running in Adhoc mode.")
+            allow_list = False
+            monitoring_list = False
+            monitoring_tags = False
+            bulk_enrichment = False
+            for key in request_body.keys():
+                if key == "allow_list":
+                    allow_list = request_body["allow_list"]
+                    allow_list = check_valid_parameter("allow_list", allow_list)
+                elif key == "monitoring_list":
+                    monitoring_list = request_body["monitoring_list"]
+                    monitoring_list = check_valid_parameter(
+                        "monitoring_list", monitoring_list
+                    )
+                elif key == "monitoring_tags":
+                    monitoring_tags = request_body["monitoring_tags"]
+                    monitoring_tags = check_valid_parameter(
+                        "monitoring_tags", monitoring_tags
+                    )
+                elif key == "bulk_enrichment":
+                    bulk_enrichment = request_body["bulk_enrichment"]
+                    bulk_enrichment = check_valid_parameter(
+                        "bulk_enrichment", bulk_enrichment
+                    )
+                else:
+                    print(f"Provided invalid key: {key}.")
+            if allow_list or monitoring_list or monitoring_tags or bulk_enrichment:
+                return entry(
+                    allow_list,
+                    monitoring_list,
+                    monitoring_tags,
+                    bulk_enrichment,
+                    mode="adhoc",
                 )
-            elif key == "monitoring_tags":
-                monitoring_tags = request_body["monitoring_tags"]
-                monitoring_tags = check_valid_parameter(
-                    "monitoring_tags", monitoring_tags
-                )
-            elif key == "bulk_enrichment":
-                bulk_enrichment = request_body["bulk_enrichment"]
-                bulk_enrichment = check_valid_parameter(
-                    "bulk_enrichment", bulk_enrichment
-                )
-            else:
-                print(f"Provided invalid key: {key}.")
-        if allow_list or monitoring_list or monitoring_tags or bulk_enrichment:
-            return entry(
-                allow_list,
-                monitoring_list,
-                monitoring_tags,
-                bulk_enrichment,
-                mode="adhoc",
-            )
-        print("Provide valid parameters for adhoc.")
-        return "Provide valid parameters for adhoc.\n"
+            print("Provide valid parameters for adhoc.")
+            return "Provide valid parameters for adhoc.\n"
     print("Running in Scheduler mode.")
     return entry()
