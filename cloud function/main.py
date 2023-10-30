@@ -416,8 +416,12 @@ def check_valid_parameter(parameter_name, parameter):
 
 def main(request) -> str:
     """Entry point for the script."""
-    request_body = request.get_json()
-    if request_body:
+    if request.data:
+        try:
+            request_body = json.loads(request.data)
+        except json.decoder.JSONDecodeError:
+            print("Please pass a valid json as parameter")
+            return "Ingestion not completed due to error in parameter\n"
         print("Running in Adhoc mode")
         allow_list = False
         monitoring_list = False
