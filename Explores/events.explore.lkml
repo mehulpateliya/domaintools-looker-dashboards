@@ -3,6 +3,7 @@ include: "/views/**/*.view.lkml"
 # include: "/Dashboard/**/*.dashboard"
 
 explore: events {
+  sql_always_where: ${metadata__log_type} = 'UDM' ;;
   # hidden: yes
   join: events__about {
     view_label: "Events: About"
