@@ -1,24 +1,11 @@
+# Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+
 view: events {
-  sql_table_name: `datalake.events` ;;
+  sql_table_name: `chronicle-crds.datalake.events` ;;
 
   dimension: about {
     hidden: yes
     sql: ${TABLE}.about ;;
-  }
-
-  dimension: latest_timestamp {
-    type: number
-    sql: max(${TABLE}.metadata.ingested_timestamp.seconds) ;;
-  }
-  dimension: latest_timestamp_1 {
-    type: number
-    sql: ${metadata__ingested_timestamp__seconds} order by ${metadata__ingested_timestamp__seconds} desc limit 1;;
-    group_label: "Metadata Ingested Timestamp"
-    group_item_label: "Seconds_new"
-  }
-  dimension: high_risk_threshold {
-    type: string
-    sql: {{_user_attributes['high_risk_threshold']}} ;;
   }
   dimension: additional__fields {
     hidden: yes
@@ -32,47 +19,6 @@ view: events {
     group_label: "Extensions Auth"
     group_item_label: "Auth Details"
   }
-  measure: event_counts {
-    type: count
-    group_label: "event_counts"
-    label: "Count Events"
-    # html: <ul><li>{{events.principal__hostname}}:{{value}}</li>
-    # <li>Risk Score: {{events__security_result.risk_score}}</li></ul>;;
-    drill_fields: [ events.principal__hostname, events__security_result.risk_score , events.event_timestamp_time, events.metadata__id]
-  }
-  dimension: domain_risk_score {
-    type: string
-    # group_label: "event_counts"
-    label: "domain_risk_score"
-    sql: case when ${events__security_result.risk_score} > ${high_risk_threshold} then 'high' when ${events__security_result.risk_score} > 80 and ${events__security_result.risk_score} <= ${high_risk_threshold} then 'medium' end;;
-  }
-  dimension: latest_risk_score {
-    type: number
-    # group_label: "event_counts"
-    label: "latest_risk_score"
-    sql: ${events__security_result.risk_score} limit 1;;
-  }
-  dimension: risk_score_threshold_for_filter {
-    type: number
-    # group_label: "event_counts"
-    label: "risk_score_threshold"
-    sql: ${events__security_result.risk_score} ;;
-  }
-  # dimension_group: event_timestamp {
-  #   type: time
-  #   timeframes: [
-  #     raw,
-  #     time,
-  #     date,
-  #     week,
-  #     month,
-  #     hour,
-  #     minute,
-  #     year
-  #   ]
-  #   datatype: epoch
-  #   sql: ${TABLE}.metadata.event_timestamp.seconds ;;
-  # }
   dimension: extensions__auth__mechanism {
     hidden: yes
     sql: ${TABLE}.extensions.auth.mechanism ;;
@@ -96,11 +42,6 @@ view: events {
     timeframes: [raw, time, date, week, month, quarter, year]
     sql: ${TABLE}.hour_time_bucket ;;
   }
-  # dimension_group: latest_timestamp {
-  #   type: time
-  #   timeframes: [raw, time, date, week, month, quarter, year]
-  #   sql: ${TABLE}.hour_time_bucket ;;
-  # }
   dimension: intermediary {
     hidden: yes
     sql: ${TABLE}.intermediary ;;
@@ -159,12 +100,6 @@ view: events {
     group_label: "Metadata"
     group_item_label: "Description"
   }
-  # dimension: metadata__description_latest {
-  #   type: string
-  #   sql: max(${metadata__ingested_timestamp__seconds});;
-  #   group_label: "Metadata"
-  #   group_item_label: "Description_new"
-  # }
   dimension: metadata__enrichment_labels__allow_scoped_access {
     type: yesno
     sql: ${TABLE}.metadata.enrichment_labels.allow_scoped_access ;;
@@ -226,24 +161,10 @@ view: events {
     group_item_label: "Event Type"
   }
   dimension: metadata__id {
-    primary_key: yes
     type: string
     sql: ${TABLE}.metadata.id ;;
     group_label: "Metadata"
     group_item_label: "ID"
-    link: {
-      label: "View in Chronicle"
-      url: "https://crestdatasys.backstory.chronicle.security/search?query=metadata.id = b\"{{ value | url_encode }}\"&startTime={{ events.lower_date | url_encode }}&endTime={{ events.upper_date | url_encode }}"
-    }
-  }
-  measure: upper_date {
-    type: string
-    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)), INTERVAL 1 SECOND) );;
-  }
-
-  measure: lower_date {
-    type: string
-    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
   }
   dimension: metadata__ingested_timestamp__nanos {
     type: number
@@ -257,23 +178,6 @@ view: events {
     group_label: "Metadata Ingested Timestamp"
     group_item_label: "Seconds"
   }
-
-  dimension_group: event_timestamp  {
-    type: time
-    timeframes: [
-      raw,
-      time,
-      date,
-      week,
-      month,
-      hour,
-      minute,
-      year
-    ]
-    datatype: epoch
-    sql: ${TABLE}.metadata.ingested_timestamp.seconds ;;
-  }
-
   dimension: metadata__ingestion_labels {
     hidden: yes
     sql: ${TABLE}.metadata.ingestion_labels ;;
@@ -5608,6 +5512,343 @@ view: events {
     group_label: "Observer File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: observer__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.action ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: observer__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.action_details ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: observer__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.alert_state ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: observer__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.associations ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: observer__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.attack_details.tactics ;;
+    group_label: "Observer File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: observer__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.attack_details.techniques ;;
+    group_label: "Observer File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: observer__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.attack_details.version ;;
+    group_label: "Observer File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: observer__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.campaigns ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: observer__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.category ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: observer__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.category_details ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: observer__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.confidence ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: observer__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.confidence_details ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: observer__file__security_result__description {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.description ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: observer__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.detection_fields ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: observer__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Observer File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Observer File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Observer File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Observer File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.last_updated_time.nanos ;;
+    group_label: "Observer File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.last_updated_time.seconds ;;
+    group_label: "Observer File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.outcomes ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: observer__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.priority ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: observer__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.priority_details ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: observer__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.risk_score ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: observer__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_author ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: observer__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_id ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: observer__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.rule_labels ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: observer__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_name ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: observer__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_set ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: observer__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_set_display_name ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: observer__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_type ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: observer__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.rule_version ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: observer__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.severity ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: observer__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.severity_details ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: observer__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.summary ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: observer__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.threat_feed_name ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: observer__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.threat_id ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: observer__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.observer.file.security_result.threat_id_namespace ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: observer__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.threat_name ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: observer__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.threat_status ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: observer__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.threat_verdict ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: observer__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.url_back_to_product ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: observer__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Observer File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: observer__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Observer File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: observer__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Observer File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Observer File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Observer File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: observer__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.response_count ;;
+    group_label: "Observer File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: observer__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.source_count ;;
+    group_label: "Observer File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: observer__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Observer File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: observer__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Observer File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: observer__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.observer.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Observer File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: observer__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Observer File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: observer__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.observer.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Observer File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: observer__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Observer File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: observer__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.observer.file.security_result.verdict_info ;;
+    group_label: "Observer File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: observer__file__sha1 {
     type: string
     sql: ${TABLE}.observer.file.sha1 ;;
@@ -7329,6 +7570,343 @@ view: events {
     sql: ${TABLE}.observer.process.file.prevalence.rolling_max_sub_domains ;;
     group_label: "Observer Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
+  }
+  dimension: observer__process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.action ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: observer__process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.action_details ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: observer__process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.alert_state ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: observer__process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.associations ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: observer__process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.attack_details.tactics ;;
+    group_label: "Observer Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: observer__process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.attack_details.techniques ;;
+    group_label: "Observer Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: observer__process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.attack_details.version ;;
+    group_label: "Observer Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: observer__process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.campaigns ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: observer__process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.category ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: observer__process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.category_details ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: observer__process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.confidence ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: observer__process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.confidence_details ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: observer__process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.description ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: observer__process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.detection_fields ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: observer__process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Observer Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Observer Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Observer Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Observer Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "Observer Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "Observer Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.outcomes ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: observer__process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.priority ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: observer__process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.priority_details ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: observer__process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.risk_score ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: observer__process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_author ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: observer__process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_id ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: observer__process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.rule_labels ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: observer__process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_name ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: observer__process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_set ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: observer__process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_set_display_name ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: observer__process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_type ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: observer__process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.rule_version ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: observer__process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.severity ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: observer__process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.severity_details ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: observer__process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.summary ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: observer__process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.threat_feed_name ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: observer__process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.threat_id ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: observer__process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.observer.process.file.security_result.threat_id_namespace ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: observer__process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.threat_name ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: observer__process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.threat_status ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: observer__process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.threat_verdict ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: observer__process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.url_back_to_product ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: observer__process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Observer Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: observer__process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Observer Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: observer__process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Observer Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: observer__process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Observer Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: observer__process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Observer Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: observer__process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.response_count ;;
+    group_label: "Observer Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: observer__process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.source_count ;;
+    group_label: "Observer Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: observer__process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Observer Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: observer__process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Observer Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: observer__process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.observer.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Observer Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: observer__process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Observer Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: observer__process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.observer.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Observer Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: observer__process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Observer Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: observer__process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.observer.process.file.security_result.verdict_info ;;
+    group_label: "Observer Process File Security Result"
+    group_item_label: "Verdict Info"
   }
   dimension: observer__process__file__sha1 {
     type: string
@@ -12653,6 +13231,343 @@ view: events {
     group_label: "Principal File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: principal__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.action ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: principal__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.action_details ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: principal__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.alert_state ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: principal__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.associations ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: principal__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.attack_details.tactics ;;
+    group_label: "Principal File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: principal__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.attack_details.techniques ;;
+    group_label: "Principal File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: principal__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.attack_details.version ;;
+    group_label: "Principal File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: principal__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.campaigns ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: principal__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.category ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: principal__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.category_details ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: principal__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.confidence ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: principal__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.confidence_details ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: principal__file__security_result__description {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.description ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: principal__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.detection_fields ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: principal__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Principal File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Principal File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Principal File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Principal File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.last_updated_time.nanos ;;
+    group_label: "Principal File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.last_updated_time.seconds ;;
+    group_label: "Principal File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.outcomes ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: principal__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.priority ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: principal__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.priority_details ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: principal__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.risk_score ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: principal__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_author ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: principal__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_id ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: principal__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.rule_labels ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: principal__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_name ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: principal__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_set ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: principal__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_set_display_name ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: principal__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_type ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: principal__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.rule_version ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: principal__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.severity ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: principal__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.severity_details ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: principal__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.summary ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: principal__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.threat_feed_name ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: principal__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.threat_id ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: principal__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.principal.file.security_result.threat_id_namespace ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: principal__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.threat_name ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: principal__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.threat_status ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: principal__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.threat_verdict ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: principal__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.url_back_to_product ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: principal__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Principal File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: principal__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Principal File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: principal__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Principal File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Principal File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Principal File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: principal__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.response_count ;;
+    group_label: "Principal File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: principal__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.source_count ;;
+    group_label: "Principal File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: principal__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Principal File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: principal__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Principal File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: principal__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.principal.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Principal File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: principal__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Principal File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: principal__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.principal.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Principal File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: principal__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Principal File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: principal__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.principal.file.security_result.verdict_info ;;
+    group_label: "Principal File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: principal__file__sha1 {
     type: string
     sql: ${TABLE}.principal.file.sha1 ;;
@@ -12952,10 +13867,6 @@ view: events {
     sql: ${TABLE}.principal.hostname ;;
     group_label: "Principal"
     group_item_label: "Hostname"
-    # link: {
-    #   label: "View in Chronicle"
-    #   url: "https://crestdatasys.backstory.chronicle.security/search?query=metadata.id = b\"{{ value | url_encode }}\"&startTime={{ events.lower_date | url_encode }}&endTime={{ events.upper_date | url_encode }}"
-    # }
   }
   dimension: principal__investigation__comments {
     hidden: yes
@@ -14378,6 +15289,343 @@ view: events {
     sql: ${TABLE}.principal.process.file.prevalence.rolling_max_sub_domains ;;
     group_label: "Principal Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
+  }
+  dimension: principal__process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.action ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: principal__process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.action_details ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: principal__process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.alert_state ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: principal__process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.associations ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: principal__process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.attack_details.tactics ;;
+    group_label: "Principal Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: principal__process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.attack_details.techniques ;;
+    group_label: "Principal Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: principal__process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.attack_details.version ;;
+    group_label: "Principal Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: principal__process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.campaigns ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: principal__process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.category ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: principal__process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.category_details ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: principal__process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.confidence ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: principal__process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.confidence_details ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: principal__process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.description ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: principal__process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.detection_fields ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: principal__process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Principal Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Principal Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Principal Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Principal Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "Principal Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "Principal Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.outcomes ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: principal__process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.priority ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: principal__process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.priority_details ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: principal__process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.risk_score ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: principal__process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_author ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: principal__process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_id ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: principal__process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.rule_labels ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: principal__process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_name ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: principal__process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_set ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: principal__process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_set_display_name ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: principal__process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_type ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: principal__process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.rule_version ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: principal__process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.severity ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: principal__process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.severity_details ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: principal__process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.summary ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: principal__process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.threat_feed_name ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: principal__process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.threat_id ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: principal__process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.principal.process.file.security_result.threat_id_namespace ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: principal__process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.threat_name ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: principal__process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.threat_status ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: principal__process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.threat_verdict ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: principal__process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.url_back_to_product ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: principal__process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Principal Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: principal__process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Principal Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: principal__process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Principal Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: principal__process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Principal Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: principal__process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Principal Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: principal__process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.response_count ;;
+    group_label: "Principal Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: principal__process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.source_count ;;
+    group_label: "Principal Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: principal__process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Principal Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: principal__process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Principal Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: principal__process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.principal.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Principal Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: principal__process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Principal Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: principal__process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.principal.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Principal Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: principal__process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Principal Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: principal__process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.principal.process.file.security_result.verdict_info ;;
+    group_label: "Principal Process File Security Result"
+    group_item_label: "Verdict Info"
   }
   dimension: principal__process__file__sha1 {
     type: string
@@ -19706,6 +20954,343 @@ view: events {
     group_label: "Src File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: src__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.action ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: src__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.src.file.security_result.action_details ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: src__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.src.file.security_result.alert_state ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: src__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.associations ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: src__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.attack_details.tactics ;;
+    group_label: "Src File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: src__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.attack_details.techniques ;;
+    group_label: "Src File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: src__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.src.file.security_result.attack_details.version ;;
+    group_label: "Src File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: src__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.campaigns ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: src__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.category ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: src__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.category_details ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: src__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.src.file.security_result.confidence ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: src__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.src.file.security_result.confidence_details ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: src__file__security_result__description {
+    type: string
+    sql: ${TABLE}.src.file.security_result.description ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: src__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.detection_fields ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: src__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.src.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Src File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.src.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Src File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.src.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Src File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.src.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Src File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.src.file.security_result.last_updated_time.nanos ;;
+    group_label: "Src File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.src.file.security_result.last_updated_time.seconds ;;
+    group_label: "Src File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.outcomes ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: src__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.src.file.security_result.priority ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: src__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.src.file.security_result.priority_details ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: src__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.src.file.security_result.risk_score ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: src__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_author ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: src__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_id ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: src__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.rule_labels ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: src__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_name ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: src__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_set ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: src__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_set_display_name ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: src__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_type ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: src__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.src.file.security_result.rule_version ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: src__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.src.file.security_result.severity ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: src__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.src.file.security_result.severity_details ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: src__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.src.file.security_result.summary ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: src__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.src.file.security_result.threat_feed_name ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: src__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.src.file.security_result.threat_id ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: src__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.src.file.security_result.threat_id_namespace ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: src__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.src.file.security_result.threat_name ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: src__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.src.file.security_result.threat_status ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: src__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.src.file.security_result.threat_verdict ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: src__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.src.file.security_result.url_back_to_product ;;
+    group_label: "Src File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: src__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Src File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: src__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Src File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: src__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Src File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Src File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.src.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Src File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: src__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.response_count ;;
+    group_label: "Src File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: src__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.source_count ;;
+    group_label: "Src File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: src__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Src File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: src__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Src File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: src__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.src.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Src File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: src__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Src File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: src__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.src.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Src File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: src__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Src File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: src__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.src.file.security_result.verdict_info ;;
+    group_label: "Src File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: src__file__sha1 {
     type: string
     sql: ${TABLE}.src.file.sha1 ;;
@@ -21427,6 +23012,343 @@ view: events {
     sql: ${TABLE}.src.process.file.prevalence.rolling_max_sub_domains ;;
     group_label: "Src Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
+  }
+  dimension: src__process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.action ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: src__process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.action_details ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: src__process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.alert_state ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: src__process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.associations ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: src__process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.attack_details.tactics ;;
+    group_label: "Src Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: src__process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.attack_details.techniques ;;
+    group_label: "Src Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: src__process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.attack_details.version ;;
+    group_label: "Src Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: src__process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.campaigns ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: src__process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.category ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: src__process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.category_details ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: src__process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.confidence ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: src__process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.confidence_details ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: src__process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.description ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: src__process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.detection_fields ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: src__process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Src Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Src Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Src Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Src Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "Src Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "Src Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.outcomes ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: src__process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.priority ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: src__process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.priority_details ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: src__process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.risk_score ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: src__process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_author ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: src__process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_id ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: src__process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.rule_labels ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: src__process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_name ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: src__process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_set ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: src__process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_set_display_name ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: src__process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_type ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: src__process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.rule_version ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: src__process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.severity ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: src__process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.severity_details ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: src__process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.summary ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: src__process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.threat_feed_name ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: src__process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.threat_id ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: src__process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.src.process.file.security_result.threat_id_namespace ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: src__process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.threat_name ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: src__process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.threat_status ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: src__process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.threat_verdict ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: src__process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.url_back_to_product ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: src__process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Src Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: src__process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Src Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: src__process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Src Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: src__process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Src Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: src__process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Src Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: src__process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.response_count ;;
+    group_label: "Src Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: src__process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.source_count ;;
+    group_label: "Src Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: src__process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Src Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: src__process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Src Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: src__process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.src.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Src Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: src__process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Src Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: src__process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.src.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Src Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: src__process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Src Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: src__process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.src.process.file.security_result.verdict_info ;;
+    group_label: "Src Process File Security Result"
+    group_item_label: "Verdict Info"
   }
   dimension: src__process__file__sha1 {
     type: string
@@ -26751,6 +28673,343 @@ view: events {
     group_label: "Target File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: target__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.action ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: target__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.target.file.security_result.action_details ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: target__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.target.file.security_result.alert_state ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: target__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.associations ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: target__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.attack_details.tactics ;;
+    group_label: "Target File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: target__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.attack_details.techniques ;;
+    group_label: "Target File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: target__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.target.file.security_result.attack_details.version ;;
+    group_label: "Target File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: target__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.campaigns ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: target__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.category ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: target__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.category_details ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: target__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.target.file.security_result.confidence ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: target__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.target.file.security_result.confidence_details ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: target__file__security_result__description {
+    type: string
+    sql: ${TABLE}.target.file.security_result.description ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: target__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.detection_fields ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: target__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.target.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Target File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.target.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Target File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.target.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Target File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.target.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Target File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.target.file.security_result.last_updated_time.nanos ;;
+    group_label: "Target File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.target.file.security_result.last_updated_time.seconds ;;
+    group_label: "Target File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.outcomes ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: target__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.target.file.security_result.priority ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: target__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.target.file.security_result.priority_details ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: target__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.target.file.security_result.risk_score ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: target__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_author ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: target__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_id ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: target__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.rule_labels ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: target__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_name ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: target__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_set ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: target__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_set_display_name ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: target__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_type ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: target__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.target.file.security_result.rule_version ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: target__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.target.file.security_result.severity ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: target__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.target.file.security_result.severity_details ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: target__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.target.file.security_result.summary ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: target__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.target.file.security_result.threat_feed_name ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: target__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.target.file.security_result.threat_id ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: target__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.target.file.security_result.threat_id_namespace ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: target__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.target.file.security_result.threat_name ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: target__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.target.file.security_result.threat_status ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: target__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.target.file.security_result.threat_verdict ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: target__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.target.file.security_result.url_back_to_product ;;
+    group_label: "Target File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: target__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Target File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: target__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Target File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: target__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Target File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Target File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.target.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Target File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: target__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.response_count ;;
+    group_label: "Target File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: target__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.source_count ;;
+    group_label: "Target File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: target__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Target File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: target__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Target File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: target__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.target.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Target File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: target__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Target File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: target__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.target.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Target File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: target__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Target File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: target__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.target.file.security_result.verdict_info ;;
+    group_label: "Target File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: target__file__sha1 {
     type: string
     sql: ${TABLE}.target.file.sha1 ;;
@@ -28473,6 +30732,343 @@ view: events {
     group_label: "Target Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: target__process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.action ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: target__process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.action_details ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: target__process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.alert_state ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: target__process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.associations ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: target__process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.attack_details.tactics ;;
+    group_label: "Target Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: target__process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.attack_details.techniques ;;
+    group_label: "Target Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: target__process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.attack_details.version ;;
+    group_label: "Target Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: target__process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.campaigns ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: target__process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.category ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: target__process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.category_details ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: target__process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.confidence ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: target__process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.confidence_details ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: target__process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.description ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: target__process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.detection_fields ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: target__process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Target Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Target Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Target Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Target Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "Target Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "Target Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.outcomes ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: target__process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.priority ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: target__process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.priority_details ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: target__process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.risk_score ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: target__process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_author ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: target__process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_id ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: target__process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.rule_labels ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: target__process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_name ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: target__process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_set ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: target__process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_set_display_name ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: target__process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_type ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: target__process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.rule_version ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: target__process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.severity ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: target__process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.severity_details ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: target__process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.summary ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: target__process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.threat_feed_name ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: target__process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.threat_id ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: target__process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.target.process.file.security_result.threat_id_namespace ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: target__process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.threat_name ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: target__process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.threat_status ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: target__process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.threat_verdict ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: target__process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.url_back_to_product ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: target__process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Target Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: target__process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Target Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: target__process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Target Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: target__process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Target Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: target__process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Target Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: target__process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.response_count ;;
+    group_label: "Target Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: target__process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.source_count ;;
+    group_label: "Target Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: target__process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Target Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: target__process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Target Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: target__process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.target.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Target Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: target__process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Target Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: target__process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.target.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Target Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: target__process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Target Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: target__process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.target.process.file.security_result.verdict_info ;;
+    group_label: "Target Process File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: target__process__file__sha1 {
     type: string
     sql: ${TABLE}.target.process.file.sha1 ;;
@@ -29469,6 +32065,7 @@ view: events {
   observer__domain__billing__first_name,
   observer__asset__location__floor_name,
   src__network__tls__client__server_name,
+  src__file__security_result__rule_name,
   src__domain__admin__user_display_name,
   src__domain__registrant__company_name,
   src__asset__attribute__cloud__vpc__name,
@@ -29500,6 +32097,7 @@ view: events {
   observer__domain__billing__company_name,
   observer__domain__registrant__last_name,
   observer__domain__registrant__role_name,
+  src__file__security_result__threat_name,
   src__group__attribute__cloud__vpc__name,
   src__domain__admin__office_address__name,
   src__domain__billing__user_display_name,
@@ -29523,6 +32121,7 @@ view: events {
   src__domain__zone__personal_address__name,
   src__user__attribute__cloud__project__name,
   target__network__tls__client__server_name,
+  target__file__security_result__rule_name,
   target__domain__admin__user_display_name,
   target__domain__registrant__company_name,
   target__asset__attribute__cloud__vpc__name,
@@ -29551,16 +32150,19 @@ view: events {
   principal__user__attribute__cloud__vpc__name,
   principal__user__office_address__desk_name,
   observer__network__tls__client__server_name,
+  observer__file__security_result__rule_name,
   observer__domain__admin__user_display_name,
   observer__domain__registrant__company_name,
   observer__asset__attribute__cloud__vpc__name,
   observer__user__office_address__floor_name,
   src__domain__registrant__user_display_name,
+  target__file__security_result__threat_name,
   target__group__attribute__cloud__vpc__name,
   target__domain__admin__office_address__name,
   target__domain__billing__user_display_name,
   target__user__personal_address__floor_name,
   principal__network__tls__client__server_name,
+  principal__file__security_result__rule_name,
   principal__domain__admin__user_display_name,
   principal__domain__registrant__company_name,
   principal__asset__attribute__cloud__vpc__name,
@@ -29580,11 +32182,13 @@ view: events {
   principal__domain__tech__office_address__name,
   principal__domain__zone__office_address__name,
   principal__user__personal_address__desk_name,
+  observer__file__security_result__threat_name,
   observer__group__attribute__cloud__vpc__name,
   observer__domain__admin__office_address__name,
   observer__domain__billing__user_display_name,
   observer__user__personal_address__floor_name,
   src__artifact__network__dhcp__client_hostname,
+  src__file__security_result__threat_feed_name,
   src__domain__tech__office_address__floor_name,
   src__domain__admin__attribute__cloud__vpc__name,
   src__domain__admin__office_address__desk_name,
@@ -29594,6 +32198,7 @@ view: events {
   target__domain__admin__personal_address__name,
   target__domain__billing__office_address__name,
   target__asset__attribute__cloud__project__name,
+  principal__file__security_result__threat_name,
   principal__group__attribute__cloud__vpc__name,
   principal__domain__admin__office_address__name,
   principal__domain__billing__user_display_name,
@@ -29601,6 +32206,7 @@ view: events {
   observer__domain__tech__personal_address__name,
   observer__domain__zone__personal_address__name,
   observer__user__attribute__cloud__project__name,
+  src__process__file__security_result__rule_name,
   src__domain__tech__personal_address__desk_name,
   src__domain__admin__office_address__floor_name,
   src__domain__zone__personal_address__desk_name,
@@ -29630,11 +32236,13 @@ view: events {
   principal__domain__billing__office_address__name,
   principal__asset__attribute__cloud__project__name,
   observer__domain__registrant__user_display_name,
+  src__process__file__security_result__threat_name,
   src__domain__tech__attribute__cloud__project__name,
   src__domain__admin__personal_address__floor_name,
   src__domain__billing__office_address__floor_name,
   src__domain__zone__attribute__cloud__project__name,
   target__artifact__network__dhcp__client_hostname,
+  target__file__security_result__threat_feed_name,
   target__domain__tech__office_address__floor_name,
   target__domain__admin__attribute__cloud__vpc__name,
   target__domain__admin__office_address__desk_name,
@@ -29649,6 +32257,7 @@ view: events {
   observer__domain__zone__office_address__desk_name,
   src__domain__admin__attribute__cloud__project__name,
   src__domain__billing__personal_address__desk_name,
+  target__process__file__security_result__rule_name,
   target__domain__tech__personal_address__desk_name,
   target__domain__admin__office_address__floor_name,
   target__domain__zone__personal_address__desk_name,
@@ -29659,11 +32268,13 @@ view: events {
   principal__domain__zone__attribute__cloud__vpc__name,
   principal__domain__zone__office_address__desk_name,
   observer__artifact__network__dhcp__client_hostname,
+  observer__file__security_result__threat_feed_name,
   observer__domain__tech__office_address__floor_name,
   observer__domain__admin__attribute__cloud__vpc__name,
   observer__domain__admin__office_address__desk_name,
   observer__domain__zone__office_address__floor_name,
   observer__domain__registrant__office_address__name,
+  src__file__security_result__rule_set_display_name,
   src__domain__billing__personal_address__floor_name,
   src__domain__registrant__attribute__cloud__vpc__name,
   src__domain__registrant__office_address__desk_name,
@@ -29675,20 +32286,24 @@ view: events {
   target__domain__zone__personal_address__floor_name,
   target__domain__registrant__personal_address__name,
   principal__artifact__network__dhcp__client_hostname,
+  principal__file__security_result__threat_feed_name,
   principal__domain__tech__office_address__floor_name,
   principal__domain__admin__attribute__cloud__vpc__name,
   principal__domain__admin__office_address__desk_name,
   principal__domain__zone__office_address__floor_name,
   principal__domain__registrant__office_address__name,
+  observer__process__file__security_result__rule_name,
   observer__domain__tech__personal_address__desk_name,
   observer__domain__admin__office_address__floor_name,
   observer__domain__zone__personal_address__desk_name,
   src__domain__billing__attribute__cloud__project__name,
   src__domain__registrant__office_address__floor_name,
+  target__process__file__security_result__threat_name,
   target__domain__tech__attribute__cloud__project__name,
   target__domain__admin__personal_address__floor_name,
   target__domain__billing__office_address__floor_name,
   target__domain__zone__attribute__cloud__project__name,
+  principal__process__file__security_result__rule_name,
   principal__domain__tech__personal_address__desk_name,
   principal__domain__admin__office_address__floor_name,
   principal__domain__zone__personal_address__desk_name,
@@ -29709,14 +32324,18 @@ view: events {
   principal__domain__billing__office_address__desk_name,
   principal__domain__zone__personal_address__floor_name,
   principal__domain__registrant__personal_address__name,
+  observer__process__file__security_result__threat_name,
   observer__domain__tech__attribute__cloud__project__name,
   observer__domain__admin__personal_address__floor_name,
   observer__domain__billing__office_address__floor_name,
   observer__domain__zone__attribute__cloud__project__name,
+  src__process__file__security_result__threat_feed_name,
   src__domain__registrant__personal_address__floor_name,
+  target__file__security_result__rule_set_display_name,
   target__domain__billing__personal_address__floor_name,
   target__domain__registrant__attribute__cloud__vpc__name,
   target__domain__registrant__office_address__desk_name,
+  principal__process__file__security_result__threat_name,
   principal__domain__tech__attribute__cloud__project__name,
   principal__domain__admin__personal_address__floor_name,
   principal__domain__billing__office_address__floor_name,
@@ -29728,25 +32347,34 @@ view: events {
   target__domain__registrant__office_address__floor_name,
   principal__domain__admin__attribute__cloud__project__name,
   principal__domain__billing__personal_address__desk_name,
+  observer__file__security_result__rule_set_display_name,
   observer__domain__billing__personal_address__floor_name,
   observer__domain__registrant__attribute__cloud__vpc__name,
   observer__domain__registrant__office_address__desk_name,
   target__domain__registrant__personal_address__desk_name,
+  principal__file__security_result__rule_set_display_name,
   principal__domain__billing__personal_address__floor_name,
   principal__domain__registrant__attribute__cloud__vpc__name,
   principal__domain__registrant__office_address__desk_name,
   observer__domain__billing__attribute__cloud__project__name,
   observer__domain__registrant__office_address__floor_name,
+  target__process__file__security_result__threat_feed_name,
   target__domain__registrant__personal_address__floor_name,
   principal__domain__billing__attribute__cloud__project__name,
   principal__domain__registrant__office_address__floor_name,
   observer__domain__registrant__personal_address__desk_name,
   target__domain__registrant__attribute__cloud__project__name,
   principal__domain__registrant__personal_address__desk_name,
+  observer__process__file__security_result__threat_feed_name,
   observer__domain__registrant__personal_address__floor_name,
+  src__process__file__security_result__rule_set_display_name,
+  principal__process__file__security_result__threat_feed_name,
   principal__domain__registrant__personal_address__floor_name,
   observer__domain__registrant__attribute__cloud__project__name,
   principal__domain__registrant__attribute__cloud__project__name,
+  target__process__file__security_result__rule_set_display_name,
+  observer__process__file__security_result__rule_set_display_name,
+  principal__process__file__security_result__rule_set_display_name,
   metadata__tags__data_tap_config_name
   ]
   }
@@ -34276,6 +36904,343 @@ view: events__about {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -35972,6 +38937,343 @@ view: events__about {
     group_label: "Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.action ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.action_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.process.file.security_result.alert_state ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.associations ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.attack_details.tactics ;;
+    group_label: "Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.attack_details.techniques ;;
+    group_label: "Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.process.file.security_result.attack_details.version ;;
+    group_label: "Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.campaigns ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.category ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.category_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.process.file.security_result.confidence ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.confidence_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.process.file.security_result.description ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.detection_fields ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.outcomes ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.process.file.security_result.priority ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.priority_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.process.file.security_result.risk_score ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_author ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_id ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.rule_labels ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_set ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_set_display_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_type ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_version ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.process.file.security_result.severity ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.severity_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.process.file.security_result.summary ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.threat_feed_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.process.file.security_result.threat_id ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.process.file.security_result.threat_id_namespace ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.threat_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.process.file.security_result.threat_status ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.process.file.security_result.threat_verdict ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.process.file.security_result.url_back_to_product ;;
+    group_label: "Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.response_count ;;
+    group_label: "Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.source_count ;;
+    group_label: "Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.verdict_info ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: process__file__sha1 {
     type: string
     sql: ${TABLE}.process.file.sha1 ;;
@@ -36253,7 +39555,7 @@ view: events__about {
   }
   dimension: security_result {
     hidden: yes
-    sql: security_result ;;
+    sql: ${TABLE}.security_result ;;
   }
   dimension: security_result__action {
     hidden: yes
@@ -36763,137 +40065,6 @@ view: events__about {
   }
 }
 
-view: latest__events {
-  # sql_table_name: `datalake.events` ;;
-  derived_table: {
-    sql:
-      WITH RankedData AS (
-  SELECT
-    events.metadata.product_log_id as domain,
-    events.metadata.collected_timestamp.seconds as ingestion_time,
-    events.metadata.id  AS events_metadata__id,
-    ROW_NUMBER() OVER (PARTITION BY events.metadata.product_log_id ORDER BY events.metadata.collected_timestamp.seconds DESC) as rank
-  FROM `datalake.events` AS events where (events.metadata.log_type ) = 'APPOMNI' and (events.metadata.product_log_id ) = '36e60f32-2233-53e8-90af-93d63dafa1a5'
-)
-SELECT
-  domain,
-  ingestion_time,
-  events_metadata__id
-FROM RankedData
-WHERE rank = 1;
-    ;;
-    # datagroup_trigger: {
-    #   key: timestamp
-    #   type: max
-    # }
-  }
-  dimension: events_metadata__id {
-    type: string
-    sql: ${TABLE}.events_metadata__id ;;
-  }
-  dimension: domain_name {
-    type: string
-    sql: ${TABLE}.domain ;;
-    label: "domain name"
-  }
-
-  dimension: latest_timestamp_new {
-    type: number
-    sql: ${TABLE}.ingestion_time ;;
-    label: "kai b unique"
-    # timeframes: [raw, date, week, month, quarter, year]
-  }
-
-#   measure: event_count {
-#     type: count
-#     drill_fields: [domain_name]
-#   }
-}
-
-view: latest__events_test {
-  # sql_table_name: `datalake.events` ;;
-#   derived_table: {
-#     sql:
-#       WITH RankedData AS (
-#   SELECT
-#     events.metadata.product_log_id as domain,
-#     events.metadata.ingested_timestamp.seconds as ingestion_time,
-#     events.metadata.event_timestamp.seconds as timestamp_time,
-#     events.metadata.id  AS events_metadata__id,
-#     events.target.user.user_display_name  AS events_target__user__user_display_name,
-#     max(events.metadata.event_timestamp.seconds) as max_timestamp_time,
-#     ROW_NUMBER() OVER (PARTITION BY events.metadata.product_log_id ORDER BY events.metadata.event_timestamp.seconds DESC) as rank
-#   FROM `datalake.events` AS events where (events.metadata.log_type ) = 'APPOMNI'
-#   group by 1,2,3,4,5
-# )
-# SELECT
-#   domain,
-#   ingestion_time,
-#   events_metadata__id,
-#   events_target__user__user_display_name,
-#   timestamp_time,
-#   max_timestamp_time
-# FROM RankedData where rank=1;;
-#     }
-derived_table: {
-  sql: WITH RankedData AS (
-SELECT
-    events.metadata.product_log_id as domain,
-    events.metadata.ingested_timestamp.seconds as ingestion_time,
-    events.metadata.event_timestamp.seconds as timestamp_time,
-    events.metadata.id  AS events_metadata__id,
-    events.target.user.user_display_name  AS events_target__user__user_display_name,
-    ROW_NUMBER() OVER (PARTITION BY events.metadata.product_log_id ORDER BY events.metadata.event_timestamp.seconds DESC) as rank
-  FROM `datalake.events` AS events where (events.metadata.log_type ) = 'APPOMNI' and (events.target.user.user_display_name ) <> 'AppOmni Client (crestdev)' AND (events.target.user.user_display_name ) IS NOT NULL
-  group by 1,2,3,4,5
-)
-SELECT
-  domain,
-  ingestion_time,
-  events_metadata__id,
-  events_target__user__user_display_name,
-  timestamp_time
-FROM RankedData  where CONCAT(domain,timestamp_time) IN (SELECT
-  CONCAT(domain,
-  timestamp_time)
-FROM RankedData where rank =1) ;;
-}
-    dimension: events_metadata__id {
-      type: string
-      sql: ${TABLE}.events_metadata__id ;;
-    }
-    dimension: events_target__user__user_display_name {
-      type: string
-      sql: ${TABLE}.events_target__user__user_display_name ;;
-      label: "display user name"
-    }
-    dimension: domain_name {
-      type: string
-      sql: ${TABLE}.domain ;;
-      label: "domain name"
-      # description: "name = `{${TABLE}.events_target__user__user_display_name}`"
-
-      # html:  <span title="{{ ${TABLE}.events_target__user__user_display_name }}"> {{ ${TABLE}.events_target__user__user_display_name }} </span> ;;
-    }
-
-    dimension: latest_timestamp_new {
-      type: number
-      sql: ${TABLE}.ingestion_time ;;
-      label: "kai b unique"
-      # timeframes: [raw, date, week, month, quarter, year]
-    }
-    dimension: timestamp_time_new {
-      type: number
-      sql: ${TABLE}.timestamp_time ;;
-      label: "timestamp_time"
-      # timeframes: [raw, date, week, month, quarter, year]
-    }
-
-#   measure: event_count {
-#     type: count
-#     drill_fields: [domain_name]
-#   }
-  }
 view: events__src__ip {
 
   dimension: events__src__ip {
@@ -41513,6 +44684,343 @@ view: events__intermediary {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -43209,6 +46717,343 @@ view: events__intermediary {
     group_label: "Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.action ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.action_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.process.file.security_result.alert_state ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.associations ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.attack_details.tactics ;;
+    group_label: "Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.attack_details.techniques ;;
+    group_label: "Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.process.file.security_result.attack_details.version ;;
+    group_label: "Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.campaigns ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.category ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.category_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.process.file.security_result.confidence ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.confidence_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.process.file.security_result.description ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.detection_fields ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.outcomes ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.process.file.security_result.priority ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.priority_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.process.file.security_result.risk_score ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_author ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_id ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.rule_labels ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_set ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_set_display_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_type ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.process.file.security_result.rule_version ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.process.file.security_result.severity ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.process.file.security_result.severity_details ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.process.file.security_result.summary ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.threat_feed_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.process.file.security_result.threat_id ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.process.file.security_result.threat_id_namespace ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.process.file.security_result.threat_name ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.process.file.security_result.threat_status ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.process.file.security_result.threat_verdict ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.process.file.security_result.url_back_to_product ;;
+    group_label: "Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.response_count ;;
+    group_label: "Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.source_count ;;
+    group_label: "Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.process.file.security_result.verdict_info ;;
+    group_label: "Process File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: process__file__sha1 {
     type: string
     sql: ${TABLE}.process.file.sha1 ;;
@@ -43490,7 +47335,7 @@ view: events__intermediary {
   }
   dimension: security_result {
     hidden: yes
-    sql: security_result ;;
+    sql: ${TABLE}.security_result ;;
   }
   dimension: security_result__action {
     hidden: yes
@@ -51214,6 +55059,18 @@ view: events__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -51306,6 +55163,10 @@ view: events__security_result {
   dimension: threat_status {
     type: number
     sql: threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -54763,6 +58624,343 @@ view: events__src__process_ancestors {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -57284,6 +61482,18 @@ view: events__src__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -57376,6 +61586,10 @@ view: events__src__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -58052,6 +62266,343 @@ view: events__about__process_ancestors {
     sql: ${TABLE}.file.prevalence.rolling_max_sub_domains ;;
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
+  }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
   }
   dimension: file__sha1 {
     type: string
@@ -59858,6 +64409,343 @@ view: events__target__process_ancestors {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -60361,6 +65249,18 @@ view: events__about__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -60453,6 +65353,10 @@ view: events__about__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -61270,6 +66174,343 @@ view: events__observer__process_ancestors {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -61807,6 +67048,18 @@ view: events__target__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -61899,6 +67152,10 @@ view: events__target__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -62576,6 +67833,343 @@ view: events__principal__process_ancestors {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -62784,6 +68378,14 @@ view: events__src__artifact__network__email__to {
   dimension: events__src__artifact__network__email__to {
     type: string
     sql: events__src__artifact__network__email__to ;;
+  }
+}
+
+view: events__src__file__security_result__action {
+
+  dimension: events__src__file__security_result__action {
+    type: number
+    sql: events__src__file__security_result__action ;;
   }
 }
 
@@ -64717,6 +70319,18 @@ view: events__observer__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -64809,6 +70423,10 @@ view: events__observer__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -65354,6 +70972,18 @@ view: events__security_result__verdict_info {
     type: yesno
     sql: ${TABLE}.pwn ;;
   }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
   dimension: response_count {
     type: number
     sql: ${TABLE}.response_count ;;
@@ -65676,6 +71306,18 @@ view: events__principal__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -65768,6 +71410,10 @@ view: events__principal__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -65881,6 +71527,14 @@ view: events__src__artifact__network__smtp__rcpt_to {
   }
 }
 
+view: events__src__file__security_result__category {
+
+  dimension: events__src__file__security_result__category {
+    type: number
+    sql: events__src__file__security_result__category ;;
+  }
+}
+
 view: events__src__file__pe_file__resource {
 
   dimension: entropy {
@@ -65970,6 +71624,14 @@ view: events__about__artifact__network__email__to {
   dimension: events__about__artifact__network__email__to {
     type: string
     sql: events__about__artifact__network__email__to ;;
+  }
+}
+
+view: events__about__file__security_result__action {
+
+  dimension: events__about__file__security_result__action {
+    type: number
+    sql: events__about__file__security_result__action ;;
   }
 }
 
@@ -66949,6 +72611,14 @@ view: events__src__cloud__vpc__attribute__labels {
   }
 }
 
+view: events__src__file__security_result__campaigns {
+
+  dimension: events__src__file__security_result__campaigns {
+    type: string
+    sql: events__src__file__security_result__campaigns ;;
+  }
+}
+
 view: events__src__file__pe_file__imports__functions {
 
   dimension: events__src__file__pe_file__imports__functions {
@@ -67677,6 +73347,343 @@ view: events__intermediary__process_ancestors {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -67837,6 +73844,14 @@ view: events__target__artifact__network__email__to {
   dimension: events__target__artifact__network__email__to {
     type: string
     sql: events__target__artifact__network__email__to ;;
+  }
+}
+
+view: events__target__file__security_result__action {
+
+  dimension: events__target__file__security_result__action {
+    type: number
+    sql: events__target__file__security_result__action ;;
   }
 }
 
@@ -68926,6 +74941,14 @@ view: events__about__artifact__network__smtp__rcpt_to {
   }
 }
 
+view: events__about__file__security_result__category {
+
+  dimension: events__about__file__security_result__category {
+    type: number
+    sql: events__about__file__security_result__category ;;
+  }
+}
+
 view: events__about__file__pe_file__resource {
 
   dimension: entropy {
@@ -69413,6 +75436,14 @@ view: events__observer__artifact__network__email__to {
   dimension: events__observer__artifact__network__email__to {
     type: string
     sql: events__observer__artifact__network__email__to ;;
+  }
+}
+
+view: events__observer__file__security_result__action {
+
+  dimension: events__observer__file__security_result__action {
+    type: number
+    sql: events__observer__file__security_result__action ;;
   }
 }
 
@@ -69992,6 +76023,18 @@ view: events__src__security_result__verdict_info {
     type: yesno
     sql: ${TABLE}.pwn ;;
   }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
   dimension: response_count {
     type: number
     sql: ${TABLE}.response_count ;;
@@ -70230,6 +76273,14 @@ view: events__about__cloud__vpc__attribute__labels {
   }
 }
 
+view: events__about__file__security_result__campaigns {
+
+  dimension: events__about__file__security_result__campaigns {
+    type: string
+    sql: events__about__file__security_result__campaigns ;;
+  }
+}
+
 view: events__about__file__pe_file__imports__functions {
 
   dimension: events__about__file__pe_file__imports__functions {
@@ -70370,6 +76421,18 @@ view: events__intermediary__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -70462,6 +76525,10 @@ view: events__intermediary__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -70587,6 +76654,14 @@ view: events__target__artifact__network__smtp__rcpt_to {
   }
 }
 
+view: events__target__file__security_result__category {
+
+  dimension: events__target__file__security_result__category {
+    type: number
+    sql: events__target__file__security_result__category ;;
+  }
+}
+
 view: events__target__file__pe_file__resource {
 
   dimension: entropy {
@@ -70684,6 +76759,14 @@ view: events__principal__artifact__network__email__to {
   dimension: events__principal__artifact__network__email__to {
     type: string
     sql: events__principal__artifact__network__email__to ;;
+  }
+}
+
+view: events__principal__file__security_result__action {
+
+  dimension: events__principal__file__security_result__action {
+    type: number
+    sql: events__principal__file__security_result__action ;;
   }
 }
 
@@ -75817,6 +81900,343 @@ view: events__extensions__vulns__vulnerabilities {
     group_label: "About File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: about__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.action ;;
+    group_label: "About File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: about__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.about.file.security_result.action_details ;;
+    group_label: "About File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: about__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.about.file.security_result.alert_state ;;
+    group_label: "About File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: about__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.associations ;;
+    group_label: "About File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: about__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.attack_details.tactics ;;
+    group_label: "About File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: about__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.attack_details.techniques ;;
+    group_label: "About File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: about__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.about.file.security_result.attack_details.version ;;
+    group_label: "About File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: about__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.campaigns ;;
+    group_label: "About File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: about__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.category ;;
+    group_label: "About File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: about__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.category_details ;;
+    group_label: "About File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: about__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.about.file.security_result.confidence ;;
+    group_label: "About File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: about__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.about.file.security_result.confidence_details ;;
+    group_label: "About File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: about__file__security_result__description {
+    type: string
+    sql: ${TABLE}.about.file.security_result.description ;;
+    group_label: "About File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: about__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.detection_fields ;;
+    group_label: "About File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: about__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.about.file.security_result.first_discovered_time.nanos ;;
+    group_label: "About File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.about.file.security_result.first_discovered_time.seconds ;;
+    group_label: "About File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.about.file.security_result.last_discovered_time.nanos ;;
+    group_label: "About File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.about.file.security_result.last_discovered_time.seconds ;;
+    group_label: "About File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.about.file.security_result.last_updated_time.nanos ;;
+    group_label: "About File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.about.file.security_result.last_updated_time.seconds ;;
+    group_label: "About File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.outcomes ;;
+    group_label: "About File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: about__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.about.file.security_result.priority ;;
+    group_label: "About File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: about__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.about.file.security_result.priority_details ;;
+    group_label: "About File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: about__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.about.file.security_result.risk_score ;;
+    group_label: "About File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: about__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_author ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: about__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_id ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: about__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.rule_labels ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: about__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_name ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: about__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_set ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: about__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_set_display_name ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: about__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_type ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: about__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.about.file.security_result.rule_version ;;
+    group_label: "About File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: about__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.about.file.security_result.severity ;;
+    group_label: "About File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: about__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.about.file.security_result.severity_details ;;
+    group_label: "About File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: about__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.about.file.security_result.summary ;;
+    group_label: "About File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: about__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.about.file.security_result.threat_feed_name ;;
+    group_label: "About File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: about__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.about.file.security_result.threat_id ;;
+    group_label: "About File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: about__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.about.file.security_result.threat_id_namespace ;;
+    group_label: "About File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: about__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.about.file.security_result.threat_name ;;
+    group_label: "About File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: about__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.about.file.security_result.threat_status ;;
+    group_label: "About File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: about__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.about.file.security_result.threat_verdict ;;
+    group_label: "About File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: about__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.about.file.security_result.url_back_to_product ;;
+    group_label: "About File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: about__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "About File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: about__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "About File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: about__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "About File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "About File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.about.file.security_result.verdict.neighbour_influence ;;
+    group_label: "About File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: about__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.response_count ;;
+    group_label: "About File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: about__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.source_count ;;
+    group_label: "About File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: about__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "About File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: about__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "About File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: about__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.about.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "About File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: about__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "About File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: about__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.about.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "About File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: about__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "About File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: about__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.about.file.security_result.verdict_info ;;
+    group_label: "About File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: about__file__sha1 {
     type: string
     sql: ${TABLE}.about.file.sha1 ;;
@@ -77539,6 +83959,343 @@ view: events__extensions__vulns__vulnerabilities {
     group_label: "About Process File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: about__process__file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.action ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: about__process__file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.action_details ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: about__process__file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.alert_state ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: about__process__file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.associations ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: about__process__file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.attack_details.tactics ;;
+    group_label: "About Process File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: about__process__file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.attack_details.techniques ;;
+    group_label: "About Process File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: about__process__file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.attack_details.version ;;
+    group_label: "About Process File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: about__process__file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.campaigns ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: about__process__file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.category ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: about__process__file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.category_details ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: about__process__file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.confidence ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: about__process__file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.confidence_details ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: about__process__file__security_result__description {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.description ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: about__process__file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.detection_fields ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: about__process__file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.first_discovered_time.nanos ;;
+    group_label: "About Process File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__process__file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.first_discovered_time.seconds ;;
+    group_label: "About Process File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__process__file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.last_discovered_time.nanos ;;
+    group_label: "About Process File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__process__file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.last_discovered_time.seconds ;;
+    group_label: "About Process File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__process__file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.last_updated_time.nanos ;;
+    group_label: "About Process File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__process__file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.last_updated_time.seconds ;;
+    group_label: "About Process File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__process__file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.outcomes ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: about__process__file__security_result__priority {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.priority ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: about__process__file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.priority_details ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: about__process__file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.risk_score ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: about__process__file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_author ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: about__process__file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_id ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: about__process__file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.rule_labels ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: about__process__file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_name ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: about__process__file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_set ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: about__process__file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_set_display_name ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: about__process__file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_type ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: about__process__file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.rule_version ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: about__process__file__security_result__severity {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.severity ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: about__process__file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.severity_details ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: about__process__file__security_result__summary {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.summary ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: about__process__file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.threat_feed_name ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: about__process__file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.threat_id ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: about__process__file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.about.process.file.security_result.threat_id_namespace ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: about__process__file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.threat_name ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: about__process__file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.threat_status ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: about__process__file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.threat_verdict ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: about__process__file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.url_back_to_product ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: about__process__file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "About Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: about__process__file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "About Process File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: about__process__file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "About Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: about__process__file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "About Process File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: about__process__file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.verdict.neighbour_influence ;;
+    group_label: "About Process File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: about__process__file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.response_count ;;
+    group_label: "About Process File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: about__process__file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.source_count ;;
+    group_label: "About Process File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: about__process__file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "About Process File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: about__process__file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "About Process File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: about__process__file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.about.process.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "About Process File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: about__process__file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "About Process File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: about__process__file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.about.process.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "About Process File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: about__process__file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "About Process File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: about__process__file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.about.process.file.security_result.verdict_info ;;
+    group_label: "About Process File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: about__process__file__sha1 {
     type: string
     sql: ${TABLE}.about.process.file.sha1 ;;
@@ -78444,6 +85201,26 @@ view: events__src__ip_geo_artifact__network__email__bcc {
   }
 }
 
+view: events__src__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__src__process__file__pe_file__section {
 
   dimension: entropy {
@@ -78790,6 +85567,14 @@ view: events__target__cloud__vpc__attribute__labels {
   }
 }
 
+view: events__target__file__security_result__campaigns {
+
+  dimension: events__target__file__security_result__campaigns {
+    type: string
+    sql: events__target__file__security_result__campaigns ;;
+  }
+}
+
 view: events__target__file__pe_file__imports__functions {
 
   dimension: events__target__file__pe_file__imports__functions {
@@ -78943,6 +85728,14 @@ view: events__observer__artifact__network__smtp__rcpt_to {
   dimension: events__observer__artifact__network__smtp__rcpt_to {
     type: string
     sql: events__observer__artifact__network__smtp__rcpt_to ;;
+  }
+}
+
+view: events__observer__file__security_result__category {
+
+  dimension: events__observer__file__security_result__category {
+    type: number
+    sql: events__observer__file__security_result__category ;;
   }
 }
 
@@ -79227,6 +86020,18 @@ view: events__about__security_result__verdict_info {
   dimension: pwn {
     type: yesno
     sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
   }
   dimension: response_count {
     type: number
@@ -79872,6 +86677,14 @@ view: events__principal__artifact__network__smtp__rcpt_to {
   }
 }
 
+view: events__principal__file__security_result__category {
+
+  dimension: events__principal__file__security_result__category {
+    type: number
+    sql: events__principal__file__security_result__category ;;
+  }
+}
+
 view: events__principal__file__pe_file__resource {
 
   dimension: entropy {
@@ -80000,6 +86813,14 @@ view: events__observer__cloud__vpc__attribute__labels {
   }
 }
 
+view: events__observer__file__security_result__campaigns {
+
+  dimension: events__observer__file__security_result__campaigns {
+    type: string
+    sql: events__observer__file__security_result__campaigns ;;
+  }
+}
+
 view: events__observer__file__pe_file__imports__functions {
 
   dimension: events__observer__file__pe_file__imports__functions {
@@ -80111,6 +86932,14 @@ view: events__src__file__signature_info__sigcheck__signer {
   dimension: events__src__file__signature_info__sigcheck__signer {
     type: string
     sql: events__src__file__signature_info__sigcheck__signer ;;
+  }
+}
+
+view: events__src__process__file__security_result__action {
+
+  dimension: events__src__process__file__security_result__action {
+    type: number
+    sql: events__src__process__file__security_result__action ;;
   }
 }
 
@@ -80227,6 +87056,26 @@ view: events__about__ip_geo_artifact__network__email__bcc {
   dimension: events__about__ip_geo_artifact__network__email__bcc {
     type: string
     sql: events__about__ip_geo_artifact__network__email__bcc ;;
+  }
+}
+
+view: events__about__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -80690,6 +87539,18 @@ view: events__target__security_result__verdict_info {
     type: yesno
     sql: ${TABLE}.pwn ;;
   }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
   dimension: response_count {
     type: number
     sql: ${TABLE}.response_count ;;
@@ -80925,6 +87786,14 @@ view: events__principal__cloud__vpc__attribute__labels {
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__principal__file__security_result__campaigns {
+
+  dimension: events__principal__file__security_result__campaigns {
+    type: string
+    sql: events__principal__file__security_result__campaigns ;;
   }
 }
 
@@ -81186,6 +88055,152 @@ view: events__src__cloud__vpc__attribute__permissions {
   }
 }
 
+view: events__src__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__src__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__src__process__file__pe_file__imports {
 
   dimension: functions {
@@ -81339,6 +88354,14 @@ view: events__intermediary__artifact__network__email__to {
   dimension: events__intermediary__artifact__network__email__to {
     type: string
     sql: events__intermediary__artifact__network__email__to ;;
+  }
+}
+
+view: events__intermediary__file__security_result__action {
+
+  dimension: events__intermediary__file__security_result__action {
+    type: number
+    sql: events__intermediary__file__security_result__action ;;
   }
 }
 
@@ -82774,6 +89797,26 @@ view: events__target__ip_geo_artifact__network__email__bcc {
   }
 }
 
+view: events__target__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__target__process__file__pe_file__section {
 
   dimension: entropy {
@@ -83150,6 +90193,18 @@ view: events__observer__security_result__verdict_info {
     type: yesno
     sql: ${TABLE}.pwn ;;
   }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
   dimension: response_count {
     type: number
     sql: ${TABLE}.response_count ;;
@@ -83368,6 +90423,98 @@ view: events__src__artifact__network__smtp__server_response {
   }
 }
 
+view: events__src__file__security_result__category_details {
+
+  dimension: events__src__file__security_result__category_details {
+    type: string
+    sql: events__src__file__security_result__category_details ;;
+  }
+}
+
+view: events__src__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__src__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -83401,6 +90548,14 @@ view: events__src__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__src__process__file__security_result__category {
+
+  dimension: events__src__process__file__security_result__category {
+    type: number
+    sql: events__src__process__file__security_result__category ;;
   }
 }
 
@@ -83515,6 +90670,14 @@ view: events__about__file__signature_info__sigcheck__signer {
   dimension: events__about__file__signature_info__sigcheck__signer {
     type: string
     sql: events__about__file__signature_info__sigcheck__signer ;;
+  }
+}
+
+view: events__about__process__file__security_result__action {
+
+  dimension: events__about__process__file__security_result__action {
+    type: number
+    sql: events__about__process__file__security_result__action ;;
   }
 }
 
@@ -83986,6 +91149,18 @@ view: events__principal__security_result__verdict_info {
     type: yesno
     sql: ${TABLE}.pwn ;;
   }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
   dimension: response_count {
     type: number
     sql: ${TABLE}.response_count ;;
@@ -84188,6 +91363,26 @@ view: events__observer__ip_geo_artifact__network__email__bcc {
   }
 }
 
+view: events__observer__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__observer__process__file__pe_file__section {
 
   dimension: entropy {
@@ -84317,6 +91512,14 @@ view: events__src__file__signature_info__sigcheck__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__src__process__file__security_result__campaigns {
+
+  dimension: events__src__process__file__security_result__campaigns {
+    type: string
+    sql: events__src__process__file__security_result__campaigns ;;
   }
 }
 
@@ -84468,6 +91671,152 @@ view: events__about__cloud__vpc__attribute__permissions {
   }
 }
 
+view: events__about__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__about__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__about__process__file__pe_file__imports {
 
   dimension: functions {
@@ -84513,6 +91862,14 @@ view: events__intermediary__artifact__network__smtp__rcpt_to {
   dimension: events__intermediary__artifact__network__smtp__rcpt_to {
     type: string
     sql: events__intermediary__artifact__network__smtp__rcpt_to ;;
+  }
+}
+
+view: events__intermediary__file__security_result__category {
+
+  dimension: events__intermediary__file__security_result__category {
+    type: number
+    sql: events__intermediary__file__security_result__category ;;
   }
 }
 
@@ -84698,6 +92055,14 @@ view: events__target__file__signature_info__sigcheck__signer {
   }
 }
 
+view: events__target__process__file__security_result__action {
+
+  dimension: events__target__process__file__security_result__action {
+    type: number
+    sql: events__target__process__file__security_result__action ;;
+  }
+}
+
 view: events__target__resource__attribute__permissions {
 
   dimension: description {
@@ -84811,6 +92176,26 @@ view: events__principal__ip_geo_artifact__network__email__bcc {
   dimension: events__principal__ip_geo_artifact__network__email__bcc {
     type: string
     sql: events__principal__ip_geo_artifact__network__email__bcc ;;
+  }
+}
+
+view: events__principal__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -85154,6 +92539,98 @@ view: events__about__artifact__network__smtp__server_response {
   }
 }
 
+view: events__about__file__security_result__category_details {
+
+  dimension: events__about__file__security_result__category_details {
+    type: string
+    sql: events__about__file__security_result__category_details ;;
+  }
+}
+
+view: events__about__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__about__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -85187,6 +92664,14 @@ view: events__about__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__about__process__file__security_result__category {
+
+  dimension: events__about__process__file__security_result__category {
+    type: number
+    sql: events__about__process__file__security_result__category ;;
   }
 }
 
@@ -85263,6 +92748,14 @@ view: events__intermediary__cloud__vpc__attribute__labels {
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__intermediary__file__security_result__campaigns {
+
+  dimension: events__intermediary__file__security_result__campaigns {
+    type: string
+    sql: events__intermediary__file__security_result__campaigns ;;
   }
 }
 
@@ -86057,6 +93550,152 @@ view: events__target__cloud__vpc__attribute__permissions {
   }
 }
 
+view: events__target__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__target__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__target__process__file__pe_file__imports {
 
   dimension: functions {
@@ -86287,6 +93926,14 @@ view: events__observer__file__signature_info__sigcheck__signer {
   }
 }
 
+view: events__observer__process__file__security_result__action {
+
+  dimension: events__observer__process__file__security_result__action {
+    type: number
+    sql: events__observer__process__file__security_result__action ;;
+  }
+}
+
 view: events__observer__resource__attribute__permissions {
 
   dimension: description {
@@ -86472,6 +94119,14 @@ view: events__about__file__signature_info__sigcheck__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__about__process__file__security_result__campaigns {
+
+  dimension: events__about__process__file__security_result__campaigns {
+    type: string
+    sql: events__about__process__file__security_result__campaigns ;;
   }
 }
 
@@ -86855,6 +94510,98 @@ view: events__target__artifact__network__smtp__server_response {
   }
 }
 
+view: events__target__file__security_result__category_details {
+
+  dimension: events__target__file__security_result__category_details {
+    type: string
+    sql: events__target__file__security_result__category_details ;;
+  }
+}
+
+view: events__target__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__target__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -86888,6 +94635,14 @@ view: events__target__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__target__process__file__security_result__category {
+
+  dimension: events__target__process__file__security_result__category {
+    type: number
+    sql: events__target__process__file__security_result__category ;;
   }
 }
 
@@ -87002,6 +94757,14 @@ view: events__principal__file__signature_info__sigcheck__signer {
   dimension: events__principal__file__signature_info__sigcheck__signer {
     type: string
     sql: events__principal__file__signature_info__sigcheck__signer ;;
+  }
+}
+
+view: events__principal__process__file__security_result__action {
+
+  dimension: events__principal__process__file__security_result__action {
+    type: number
+    sql: events__principal__process__file__security_result__action ;;
   }
 }
 
@@ -87145,6 +94908,152 @@ view: events__observer__cloud__vpc__attribute__permissions {
   }
 }
 
+view: events__observer__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__observer__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__observer__process__file__pe_file__imports {
 
   dimension: functions {
@@ -87233,6 +95142,26 @@ view: events__src__ip_geo_artifact__network__dhcp__options {
   }
 }
 
+view: events__src__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__src__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -87282,6 +95211,26 @@ view: events__src__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__src__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -87520,6 +95469,18 @@ view: events__intermediary__security_result__verdict_info {
   dimension: pwn {
     type: yesno
     sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
   }
   dimension: response_count {
     type: number
@@ -87783,6 +95744,14 @@ view: events__target__file__signature_info__sigcheck__x509 {
   }
 }
 
+view: events__target__process__file__security_result__campaigns {
+
+  dimension: events__target__process__file__security_result__campaigns {
+    type: string
+    sql: events__target__process__file__security_result__campaigns ;;
+  }
+}
+
 view: events__target__process__file__pe_file__imports__functions {
 
   dimension: events__target__process__file__pe_file__imports__functions {
@@ -87943,6 +95912,152 @@ view: events__principal__cloud__vpc__attribute__permissions {
   }
 }
 
+view: events__principal__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__principal__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__principal__process__file__pe_file__imports {
 
   dimension: functions {
@@ -87999,6 +96114,98 @@ view: events__observer__artifact__network__smtp__server_response {
   }
 }
 
+view: events__observer__file__security_result__category_details {
+
+  dimension: events__observer__file__security_result__category_details {
+    type: string
+    sql: events__observer__file__security_result__category_details ;;
+  }
+}
+
+view: events__observer__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__observer__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -88032,6 +96239,14 @@ view: events__observer__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__observer__process__file__security_result__category {
+
+  dimension: events__observer__process__file__security_result__category {
+    type: number
+    sql: events__observer__process__file__security_result__category ;;
   }
 }
 
@@ -88266,6 +96481,26 @@ view: events__intermediary__ip_geo_artifact__network__email__bcc {
   dimension: events__intermediary__ip_geo_artifact__network__email__bcc {
     type: string
     sql: events__intermediary__ip_geo_artifact__network__email__bcc ;;
+  }
+}
+
+view: events__intermediary__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -88529,6 +96764,98 @@ view: events__principal__artifact__network__smtp__server_response {
   }
 }
 
+view: events__principal__file__security_result__category_details {
+
+  dimension: events__principal__file__security_result__category_details {
+    type: string
+    sql: events__principal__file__security_result__category_details ;;
+  }
+}
+
+view: events__principal__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__principal__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -88562,6 +96889,14 @@ view: events__principal__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__principal__process__file__security_result__category {
+
+  dimension: events__principal__process__file__security_result__category {
+    type: number
+    sql: events__principal__process__file__security_result__category ;;
   }
 }
 
@@ -88618,6 +96953,14 @@ view: events__observer__file__signature_info__sigcheck__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__observer__process__file__security_result__campaigns {
+
+  dimension: events__observer__process__file__security_result__campaigns {
+    type: string
+    sql: events__observer__process__file__security_result__campaigns ;;
   }
 }
 
@@ -88817,6 +97160,26 @@ view: events__about__ip_geo_artifact__network__dhcp__options {
   }
 }
 
+view: events__about__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__about__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -88866,6 +97229,26 @@ view: events__about__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__about__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -89255,6 +97638,14 @@ view: events__principal__file__signature_info__sigcheck__x509 {
   }
 }
 
+view: events__principal__process__file__security_result__campaigns {
+
+  dimension: events__principal__process__file__security_result__campaigns {
+    type: string
+    sql: events__principal__process__file__security_result__campaigns ;;
+  }
+}
+
 view: events__principal__process__file__pe_file__imports__functions {
 
   dimension: events__principal__process__file__pe_file__imports__functions {
@@ -89500,6 +97891,164 @@ view: events__src__ip_geo_artifact__network__smtp__server_response {
   dimension: events__src__ip_geo_artifact__network__smtp__server_response {
     type: string
     sql: events__src__ip_geo_artifact__network__smtp__server_response ;;
+  }
+}
+
+view: events__src__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__src__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__src__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -89770,6 +98319,14 @@ view: events__intermediary__file__signature_info__sigcheck__signer {
   dimension: events__intermediary__file__signature_info__sigcheck__signer {
     type: string
     sql: events__intermediary__file__signature_info__sigcheck__signer ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__action {
+
+  dimension: events__intermediary__process__file__security_result__action {
+    type: number
+    sql: events__intermediary__process__file__security_result__action ;;
   }
 }
 
@@ -90163,6 +98720,26 @@ view: events__target__ip_geo_artifact__network__dhcp__options {
   }
 }
 
+view: events__target__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__target__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -90212,6 +98789,26 @@ view: events__target__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__target__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -90473,6 +99070,98 @@ view: events__src__file__pe_file__resources_language_count_str {
   }
 }
 
+view: events__src__process__file__security_result__category_details {
+
+  dimension: events__src__process__file__security_result__category_details {
+    type: string
+    sql: events__src__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__src__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__src__process__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -90522,6 +99211,14 @@ view: events__src__resource_ancestors__attribute__permissions {
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__action {
+
+  dimension: events__src__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__src__process_ancestors__file__security_result__action ;;
   }
 }
 
@@ -90586,6 +99283,152 @@ view: events__intermediary__cloud__vpc__attribute__permissions {
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__intermediary__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__intermediary__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -91349,6 +100192,26 @@ view: events__observer__ip_geo_artifact__network__dhcp__options {
   }
 }
 
+view: events__observer__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__observer__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -91401,6 +100264,26 @@ view: events__observer__file__signature_info__sigcheck__signers {
   }
 }
 
+view: events__observer__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__observer__security_result__associations__country_code {
 
   dimension: events__observer__security_result__associations__country_code {
@@ -91448,6 +100331,28 @@ view: events__metadata__enrichment_labels__ingestion_kv_labels {
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__src__file__security_result__associations__country_code {
+
+  dimension: events__src__file__security_result__associations__country_code {
+    type: string
+    sql: events__src__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__src__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -91531,6 +100436,164 @@ view: events__about__ip_geo_artifact__network__smtp__server_response {
   }
 }
 
+view: events__about__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__about__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__about__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__about__security_result__attack_details__techniques {
   drill_fields: [id]
 
@@ -91585,6 +100648,98 @@ view: events__intermediary__artifact__network__smtp__server_response {
   }
 }
 
+view: events__intermediary__file__security_result__category_details {
+
+  dimension: events__intermediary__file__security_result__category_details {
+    type: string
+    sql: events__intermediary__file__security_result__category_details ;;
+  }
+}
+
+view: events__intermediary__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__intermediary__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -91618,6 +100773,14 @@ view: events__intermediary__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__category {
+
+  dimension: events__intermediary__process__file__security_result__category {
+    type: number
+    sql: events__intermediary__process__file__security_result__category ;;
   }
 }
 
@@ -91821,6 +100984,26 @@ view: events__principal__ip_geo_artifact__network__dhcp__options {
   }
 }
 
+view: events__principal__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__principal__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -91870,6 +101053,26 @@ view: events__principal__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__principal__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -92069,6 +101272,14 @@ view: events__extensions__vulns__vulnerabilities__about__asset__nat_ip {
   }
 }
 
+view: events__src__process_ancestors__file__security_result__category {
+
+  dimension: events__src__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__src__process_ancestors__file__security_result__category ;;
+  }
+}
+
 view: events__src__process_ancestors__file__pe_file__resource {
 
   dimension: entropy {
@@ -92133,6 +101344,98 @@ view: events__about__file__pe_file__resources_language_count_str {
   }
 }
 
+view: events__about__process__file__security_result__category_details {
+
+  dimension: events__about__process__file__security_result__category_details {
+    type: string
+    sql: events__about__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__about__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__about__process__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -92185,6 +101488,14 @@ view: events__about__resource_ancestors__attribute__permissions {
   }
 }
 
+view: events__about__process_ancestors__file__security_result__action {
+
+  dimension: events__about__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__about__process_ancestors__file__security_result__action ;;
+  }
+}
+
 view: events__intermediary__file__signature_info__sigcheck__x509 {
 
   dimension: algorithm {
@@ -92206,6 +101517,14 @@ view: events__intermediary__file__signature_info__sigcheck__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__campaigns {
+
+  dimension: events__intermediary__process__file__security_result__campaigns {
+    type: string
+    sql: events__intermediary__process__file__security_result__campaigns ;;
   }
 }
 
@@ -92422,6 +101741,164 @@ view: events__target__ip_geo_artifact__network__smtp__server_response {
   dimension: events__target__ip_geo_artifact__network__smtp__server_response {
     type: string
     sql: events__target__ip_geo_artifact__network__smtp__server_response ;;
+  }
+}
+
+view: events__target__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__target__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__target__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -92689,11 +102166,41 @@ view: events__src__security_result__associations__industries_affected {
   }
 }
 
+view: events__src__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__src__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__src__process_ancestors__file__security_result__campaigns ;;
+  }
+}
+
 view: events__src__process_ancestors__file__pe_file__imports__functions {
 
   dimension: events__src__process_ancestors__file__pe_file__imports__functions {
     type: string
     sql: events__src__process_ancestors__file__pe_file__imports__functions ;;
+  }
+}
+
+view: events__about__file__security_result__associations__country_code {
+
+  dimension: events__about__file__security_result__associations__country_code {
+    type: string
+    sql: events__about__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__about__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -92993,6 +102500,98 @@ view: events__target__file__pe_file__resources_language_count_str {
   }
 }
 
+view: events__target__process__file__security_result__category_details {
+
+  dimension: events__target__process__file__security_result__category_details {
+    type: string
+    sql: events__target__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__target__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__target__process__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -93045,6 +102644,14 @@ view: events__target__resource_ancestors__attribute__permissions {
   }
 }
 
+view: events__target__process_ancestors__file__security_result__action {
+
+  dimension: events__target__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__target__process_ancestors__file__security_result__action ;;
+  }
+}
+
 view: events__principal__process__file__signature_info__sigcheck__signer {
 
   dimension: events__principal__process__file__signature_info__sigcheck__signer {
@@ -93085,6 +102692,164 @@ view: events__observer__ip_geo_artifact__network__smtp__server_response {
   }
 }
 
+view: events__observer__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__observer__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__observer__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__observer__security_result__attack_details__techniques {
   drill_fields: [id]
 
@@ -93120,6 +102885,48 @@ view: events__observer__domain__registrant__attribute__permissions {
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__src__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__src__process__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -93172,6 +102979,14 @@ view: events__src__process__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__category {
+
+  dimension: events__about__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__about__process_ancestors__file__security_result__category ;;
   }
 }
 
@@ -93311,6 +103126,28 @@ view: events__security_result__verdict__verdict__mandiant_sources {
   }
 }
 
+view: events__target__file__security_result__associations__country_code {
+
+  dimension: events__target__file__security_result__associations__country_code {
+    type: string
+    sql: events__target__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__target__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__target__process__file__signature_info__sigcheck__x509 {
 
   dimension: algorithm {
@@ -93388,6 +103225,164 @@ view: events__principal__ip_geo_artifact__network__smtp__server_response {
   dimension: events__principal__ip_geo_artifact__network__smtp__server_response {
     type: string
     sql: events__principal__ip_geo_artifact__network__smtp__server_response ;;
+  }
+}
+
+view: events__principal__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__principal__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__principal__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -93469,6 +103464,98 @@ view: events__observer__file__pe_file__resources_language_count_str {
   }
 }
 
+view: events__observer__process__file__security_result__category_details {
+
+  dimension: events__observer__process__file__security_result__category_details {
+    type: string
+    sql: events__observer__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__observer__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__observer__process__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -93518,6 +103605,14 @@ view: events__observer__resource_ancestors__attribute__permissions {
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__action {
+
+  dimension: events__observer__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__observer__process_ancestors__file__security_result__action ;;
   }
 }
 
@@ -93573,6 +103668,14 @@ view: events__about__security_result__associations__industries_affected {
   }
 }
 
+view: events__about__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__about__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__about__process_ancestors__file__security_result__campaigns ;;
+  }
+}
+
 view: events__about__process_ancestors__file__pe_file__imports__functions {
 
   dimension: events__about__process_ancestors__file__pe_file__imports__functions {
@@ -93618,6 +103721,26 @@ view: events__intermediary__ip_geo_artifact__network__dhcp__options {
   dimension: data {
     type: string
     sql: ${TABLE}.data ;;
+  }
+}
+
+view: events__intermediary__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -93670,6 +103793,26 @@ view: events__intermediary__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -93915,6 +104058,14 @@ view: events__security_result__about__asset__attribute__permissions {
   }
 }
 
+view: events__target__process_ancestors__file__security_result__category {
+
+  dimension: events__target__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__target__process_ancestors__file__security_result__category ;;
+  }
+}
+
 view: events__target__process_ancestors__file__pe_file__resource {
 
   dimension: entropy {
@@ -93979,6 +104130,98 @@ view: events__principal__file__pe_file__resources_language_count_str {
   }
 }
 
+view: events__principal__process__file__security_result__category_details {
+
+  dimension: events__principal__process__file__security_result__category_details {
+    type: string
+    sql: events__principal__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__principal__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__principal__process__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -94028,6 +104271,36 @@ view: events__principal__resource_ancestors__attribute__permissions {
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__action {
+
+  dimension: events__principal__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__principal__process_ancestors__file__security_result__action ;;
+  }
+}
+
+view: events__observer__file__security_result__associations__country_code {
+
+  dimension: events__observer__file__security_result__associations__country_code {
+    type: string
+    sql: events__observer__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__observer__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -94160,6 +104433,104 @@ view: events__extensions__vulns__vulnerabilities__about__ip_location {
 }
 
 view: events__extensions__vulns__vulnerabilities__about__asset__labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__src__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__about__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__about__process__file__security_result__detection_fields {
 
   dimension: key {
     type: string
@@ -94533,11 +104904,41 @@ view: events__target__security_result__associations__industries_affected {
   }
 }
 
+view: events__target__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__target__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__target__process_ancestors__file__security_result__campaigns ;;
+  }
+}
+
 view: events__target__process_ancestors__file__pe_file__imports__functions {
 
   dimension: events__target__process_ancestors__file__pe_file__imports__functions {
     type: string
     sql: events__target__process_ancestors__file__pe_file__imports__functions ;;
+  }
+}
+
+view: events__principal__file__security_result__associations__country_code {
+
+  dimension: events__principal__file__security_result__associations__country_code {
+    type: string
+    sql: events__principal__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__principal__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -94613,6 +105014,14 @@ view: events__principal__process_ancestors__file__pe_file__imports {
   }
 }
 
+view: events__observer__process_ancestors__file__security_result__category {
+
+  dimension: events__observer__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__observer__process_ancestors__file__security_result__category ;;
+  }
+}
+
 view: events__observer__process_ancestors__file__pe_file__resource {
 
   dimension: entropy {
@@ -94666,6 +105075,18 @@ view: events__src__ip_geo_artifact__network__tls__client__supported_ciphers {
   dimension: events__src__ip_geo_artifact__network__tls__client__supported_ciphers {
     type: string
     sql: events__src__ip_geo_artifact__network__tls__client__supported_ciphers ;;
+  }
+}
+
+view: events__src__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -94845,6 +105266,48 @@ view: events__security_result__verdict__verdict__third_party_sources {
   }
 }
 
+view: events__target__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__target__process__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__target__process__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -94894,6 +105357,14 @@ view: events__target__process__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__category {
+
+  dimension: events__principal__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__principal__process_ancestors__file__security_result__category ;;
   }
 }
 
@@ -94962,6 +105433,14 @@ view: events__observer__security_result__associations__industries_affected {
   dimension: events__observer__security_result__associations__industries_affected {
     type: string
     sql: events__observer__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__observer__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__observer__process_ancestors__file__security_result__campaigns ;;
   }
 }
 
@@ -95919,6 +106398,14 @@ view: events__extensions__vulns__vulnerabilities__about__user__phone_numbers {
   }
 }
 
+view: events__src__file__security_result__associations__industries_affected {
+
+  dimension: events__src__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__src__file__security_result__associations__industries_affected ;;
+  }
+}
+
 view: events__src__process__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -95975,11 +106462,225 @@ view: events__src__process_ancestors__file__signature_info__sigcheck__signer {
   }
 }
 
+view: events__about__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__intermediary__ip_geo_artifact__network__smtp__server_response {
 
   dimension: events__intermediary__ip_geo_artifact__network__smtp__server_response {
     type: string
     sql: events__intermediary__ip_geo_artifact__network__smtp__server_response ;;
+  }
+}
+
+view: events__intermediary__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -96255,11 +106956,61 @@ view: events__principal__security_result__associations__industries_affected {
   }
 }
 
+view: events__principal__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__principal__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__principal__process_ancestors__file__security_result__campaigns ;;
+  }
+}
+
 view: events__principal__process_ancestors__file__pe_file__imports__functions {
 
   dimension: events__principal__process_ancestors__file__pe_file__imports__functions {
     type: string
     sql: events__principal__process_ancestors__file__pe_file__imports__functions ;;
+  }
+}
+
+view: events__observer__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__observer__process__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -96351,11 +107102,191 @@ view: events__src__artifact__network__http__parsed_user_agent__annotation {
   }
 }
 
+view: events__src__process__file__security_result__associations__country_code {
+
+  dimension: events__src__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__src__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__src__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__about__ip_geo_artifact__network__tls__client__supported_ciphers {
 
   dimension: events__about__ip_geo_artifact__network__tls__client__supported_ciphers {
     type: string
     sql: events__about__ip_geo_artifact__network__tls__client__supported_ciphers ;;
+  }
+}
+
+view: events__about__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -96404,6 +107335,98 @@ view: events__intermediary__file__pe_file__resources_language_count_str {
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__category_details {
+
+  dimension: events__intermediary__process__file__security_result__category_details {
+    type: string
+    sql: events__intermediary__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -96459,6 +107482,14 @@ view: events__intermediary__resource_ancestors__attribute__permissions {
   }
 }
 
+view: events__intermediary__process_ancestors__file__security_result__action {
+
+  dimension: events__intermediary__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__intermediary__process_ancestors__file__security_result__action ;;
+  }
+}
+
 view: events__security_result__about__ip_geo_artifact__network__smtp__rcpt_to {
 
   dimension: events__security_result__about__ip_geo_artifact__network__smtp__rcpt_to {
@@ -96508,6 +107539,104 @@ view: events__security_result__about__process_ancestors__file__embedded_urls {
   dimension: events__security_result__about__process_ancestors__file__embedded_urls {
     type: string
     sql: events__security_result__about__process_ancestors__file__embedded_urls ;;
+  }
+}
+
+view: events__target__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__principal__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__principal__process__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -96579,6 +107708,98 @@ view: events__extensions__vulns__vulnerabilities__about__user__email_addresses {
   }
 }
 
+view: events__src__process_ancestors__file__security_result__category_details {
+
+  dimension: events__src__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__src__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__src__process_ancestors__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -96612,6 +107833,14 @@ view: events__src__process_ancestors__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__about__file__security_result__associations__industries_affected {
+
+  dimension: events__about__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__about__file__security_result__associations__industries_affected ;;
   }
 }
 
@@ -96668,6 +107897,28 @@ view: events__about__process_ancestors__file__signature_info__sigcheck__signer {
   dimension: events__about__process_ancestors__file__signature_info__sigcheck__signer {
     type: string
     sql: events__about__process_ancestors__file__signature_info__sigcheck__signer ;;
+  }
+}
+
+view: events__intermediary__file__security_result__associations__country_code {
+
+  dimension: events__intermediary__file__security_result__associations__country_code {
+    type: string
+    sql: events__intermediary__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__intermediary__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -96835,11 +108086,79 @@ view: events__target__ip_geo_artifact__network__tls__client__supported_ciphers {
   }
 }
 
+view: events__target__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__target__process_ancestors__file__pe_file__signature_info__signer {
 
   dimension: events__target__process_ancestors__file__pe_file__signature_info__signer {
     type: string
     sql: events__target__process_ancestors__file__pe_file__signature_info__signer ;;
+  }
+}
+
+view: events__observer__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -97423,6 +108742,343 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors {
     group_label: "File Prevalence"
     group_item_label: "Rolling Max Sub Domains"
   }
+  dimension: file__security_result__action {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.action ;;
+    group_label: "File Security Result"
+    group_item_label: "Action"
+  }
+  dimension: file__security_result__action_details {
+    type: string
+    sql: ${TABLE}.file.security_result.action_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Action Details"
+  }
+  dimension: file__security_result__alert_state {
+    type: number
+    sql: ${TABLE}.file.security_result.alert_state ;;
+    group_label: "File Security Result"
+    group_item_label: "Alert State"
+  }
+  dimension: file__security_result__associations {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.associations ;;
+    group_label: "File Security Result"
+    group_item_label: "Associations"
+  }
+  dimension: file__security_result__attack_details__tactics {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.tactics ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Tactics"
+  }
+  dimension: file__security_result__attack_details__techniques {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.attack_details.techniques ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Techniques"
+  }
+  dimension: file__security_result__attack_details__version {
+    type: string
+    sql: ${TABLE}.file.security_result.attack_details.version ;;
+    group_label: "File Security Result Attack Details"
+    group_item_label: "Version"
+  }
+  dimension: file__security_result__campaigns {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.campaigns ;;
+    group_label: "File Security Result"
+    group_item_label: "Campaigns"
+  }
+  dimension: file__security_result__category {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category ;;
+    group_label: "File Security Result"
+    group_item_label: "Category"
+  }
+  dimension: file__security_result__category_details {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.category_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Category Details"
+  }
+  dimension: file__security_result__confidence {
+    type: number
+    sql: ${TABLE}.file.security_result.confidence ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence"
+  }
+  dimension: file__security_result__confidence_details {
+    type: string
+    sql: ${TABLE}.file.security_result.confidence_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Confidence Details"
+  }
+  dimension: file__security_result__description {
+    type: string
+    sql: ${TABLE}.file.security_result.description ;;
+    group_label: "File Security Result"
+    group_item_label: "Description"
+  }
+  dimension: file__security_result__detection_fields {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.detection_fields ;;
+    group_label: "File Security Result"
+    group_item_label: "Detection Fields"
+  }
+  dimension: file__security_result__first_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.nanos ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__first_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.first_discovered_time.seconds ;;
+    group_label: "File Security Result First Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.nanos ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_discovered_time.seconds ;;
+    group_label: "File Security Result Last Discovered Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__last_updated_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.nanos ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__last_updated_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.last_updated_time.seconds ;;
+    group_label: "File Security Result Last Updated Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__outcomes {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.outcomes ;;
+    group_label: "File Security Result"
+    group_item_label: "Outcomes"
+  }
+  dimension: file__security_result__priority {
+    type: number
+    sql: ${TABLE}.file.security_result.priority ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority"
+  }
+  dimension: file__security_result__priority_details {
+    type: string
+    sql: ${TABLE}.file.security_result.priority_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Priority Details"
+  }
+  dimension: file__security_result__risk_score {
+    type: number
+    sql: ${TABLE}.file.security_result.risk_score ;;
+    group_label: "File Security Result"
+    group_item_label: "Risk Score"
+  }
+  dimension: file__security_result__rule_author {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_author ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Author"
+  }
+  dimension: file__security_result__rule_id {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule ID"
+  }
+  dimension: file__security_result__rule_labels {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.rule_labels ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Labels"
+  }
+  dimension: file__security_result__rule_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Name"
+  }
+  dimension: file__security_result__rule_set {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set"
+  }
+  dimension: file__security_result__rule_set_display_name {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_set_display_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Set Display Name"
+  }
+  dimension: file__security_result__rule_type {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_type ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Type"
+  }
+  dimension: file__security_result__rule_version {
+    type: string
+    sql: ${TABLE}.file.security_result.rule_version ;;
+    group_label: "File Security Result"
+    group_item_label: "Rule Version"
+  }
+  dimension: file__security_result__severity {
+    type: number
+    sql: ${TABLE}.file.security_result.severity ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity"
+  }
+  dimension: file__security_result__severity_details {
+    type: string
+    sql: ${TABLE}.file.security_result.severity_details ;;
+    group_label: "File Security Result"
+    group_item_label: "Severity Details"
+  }
+  dimension: file__security_result__summary {
+    type: string
+    sql: ${TABLE}.file.security_result.summary ;;
+    group_label: "File Security Result"
+    group_item_label: "Summary"
+  }
+  dimension: file__security_result__threat_feed_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_feed_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Feed Name"
+  }
+  dimension: file__security_result__threat_id {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_id ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID"
+  }
+  dimension: file__security_result__threat_id_namespace {
+    type: number
+    value_format_name: id
+    sql: ${TABLE}.file.security_result.threat_id_namespace ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat ID Namespace"
+  }
+  dimension: file__security_result__threat_name {
+    type: string
+    sql: ${TABLE}.file.security_result.threat_name ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Name"
+  }
+  dimension: file__security_result__threat_status {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_status ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Status"
+  }
+  dimension: file__security_result__threat_verdict {
+    type: number
+    sql: ${TABLE}.file.security_result.threat_verdict ;;
+    group_label: "File Security Result"
+    group_item_label: "Threat Verdict"
+  }
+  dimension: file__security_result__url_back_to_product {
+    type: string
+    sql: ${TABLE}.file.security_result.url_back_to_product ;;
+    group_label: "File Security Result"
+    group_item_label: "URL Back to Product"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_response {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_response ;;
+    group_label: "File Security Result Verdict Analyst Verdict"
+    group_item_label: "Verdict Response"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.nanos ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: file__security_result__verdict__analyst_verdict__verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.analyst_verdict.verdict_time.seconds ;;
+    group_label: "File Security Result Verdict Analyst Verdict Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: file__security_result__verdict__neighbour_influence {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.neighbour_influence ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Neighbour Influence"
+  }
+  dimension: file__security_result__verdict__response_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.response_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Response Count"
+  }
+  dimension: file__security_result__verdict__source_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.source_count ;;
+    group_label: "File Security Result Verdict"
+    group_item_label: "Source Count"
+  }
+  dimension: file__security_result__verdict__verdict__benign_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.benign_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Benign Count"
+  }
+  dimension: file__security_result__verdict__verdict__confidence_score {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.confidence_score ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Confidence Score"
+  }
+  dimension: file__security_result__verdict__verdict__malicious_count {
+    type: number
+    sql: ${TABLE}.file.security_result.verdict.verdict.malicious_count ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Malicious Count"
+  }
+  dimension: file__security_result__verdict__verdict__mandiant_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.mandiant_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Mandiant Sources"
+  }
+  dimension: file__security_result__verdict__verdict__source_provider {
+    type: string
+    sql: ${TABLE}.file.security_result.verdict.verdict.source_provider ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Source Provider"
+  }
+  dimension: file__security_result__verdict__verdict__third_party_sources {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict.verdict.third_party_sources ;;
+    group_label: "File Security Result Verdict Verdict"
+    group_item_label: "Third Party Sources"
+  }
+  dimension: file__security_result__verdict_info {
+    hidden: yes
+    sql: ${TABLE}.file.security_result.verdict_info ;;
+    group_label: "File Security Result"
+    group_item_label: "Verdict Info"
+  }
   dimension: file__sha1 {
     type: string
     sql: ${TABLE}.file.sha1 ;;
@@ -97634,6 +109290,182 @@ view: events__about__artifact__network__http__parsed_user_agent__annotation {
   }
 }
 
+view: events__about__process__file__security_result__associations__country_code {
+
+  dimension: events__about__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__about__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__about__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__category {
+
+  dimension: events__intermediary__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__intermediary__process_ancestors__file__security_result__category ;;
+  }
+}
+
 view: events__intermediary__process_ancestors__file__pe_file__resource {
 
   dimension: entropy {
@@ -97798,6 +109630,14 @@ view: events__security_result__about__domain__registrant__attribute__labels {
   }
 }
 
+view: events__target__file__security_result__associations__industries_affected {
+
+  dimension: events__target__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__target__file__security_result__associations__industries_affected ;;
+  }
+}
+
 view: events__target__process__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -97854,11 +109694,79 @@ view: events__target__process_ancestors__file__signature_info__sigcheck__signer 
   }
 }
 
+view: events__principal__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__observer__ip_geo_artifact__network__tls__client__supported_ciphers {
 
   dimension: events__observer__ip_geo_artifact__network__tls__client__supported_ciphers {
     type: string
     sql: events__observer__ip_geo_artifact__network__tls__client__supported_ciphers ;;
+  }
+}
+
+view: events__observer__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -97915,6 +109823,120 @@ view: events__extensions__vulns__vulnerabilities__about__user__group_identifiers
   dimension: events__extensions__vulns__vulnerabilities__about__user__group_identifiers {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__user__group_identifiers ;;
+  }
+}
+
+view: events__src__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__category_details {
+
+  dimension: events__about__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__about__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -97995,6 +110017,14 @@ view: events__intermediary__security_result__associations__industries_affected {
   dimension: events__intermediary__security_result__associations__industries_affected {
     type: string
     sql: events__intermediary__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__intermediary__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__intermediary__process_ancestors__file__security_result__campaigns ;;
   }
 }
 
@@ -98114,6 +110144,174 @@ view: events__target__artifact__network__http__parsed_user_agent__annotation {
   }
 }
 
+view: events__target__process__file__security_result__associations__country_code {
+
+  dimension: events__target__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__target__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__target__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__principal__ip_geo_artifact__network__tls__client__supported_ciphers {
 
   dimension: events__principal__ip_geo_artifact__network__tls__client__supported_ciphers {
@@ -98122,11 +110320,31 @@ view: events__principal__ip_geo_artifact__network__tls__client__supported_cipher
   }
 }
 
+view: events__principal__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__principal__process_ancestors__file__pe_file__signature_info__signer {
 
   dimension: events__principal__process_ancestors__file__pe_file__signature_info__signer {
     type: string
     sql: events__principal__process_ancestors__file__pe_file__signature_info__signer ;;
+  }
+}
+
+view: events__observer__file__security_result__associations__industries_affected {
+
+  dimension: events__observer__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__observer__file__security_result__associations__industries_affected ;;
   }
 }
 
@@ -98294,6 +110512,18 @@ view: events__extensions__vulns__vulnerabilities__about__security_result {
     group_label: "First Discovered Time"
     group_item_label: "Seconds"
   }
+  dimension: last_discovered_time__nanos {
+    type: number
+    sql: ${TABLE}.last_discovered_time.nanos ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_discovered_time__seconds {
+    type: number
+    sql: ${TABLE}.last_discovered_time.seconds ;;
+    group_label: "Last Discovered Time"
+    group_item_label: "Seconds"
+  }
   dimension: last_updated_time__nanos {
     type: number
     sql: ${TABLE}.last_updated_time.nanos ;;
@@ -98386,6 +110616,10 @@ view: events__extensions__vulns__vulnerabilities__about__security_result {
   dimension: threat_status {
     type: number
     sql: ${TABLE}.threat_status ;;
+  }
+  dimension: threat_verdict {
+    type: number
+    sql: ${TABLE}.threat_verdict ;;
   }
   dimension: url_back_to_product {
     type: string
@@ -98483,6 +110717,34 @@ view: events__extensions__vulns__vulnerabilities__about__domain__admin__departme
   }
 }
 
+view: events__src__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__src__process_ancestors__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -98552,6 +110814,48 @@ view: events__about__process_ancestors__file__signature_info__sigcheck__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__intermediary__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -98651,6 +110955,98 @@ view: events__security_result__about__process_ancestors__file__capabilities_tags
   }
 }
 
+view: events__target__process_ancestors__file__security_result__category_details {
+
+  dimension: events__target__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__target__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__target__process_ancestors__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -98684,6 +111080,14 @@ view: events__target__process_ancestors__file__pe_file__signature_info__x509 {
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__principal__file__security_result__associations__industries_affected {
+
+  dimension: events__principal__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__principal__file__security_result__associations__industries_affected ;;
   }
 }
 
@@ -98755,11 +111159,235 @@ view: events__observer__artifact__network__http__parsed_user_agent__annotation {
   }
 }
 
+view: events__observer__process__file__security_result__associations__country_code {
+
+  dimension: events__observer__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__observer__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__observer__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__security_result__category {
 
   dimension: events__extensions__vulns__vulnerabilities__about__security_result__category {
     type: number
     sql: events__extensions__vulns__vulnerabilities__about__security_result__category ;;
+  }
+}
+
+view: events__src__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -98812,6 +111440,28 @@ view: events__src__process_ancestors__file__signature_info__sigcheck__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__about__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
   }
 }
 
@@ -98984,6 +111634,266 @@ view: events__principal__artifact__network__http__parsed_user_agent__annotation 
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__principal__process__file__security_result__associations__country_code {
+
+  dimension: events__principal__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__principal__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__principal__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__category_details {
+
+  dimension: events__observer__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__observer__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -99203,6 +112113,34 @@ view: events__extensions__vulns__vulnerabilities__about__user__attribute__labels
   }
 }
 
+view: events__about__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__about__process_ancestors__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -99220,6 +112158,62 @@ view: events__about__process_ancestors__file__pe_file__signature_info__signers {
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__intermediary__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -99370,6 +112364,120 @@ view: events__security_result__about__user_management_chain__attribute__labels {
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__target__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__category_details {
+
+  dimension: events__principal__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__principal__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -99607,6 +112715,98 @@ view: events__src__ip_geo_artifact__network__http__parsed_user_agent__annotation
   }
 }
 
+view: events__src__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__src__process__file__security_result__associations__industries_affected {
+
+  dimension: events__src__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__src__process__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__about__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__about__process_ancestors__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -99667,6 +112867,18 @@ view: events__intermediary__ip_geo_artifact__network__tls__client__supported_cip
   }
 }
 
+view: events__intermediary__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__intermediary__process_ancestors__file__pe_file__signature_info__signer {
 
   dimension: events__intermediary__process_ancestors__file__pe_file__signature_info__signer {
@@ -99704,6 +112916,34 @@ view: events__security_result__about__process_ancestors__file__pe_file__section 
   dimension: virtual_size_bytes {
     type: number
     sql: ${TABLE}.virtual_size_bytes ;;
+  }
+}
+
+view: events__target__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
 
@@ -99779,11 +113019,41 @@ view: events__principal__process_ancestors__file__signature_info__sigcheck__x509
   }
 }
 
+view: events__observer__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__artifact__network__email__to {
 
   dimension: events__extensions__vulns__vulnerabilities__about__artifact__network__email__to {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__artifact__network__email__to ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__action {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__file__security_result__action {
+    type: number
+    sql: events__extensions__vulns__vulnerabilities__about__file__security_result__action ;;
   }
 }
 
@@ -100265,6 +113535,26 @@ view: events__extensions__vulns__vulnerabilities__about__domain__zone__email_add
   }
 }
 
+view: events__src__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__intermediary__file__security_result__associations__industries_affected {
+
+  dimension: events__intermediary__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__intermediary__file__security_result__associations__industries_affected ;;
+  }
+}
+
 view: events__intermediary__process__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -100345,6 +113635,62 @@ view: events__security_result__about__domain__registrant__attribute__permissions
   }
 }
 
+view: events__target__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__target__process_ancestors__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -100394,6 +113740,56 @@ view: events__target__process_ancestors__file__signature_info__sigcheck__signers
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__principal__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__observer__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
 
@@ -100565,11 +113961,215 @@ view: events__about__ip_geo_artifact__network__http__parsed_user_agent__annotati
   }
 }
 
+view: events__about__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__about__process__file__security_result__associations__industries_affected {
+
+  dimension: events__about__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__about__process__file__security_result__associations__industries_affected ;;
+  }
+}
+
 view: events__intermediary__artifact__network__http__parsed_user_agent__annotation {
 
   dimension: key {
     type: string
     sql: ${TABLE}.key ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__associations__country_code {
+
+  dimension: events__intermediary__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__intermediary__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
   }
   dimension: value {
     type: string
@@ -100669,6 +114269,34 @@ view: events__security_result__about__resource_ancestors__attribute__permissions
   }
 }
 
+view: events__principal__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__principal__process_ancestors__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -100686,6 +114314,62 @@ view: events__principal__process_ancestors__file__pe_file__signature_info__signe
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__observer__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -100746,6 +114430,14 @@ view: events__extensions__vulns__vulnerabilities__about__artifact__network__smtp
   dimension: events__extensions__vulns__vulnerabilities__about__artifact__network__smtp__rcpt_to {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__artifact__network__smtp__rcpt_to ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__category {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__file__security_result__category {
+    type: number
+    sql: events__extensions__vulns__vulnerabilities__about__file__security_result__category ;;
   }
 }
 
@@ -100833,6 +114525,132 @@ view: events__extensions__vulns__vulnerabilities__about__domain__zone__group_ide
   }
 }
 
+view: events__src__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__src__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__src__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__category_details {
+
+  dimension: events__intermediary__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__intermediary__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
+  }
+}
+
 view: events__intermediary__process_ancestors__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -100910,6 +114728,98 @@ view: events__target__ip_geo_artifact__network__http__parsed_user_agent__annotat
   dimension: key {
     type: string
     sql: ${TABLE}.key ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__target__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__target__process__file__security_result__associations__industries_affected {
+
+  dimension: events__target__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__target__process__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__principal__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
   }
   dimension: value {
     type: string
@@ -101010,6 +114920,14 @@ view: events__extensions__vulns__vulnerabilities__about__cloud__vpc__attribute__
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__campaigns {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__file__security_result__campaigns {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__file__security_result__campaigns ;;
   }
 }
 
@@ -101141,6 +115059,18 @@ view: events__security_result__about__process_ancestors__file__pe_file__resource
   }
 }
 
+view: events__target__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__observer__ip_geo_artifact__network__http__parsed_user_agent__annotation {
 
   dimension: key {
@@ -101150,6 +115080,42 @@ view: events__observer__ip_geo_artifact__network__http__parsed_user_agent__annot
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__observer__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__observer__process__file__security_result__associations__industries_affected {
+
+  dimension: events__observer__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__observer__process__file__security_result__associations__industries_affected ;;
   }
 }
 
@@ -101339,6 +115305,78 @@ view: events__extensions__vulns__vulnerabilities__about__user__attribute__permis
   }
 }
 
+view: events__src__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__about__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__about__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
 view: events__security_result__about__process__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -101412,6 +115450,54 @@ view: events__principal__ip_geo_artifact__network__http__parsed_user_agent__anno
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__principal__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__principal__process__file__security_result__associations__industries_affected {
+
+  dimension: events__principal__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__principal__process__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -101504,6 +115590,18 @@ view: events__extensions__vulns__vulnerabilities__about__security_result__verdic
   dimension: pwn {
     type: yesno
     sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
   }
   dimension: response_count {
     type: number
@@ -101699,6 +115797,56 @@ view: events__extensions__vulns__vulnerabilities__about__asset__attribute__permi
   }
 }
 
+view: events__src__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__intermediary__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__intermediary__process_ancestors__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -101771,6 +115919,40 @@ view: events__security_result__about__process__file__signature_info__sigcheck__s
   }
 }
 
+view: events__target__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__target__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__target__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__observer__process_ancestors__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -101796,6 +115978,26 @@ view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__networ
   dimension: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__email__bcc {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__email__bcc ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -101899,6 +116101,90 @@ view: events__extensions__vulns__vulnerabilities__about__domain__registrant__ema
   }
 }
 
+view: events__about__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__intermediary__process_ancestors__file__pe_file__resources_language_count {
 
   dimension: key {
@@ -101968,6 +116254,28 @@ view: events__principal__process_ancestors__file__pe_file__resources_language_co
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__observer__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__observer__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -102079,6 +116387,142 @@ view: events__extensions__vulns__vulnerabilities__about__group__attribute__permi
   }
 }
 
+view: events__src__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__src__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__target__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__principal__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__principal__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__artifact__network__dns__additional {
 
   dimension: binary_data {
@@ -102158,6 +116602,14 @@ view: events__extensions__vulns__vulnerabilities__about__file__signature_info__s
   dimension: events__extensions__vulns__vulnerabilities__about__file__signature_info__sigcheck__signer {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__file__signature_info__sigcheck__signer ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__action {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process__file__security_result__action {
+    type: number
+    sql: events__extensions__vulns__vulnerabilities__about__process__file__security_result__action ;;
   }
 }
 
@@ -102281,6 +116733,42 @@ view: events__intermediary__ip_geo_artifact__network__http__parsed_user_agent__a
   }
 }
 
+view: events__intermediary__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__associations__industries_affected {
+
+  dimension: events__intermediary__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__intermediary__process__file__security_result__associations__industries_affected ;;
+  }
+}
+
 view: events__security_result__about__ip_geo_artifact__network__tls__client__supported_ciphers {
 
   dimension: events__security_result__about__ip_geo_artifact__network__tls__client__supported_ciphers {
@@ -102294,6 +116782,56 @@ view: events__security_result__about__process_ancestors__file__pe_file__signatur
   dimension: events__security_result__about__process_ancestors__file__pe_file__signature_info__signer {
     type: string
     sql: events__security_result__about__process_ancestors__file__pe_file__signature_info__signer ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__observer__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
 
@@ -102326,6 +116864,152 @@ view: events__extensions__vulns__vulnerabilities__about__cloud__vpc__attribute__
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -102369,6 +117053,90 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   }
 }
 
+view: events__src__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__src__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__src__process_ancestors__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__about__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__about__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__security_result__about__process__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -102397,6 +117165,56 @@ view: events__security_result__about__process_ancestors__file__signature_info__s
   }
 }
 
+view: events__principal__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__email__subject {
 
   dimension: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__email__subject {
@@ -102410,6 +117228,98 @@ view: events__extensions__vulns__vulnerabilities__about__artifact__network__smtp
   dimension: events__extensions__vulns__vulnerabilities__about__artifact__network__smtp__server_response {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__artifact__network__smtp__server_response ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__category_details {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__file__security_result__category_details {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__file__security_result__category_details ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -102446,6 +117356,14 @@ view: events__extensions__vulns__vulnerabilities__about__file__pe_file__signatur
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__category {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process__file__security_result__category {
+    type: number
+    sql: events__extensions__vulns__vulnerabilities__about__process__file__security_result__category ;;
   }
 }
 
@@ -102513,6 +117431,92 @@ view: events__security_result__about__artifact__network__http__parsed_user_agent
   }
 }
 
+view: events__target__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__file__signature_info__sigcheck__x509 {
 
   dimension: algorithm {
@@ -102534,6 +117538,14 @@ view: events__extensions__vulns__vulnerabilities__about__file__signature_info__s
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__campaigns {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process__file__security_result__campaigns {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process__file__security_result__campaigns ;;
   }
 }
 
@@ -102653,6 +117665,36 @@ view: events__extensions__vulns__vulnerabilities__about__domain__registrant__att
   }
 }
 
+view: events__about__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__about__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__about__process_ancestors__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__intermediary__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__intermediary__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__security_result__about__process_ancestors__file__pe_file__resources_type_count {
 
   dimension: key {
@@ -102686,6 +117728,70 @@ view: events__security_result__about__process_ancestors__file__pe_file__signatur
   dimension: thumbprint {
     type: string
     sql: ${TABLE}.thumbprint ;;
+  }
+}
+
+view: events__observer__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
 
@@ -102821,6 +117927,78 @@ view: events__security_result__about__process_ancestors__file__signature_info__s
   }
 }
 
+view: events__target__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__target__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__target__process_ancestors__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__principal__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__cloud__project__attribute__permissions {
 
   dimension: description {
@@ -102865,6 +118043,42 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   }
 }
 
+view: events__intermediary__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__observer__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__observer__process_ancestors__file__security_result__associations__industries_affected ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__dns__authority {
 
   dimension: binary_data {
@@ -102902,6 +118116,26 @@ view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__networ
   dimension: data {
     type: string
     sql: ${TABLE}.data ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -102957,6 +118191,26 @@ view: events__extensions__vulns__vulnerabilities__about__file__signature_info__s
   }
 }
 
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__security_result__associations__country_code {
 
   dimension: events__extensions__vulns__vulnerabilities__about__security_result__associations__country_code {
@@ -102995,6 +118249,56 @@ view: events__extensions__vulns__vulnerabilities__about__domain__billing__attrib
   }
 }
 
+view: events__src__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
 view: events__security_result__about__process_ancestors__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -103012,6 +118316,14 @@ view: events__security_result__about__process_ancestors__file__pe_file__signatur
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__principal__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__principal__process_ancestors__file__security_result__associations__industries_affected ;;
   }
 }
 
@@ -103249,11 +118561,261 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   }
 }
 
+view: events__about__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__smtp__server_response {
 
   dimension: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__smtp__server_response {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__smtp__server_response ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -103295,6 +118857,34 @@ view: events__extensions__vulns__vulnerabilities__about__domain__registrant__att
   }
 }
 
+view: events__src__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__security_result__about__ip_geo_artifact__network__http__parsed_user_agent__annotation {
 
   dimension: key {
@@ -103304,6 +118894,34 @@ view: events__security_result__about__ip_geo_artifact__network__http__parsed_use
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
 
@@ -103344,6 +118962,98 @@ view: events__extensions__vulns__vulnerabilities__about__file__pe_file__resource
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__category_details {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process__file__security_result__category_details {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process__file__security_result__category_details ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -103396,6 +119106,72 @@ view: events__extensions__vulns__vulnerabilities__about__resource_ancestors__att
   dimension: type {
     type: number
     sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__action {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__action {
+    type: number
+    sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__action ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__intermediary__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__intermediary__process_ancestors__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__country_code {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__country_code {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
   }
 }
 
@@ -103471,6 +119247,34 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   }
 }
 
+view: events__about__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__security_result__about__process_ancestors__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -103488,6 +119292,42 @@ view: events__security_result__about__process_ancestors__file__pe_file__resource
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__principal__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__category {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__category {
+    type: number
+    sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__category ;;
   }
 }
 
@@ -103512,6 +119352,34 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   dimension: sha256_hex {
     type: string
     sql: ${TABLE}.sha256_hex ;;
+  }
+}
+
+view: events__target__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
 
@@ -103559,11 +119427,89 @@ view: events__extensions__vulns__vulnerabilities__about__security_result__associ
   }
 }
 
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__campaigns {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__campaigns {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__campaigns ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__imports__functions {
 
   dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__imports__functions {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__imports__functions ;;
+  }
+}
+
+view: events__observer__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -103619,6 +119565,118 @@ view: events__extensions__vulns__vulnerabilities__about__process__file__signatur
   }
 }
 
+view: events__principal__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__intermediary__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__outcomes {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__tls__client__supported_ciphers {
 
   dimension: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__network__tls__client__supported_ciphers {
@@ -103627,11 +119685,31 @@ view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__networ
   }
 }
 
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__signature_info__signer {
 
   dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__signature_info__signer {
     type: string
     sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__signature_info__signer ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__industries_affected {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__file__security_result__associations__industries_affected ;;
   }
 }
 
@@ -103691,6 +119769,34 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   }
 }
 
+view: events__intermediary__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__artifact__network__http__parsed_user_agent__annotation {
 
   dimension: key {
@@ -103700,6 +119806,266 @@ view: events__extensions__vulns__vulnerabilities__about__artifact__network__http
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__country_code {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__country_code {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: alias {
+    hidden: yes
+    sql: ${TABLE}.alias ;;
+  }
+  dimension: country_code {
+    hidden: yes
+    sql: ${TABLE}.country_code ;;
+  }
+  dimension: description {
+    type: string
+    sql: ${TABLE}.description ;;
+  }
+  dimension: first_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.first_reference_time.nanos ;;
+    group_label: "First Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: first_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.first_reference_time.seconds ;;
+    group_label: "First Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: industries_affected {
+    hidden: yes
+    sql: ${TABLE}.industries_affected ;;
+  }
+  dimension: last_reference_time__nanos {
+    type: number
+    sql: ${TABLE}.last_reference_time.nanos ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Nanos"
+  }
+  dimension: last_reference_time__seconds {
+    type: number
+    sql: ${TABLE}.last_reference_time.seconds ;;
+    group_label: "Last Reference Time"
+    group_item_label: "Seconds"
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: region_code__city {
+    type: string
+    sql: ${TABLE}.region_code.city ;;
+    group_label: "Region Code"
+    group_item_label: "City"
+  }
+  dimension: region_code__country_or_region {
+    type: string
+    sql: ${TABLE}.region_code.country_or_region ;;
+    group_label: "Region Code"
+    group_item_label: "Country or Region"
+  }
+  dimension: region_code__desk_name {
+    type: string
+    sql: ${TABLE}.region_code.desk_name ;;
+    group_label: "Region Code"
+    group_item_label: "Desk Name"
+  }
+  dimension: region_code__floor_name {
+    type: string
+    sql: ${TABLE}.region_code.floor_name ;;
+    group_label: "Region Code"
+    group_item_label: "Floor Name"
+  }
+  dimension: region_code__name {
+    type: string
+    sql: ${TABLE}.region_code.name ;;
+    group_label: "Region Code"
+    group_item_label: "Name"
+  }
+  dimension: region_code__region_coordinates__latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.latitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Latitude"
+  }
+  dimension: region_code__region_coordinates__longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_coordinates.longitude ;;
+    group_label: "Region Code Region Coordinates"
+    group_item_label: "Longitude"
+  }
+  dimension: region_code__region_latitude {
+    type: number
+    sql: ${TABLE}.region_code.region_latitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Latitude"
+  }
+  dimension: region_code__region_longitude {
+    type: number
+    sql: ${TABLE}.region_code.region_longitude ;;
+    group_label: "Region Code"
+    group_item_label: "Region Longitude"
+  }
+  dimension: region_code__state {
+    type: string
+    sql: ${TABLE}.region_code.state ;;
+    group_label: "Region Code"
+    group_item_label: "State"
+  }
+  dimension: role {
+    type: string
+    sql: ${TABLE}.role ;;
+  }
+  dimension: source_country {
+    type: string
+    sql: ${TABLE}.source_country ;;
+  }
+  dimension: type {
+    type: number
+    sql: ${TABLE}.type ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__rule_labels {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__category_details {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__category_details {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__category_details ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__verdict_info {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: category_details {
+    type: string
+    sql: ${TABLE}.category_details ;;
+  }
+  dimension: confidence_score {
+    type: number
+    sql: ${TABLE}.confidence_score ;;
+  }
+  dimension: global_customer_count {
+    type: number
+    sql: ${TABLE}.global_customer_count ;;
+  }
+  dimension: global_hits_count {
+    type: number
+    sql: ${TABLE}.global_hits_count ;;
+  }
+  dimension: ioc_stats {
+    hidden: yes
+    sql: ${TABLE}.ioc_stats ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: neighbour_influence {
+    type: string
+    sql: ${TABLE}.neighbour_influence ;;
+  }
+  dimension: pwn {
+    type: yesno
+    sql: ${TABLE}.pwn ;;
+  }
+  dimension: pwn_first_tagged_time__nanos {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.nanos ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Nanos"
+  }
+  dimension: pwn_first_tagged_time__seconds {
+    type: number
+    sql: ${TABLE}.pwn_first_tagged_time.seconds ;;
+    group_label: "Pwn First Tagged Time"
+    group_item_label: "Seconds"
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+  dimension: source_provider {
+    type: string
+    sql: ${TABLE}.source_provider ;;
+  }
+  dimension: verdict_response {
+    type: number
+    sql: ${TABLE}.verdict_response ;;
+  }
+  dimension: verdict_time__nanos {
+    type: number
+    sql: ${TABLE}.verdict_time.nanos ;;
+    group_label: "Verdict Time"
+    group_item_label: "Nanos"
+  }
+  dimension: verdict_time__seconds {
+    type: number
+    sql: ${TABLE}.verdict_time.seconds ;;
+    group_label: "Verdict Time"
+    group_item_label: "Seconds"
+  }
+  dimension: verdict_type {
+    type: number
+    sql: ${TABLE}.verdict_type ;;
   }
 }
 
@@ -103791,6 +120157,56 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   }
 }
 
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__signature_info__signers {
 
   dimension: cert_issuer {
@@ -103808,6 +120224,62 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   dimension: valid_usage {
     type: string
     sql: ${TABLE}.valid_usage ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__detection_fields {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
   }
 }
 
@@ -103875,6 +120347,54 @@ view: events__extensions__vulns__vulnerabilities__about__ip_geo_artifact__networ
   }
 }
 
+view: events__extensions__vulns__vulnerabilities__about__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__industries_affected {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__alias {
+
+  dimension: company {
+    type: string
+    sql: ${TABLE}.company ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
 view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__pe_file__resources_language_count_str {
 
   dimension: key {
@@ -103892,5 +120412,205 @@ view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file
   dimension: value {
     type: string
     sql: ${TABLE}.value ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__country_code {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__country_code {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__country_code ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__attack_details__tactics {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__attack_details__techniques {
+  drill_fields: [id]
+
+  dimension: id {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.id ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: subtechnique_id {
+    type: string
+    sql: ${TABLE}.subtechnique_id ;;
+  }
+  dimension: subtechnique_name {
+    type: string
+    sql: ${TABLE}.subtechnique_name ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__verdict_info__ioc_stats {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: first_level_source {
+    type: string
+    sql: ${TABLE}.first_level_source ;;
+  }
+  dimension: ioc_stats_type {
+    type: number
+    sql: ${TABLE}.ioc_stats_type ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: second_level_source {
+    type: string
+    sql: ${TABLE}.second_level_source ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__industries_affected {
+
+  dimension: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__industries_affected {
+    type: string
+    sql: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__associations__industries_affected ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__verdict__verdict__mandiant_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
+  }
+}
+
+view: events__extensions__vulns__vulnerabilities__about__process_ancestors__file__security_result__verdict__verdict__third_party_sources {
+
+  dimension: benign_count {
+    type: number
+    sql: ${TABLE}.benign_count ;;
+  }
+  dimension: malicious_count {
+    type: number
+    sql: ${TABLE}.malicious_count ;;
+  }
+  dimension: name {
+    type: string
+    sql: ${TABLE}.name ;;
+  }
+  dimension: quality {
+    type: number
+    sql: ${TABLE}.quality ;;
+  }
+  dimension: response_count {
+    type: number
+    sql: ${TABLE}.response_count ;;
+  }
+  dimension: source_count {
+    type: number
+    sql: ${TABLE}.source_count ;;
   }
 }
