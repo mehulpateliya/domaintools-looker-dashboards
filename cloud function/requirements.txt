@@ -6,3 +6,4 @@ domaintools_api==1.0.1
 google-api-python-client==2.97.0
 google-cloud-storage==2.10.0
 redis==5.0.0
+tldextract==5.0.1

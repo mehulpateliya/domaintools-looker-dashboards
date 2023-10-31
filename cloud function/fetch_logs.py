@@ -2,6 +2,7 @@
 import json
 import math
 from datetime import datetime, timedelta
+import tldextract
 from google.oauth2 import service_account
 from googleapiclient import _auth
 from google.cloud import storage
@@ -260,7 +261,10 @@ class FetchLogs:
                     ]
                     for field in fields:
                         if field is not None:
-                            domain_list.add(field)
+                            domain_result = tldextract.extract(field)
+                            registered_domain = domain_result.registered_domain
+                            if registered_domain:
+                                domain_list.add(registered_domain)
             print("Completed fetching domains from logs fetched from the Chronicle.")
 
             print(f"Total {temp_log_count} logs fetched from Chronicle.")
