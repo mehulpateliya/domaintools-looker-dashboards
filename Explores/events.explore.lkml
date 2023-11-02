@@ -4,6 +4,60 @@ include: "/views/**/*.view.lkml"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
+  # join: events__about__labels__tld {
+  #   view_label: "Events: About Labels Watchlist Name"
+  #   sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__tld ON ${events__about__labels__tld.key} = 'tld' ;;
+  #   fields: [events__about__labels__tld.value]
+  #   relationship: one_to_many
+  # }
+  join: events__about__labels_registrant_name {
+    view_label: "Events: About Labels Registrant Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels_registrant_name ON ${events__about__labels_registrant_name.key}='registrant_name' ;;
+    fields: [events__about__labels_registrant_name.value]
+    relationship: one_to_many
+  }
+  join: security_result_main_risk_score {
+    view_label: "Events: Security Result Latest Risk Score "
+    type: left_outer
+    sql_on: ${security_result_main_risk_score.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: security_result_proximity {
+    view_label: "Events: Security Result Proximity Risk Score "
+    type: left_outer
+    sql_on: ${security_result_proximity.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: security_result_threat_profile_malware {
+    view_label: "Events: Security Result Threat Profile Malware Risk Score "
+    type: left_outer
+    sql_on: ${security_result_threat_profile_malware.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: security_result_threat_profile_phishing {
+    view_label: "Events: Security Result Threat Profile Phishing Risk Score "
+    type: left_outer
+    sql_on: ${security_result_threat_profile_phishing.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: security_result_threat_profile_spam {
+    view_label: "Events: Security Result Threat Profile Spam Risk Score "
+    type: left_outer
+    sql_on: ${security_result_threat_profile_spam.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: security_result__category_details {
+    view_label: "Events: Security Result Category Details Combined "
+    type: left_outer
+    sql_on: ${security_result__category_details.metadata__id_derived} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: all_threat_evidence {
+    view_label: "Events: Security Result Detection Fields Combined Evidence "
+    type: left_outer
+    sql_on: ${all_threat_evidence.metadata__id_derived} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
   # hidden: yes
   join: events__about {
     view_label: "Events: About"
