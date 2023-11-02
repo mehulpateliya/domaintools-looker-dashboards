@@ -10,6 +10,13 @@ explore: events {
     sql: LEFT JOIN UNNEST(${events.about}) as events__about ;;
     relationship: one_to_many
   }
+  join: young_domain_table_panel {
+    view_label: "Events: Young domain events "
+    type: left_outer
+    sql_on: ${young_domain_table_panel.events_principal__hostname} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+
   join: events__src__ip {
     view_label: "Events: Src Ip"
     sql: LEFT JOIN UNNEST(${events.src__ip}) as events__src__ip ;;
