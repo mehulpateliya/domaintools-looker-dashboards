@@ -4,12 +4,12 @@ include: "/views/**/*.view.lkml"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
-  # join: events__about__labels__tld {
-  #   view_label: "Events: About Labels Watchlist Name"
-  #   sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__tld ON ${events__about__labels__tld.key} = 'tld' ;;
-  #   fields: [events__about__labels__tld.value]
-  #   relationship: one_to_many
-  # }
+  join: events__about__labels__tld {
+    view_label: "Events: About Labels Watchlist Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__tld ON ${events__about__labels__tld.key} = 'tld' ;;
+    fields: [events__about__labels__tld.value]
+    relationship: one_to_many
+  }
   join: events__about__labels_registrant_name {
     view_label: "Events: About Labels Registrant Name"
     sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels_registrant_name ON ${events__about__labels_registrant_name.key}='registrant_name' ;;

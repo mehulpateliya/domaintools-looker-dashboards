@@ -1,4 +1,23 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+view: events__about__labels__tld {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
 view: events__about__labels_registrant_name {
 
   dimension: key {
@@ -186,6 +205,15 @@ view: security_result_threat_profile_spam {
 }
 view: events {
   sql_table_name: `chronicle-crds.datalake.events` ;;
+  measure: upper_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)), INTERVAL 1 SECOND) );;
+  }
+
+  measure: lower_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
+  }
   dimension: domain_age {
     type: number
     sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
@@ -211,6 +239,136 @@ view: events {
     sql: ${TABLE}.principal.hostname ;;
     group_label: "Principal"
     group_item_label: "Hostname Drill Down"
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
+  }
+  parameter: enrichment_filter_value {
+    type: string
+    allowed_value: {
+      label: "Registrar"
+      value: "registrar"
+    }
+    allowed_value: {
+      label: "TLD"
+      value: "tld"
+    }
+    allowed_value: {
+      label: "Admin Contact Name"
+      value: "admin_contact_name"
+    }
+    allowed_value: {
+      label: "Server Type"
+      value: "server_type"
+    }
+    allowed_value: {
+      label: "Status"
+      value: "status"
+    }
+    allowed_value: {
+      label: "Admin Contact - Country Code"
+      value: "Admin_Contact_Country_Code"
+    }
+    allowed_value: {
+      label: "Admin Contact - Name"
+      value: "Admin_Contact_Name"
+    }
+    allowed_value: {
+      label: "Admin Contact - Org"
+      value: "Admin_Contact_Org"
+    }
+    allowed_value: {
+      label: "Admin Contact - Email"
+      value: "Admin_Contact_Email"
+    }
+    allowed_value: {
+      label: "Billing Contact - Country Code"
+      value: "Billing_Contact_Country_Code"
+    }
+    allowed_value: {
+      label: "Billing Contact - Name"
+      value: "Billing_Contact_Name"
+    }
+    allowed_value: {
+      label: "Billing Contact - Org"
+      value: "Billing_Contact_Org"
+    }
+    # allowed_value: {
+    #   label: "Billing Contact - Email"
+    #   value: "Billing_Contact_Email"
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+    # allowed_value: {
+    #   label: ""
+    #   value: ""
+    # }
+  }
+  dimension: another_fields{
+    label: "Attribute Field"
+    sql:{% if enrichment_filter_value._parameter_value == "'registrar'" %}
+      ${TABLE}.principal.domain.registrar
+    {% elsif enrichment_filter_value._parameter_value == "'tld'" %}
+       ${events__about__labels__tld.value}
+    {% elsif enrichment_filter_value._parameter_value == "'admin_contact_name'" %}
+       ${TABLE}.principal.domain.admin.user_display_name
+    {% elsif enrichment_filter_value._parameter_value == "'server_type'" %}
+       ${TABLE}.network.tls.client.server_name
+    {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Country_Code'" %}
+       ${TABLE}.principal.domain.admin.office_address.country_or_region
+    {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Name'" %}
+       ${TABLE}.principal.domain.admin.user_display_name
+    {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Org'" %}
+       ${TABLE}.principal.domain.admin.office_address.name
+    {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Email'" %}
+       ${TABLE}.principal.domain.admin.email_addresses
+    {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Country_Code'" %}
+       ${TABLE}.principal.domain.billing.office_address.country_or_region
+    {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Name'" %}
+       ${TABLE}.principal.domain.billing.user_display_name
+    {% elsif enrichment_filter_value._parameter_value == "Billing_Contact_Org" %}
+       ${TABLE}.principal.domain.billing.company_name
+    {% else %}
+      ${TABLE}.principal.domain.status
+    {% endif %};;
+  }
+  # {% elsif enrichment_filter_value._parameter_value == "" %}
+    #   ${TABLE}.
+    # {% elsif enrichment_filter_value._parameter_value == "" %}
+    #   ${TABLE}.
+    # {% elsif enrichment_filter_value._parameter_value == "" %}
+    #   ${TABLE}.
+    # {% elsif enrichment_filter_value._parameter_value == "" %}
+    #   ${TABLE}.
+  measure: domain_count {
+    type: count
   }
   dimension: about {
     hidden: yes
