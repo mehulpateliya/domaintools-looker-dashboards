@@ -298,22 +298,38 @@ view: events {
     #   label: "Billing Contact - Email"
     #   value: "Billing_Contact_Email"
     # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
+    allowed_value: {
+      label: "IP Address"
+      value: "IP_Address"
+    }
+    allowed_value: {
+      label: "IP ASN"
+      value: "IP_ASN"
+    }
+    allowed_value: {
+      label: "Registrant Contact - Name"
+      value: "Registrant_Contact_Name"
+    }
+    allowed_value: {
+      label: "Registrant Contact - Org"
+      value: "Registrant_Contact_Org"
+    }
+    allowed_value: {
+      label: "SSL Hash"
+      value: "SSL_Hash"
+    }
+    allowed_value: {
+      label: "SSL Subject"
+      value: "SSL_Subject"
+    }
+    allowed_value: {
+      label: "Technical Contact - Name"
+      value: "Technical_Contact_Name"
+    }
+    allowed_value: {
+      label: "Technical Contact - Org"
+      value: "Technical_Contact_Org"
+    }
     # allowed_value: {
     #   label: ""
     #   value: ""
@@ -355,18 +371,34 @@ view: events {
        ${TABLE}.principal.domain.billing.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "Billing_Contact_Org" %}
        ${TABLE}.principal.domain.billing.company_name
+    {% elsif enrichment_filter_value._parameter_value == "'IP_Address'" %}
+      ${events__principal__ip.events__principal__ip}
+    {% elsif enrichment_filter_value._parameter_value == "'IP_ASN'" %}
+      ${TABLE}.network.asn
+    {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Name'" %}
+      ${TABLE}.principal.domain.registrant.user_display_name
+    {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Org'" %}
+      ${TABLE}.principal.domain.registrant.company_name
+    {% elsif enrichment_filter_value._parameter_value == "'SSL_Hash'" %}
+      ${TABLE}.network.tls.server.certificate.sha1
+    {% elsif enrichment_filter_value._parameter_value == "'SSL_Subject'" %}
+      ${TABLE}.network.tls.server.certificate.subject
+    {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Name'" %}
+      ${TABLE}.principal.domain.tech.user_display_name
+    {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Org'" %}
+      ${TABLE}.principal.domain.tech.company_name
     {% else %}
       ${TABLE}.principal.domain.status
     {% endif %};;
   }
+
   # {% elsif enrichment_filter_value._parameter_value == "" %}
-    #   ${TABLE}.
-    # {% elsif enrichment_filter_value._parameter_value == "" %}
-    #   ${TABLE}.
-    # {% elsif enrichment_filter_value._parameter_value == "" %}
-    #   ${TABLE}.
-    # {% elsif enrichment_filter_value._parameter_value == "" %}
-    #   ${TABLE}.
+  #     ${TABLE}.
+  #   {% elsif enrichment_filter_value._parameter_value == "" %}
+  #     ${TABLE}.
+  #   {% elsif enrichment_filter_value._parameter_value == "" %}
+  #     ${TABLE}.
+
   measure: domain_count {
     type: count
   }
