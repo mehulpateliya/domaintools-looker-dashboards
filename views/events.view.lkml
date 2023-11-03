@@ -32510,7 +32510,6 @@ select events.principal.hostname as events_principal__hostname, events.metadata.
 
 SELECT
     events.principal.hostname as events_principal__hostname,
-    filtered_data.events_principal__hostname as host,
     TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY)  AS events_domain_age,
     security_result_main_risk_score.events__security_result_risk_score  AS security_result_main_risk_score_events__security_result_risk_score,
     FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(events.metadata.event_timestamp.seconds)) ) AS events_min_timestamp,
@@ -32523,8 +32522,7 @@ WHERE LENGTH(events.principal.hostname ) <> 0 AND (events.metadata.log_type = 'U
 GROUP BY
     1,
     2,
-    3,
-    4;;
+    3;;
 # ORDER BY
 #     5 DESC;;
   }
@@ -32574,6 +32572,60 @@ GROUP BY
     }
 }
 
+view: alert_hostnames {
+  derived_table: {
+    sql:
+select events.principal.hostname as events_principal__hostname, events.metadata.id as events_metadata_id FROM datalake.events AS events where (events.metadata.log_type = 'UDM' ) and (events.principal.hostname ) IS NOT NULL
+    and   TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['young_domain_table_panel.age_difference'] | sql_quote }} as INT64) group by events_principal__hostname, events_metadata_id
+ ;;
+  }
+
+  dimension: events_principal__hostname {
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+    label: "Domain"
+  }
+  dimension: events_metadata_id {
+    type: string
+    sql: ${TABLE}.events_metadata_id ;;
+    label: "Metadata ID"
+  }
+}
+
+view: main_risk_score {
+  derived_table: {
+    sql: WITH ranked_events AS ( SELECT
+            risk_score  AS events__security_result_risk_score,
+            events.principal.hostname  AS events_principal__hostname,
+            events.metadata.event_timestamp.seconds AS events_event_timestamp_seconds,
+            MAX(events.metadata.event_timestamp.seconds) OVER (PARTITION BY events.principal.hostname) AS max_event_timestamp_seconds,
+            `offset`,
+            ROW_NUMBER() OVER (PARTITION BY events.principal.hostname ORDER BY events.metadata.event_timestamp.seconds DESC) AS rank
+          FROM datalake.events  AS events
+          LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as `offset`
+          WHERE (events.metadata.log_type = 'UDM' AND `offset` = 0)
+          )
+          SELECT
+        events__security_result_risk_score,
+          events_principal__hostname,
+        FROM ranked_events
+        WHERE rank = 1
+        GROUP BY
+          events__security_result_risk_score,
+          events_principal__hostname;;
+
+    }
+    dimension: events__security_result_risk_score {
+      type: string
+      sql: ${TABLE}.events__security_result_risk_score ;;
+      label: "Risk Score"
+    }
+  dimension: events_principal__hostname {
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+    label: "Domain"
+  }
+  }
 view: events__about {
 
   dimension: administrative_domain {

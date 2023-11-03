@@ -11,9 +11,21 @@ explore: events {
     relationship: one_to_many
   }
   join: young_domain_table_panel {
-    view_label: "Events: Young domain events "
+    view_label: "Events: Young domain events"
     type: left_outer
     sql_on: ${young_domain_table_panel.events_principal__hostname} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+  join: alert_hostnames {
+    view_label: "Events: alert hostnames"
+    type: left_outer
+    sql_on: ${alert_hostnames.events_principal__hostname} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+  join: main_risk_score {
+    view_label: "Events: Main Risk Score"
+    type: left_outer
+    sql_on: ${main_risk_score.events_principal__hostname} = ${events.principal__hostname} ;;
     relationship: one_to_many
   }
 
