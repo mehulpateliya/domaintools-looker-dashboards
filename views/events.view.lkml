@@ -12,6 +12,9 @@ view: events {
     sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Domain Age (in days)"
   }
+  filter: domain_age_for_filter {
+    type: number
+  }
   measure:  domain_age_difference{
     type: number
     sql: TIMESTAMP_DIFF(TIMESTAMP_SECONDS(${metadata__event_timestamp__seconds}), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
@@ -32502,7 +32505,7 @@ view: young_domain_table_panel {
 
 filtered_data as (
 select events.principal.hostname as events_principal__hostname, events.metadata.id as events_metadata_id FROM datalake.events AS events where (events.metadata.log_type = 'UDM' ) and (events.principal.hostname ) IS NOT NULL
-    and   TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['events.domain_age'] | sql_quote }} as INT64) group by events_principal__hostname, events_metadata_id
+    and   TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['young_domain_table_panel.age_difference'] | sql_quote }} as INT64) group by events_principal__hostname, events_metadata_id
 )
 
 SELECT
