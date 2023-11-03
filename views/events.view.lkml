@@ -32576,7 +32576,7 @@ view: alert_hostnames {
   derived_table: {
     sql:
 select events.principal.hostname as events_principal__hostname, events.metadata.id as events_metadata_id FROM datalake.events AS events where (events.metadata.log_type = 'UDM' ) and (events.principal.hostname ) IS NOT NULL
-    and   TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['young_domain_table_panel.age_difference'] | sql_quote }} as INT64) group by events_principal__hostname, events_metadata_id
+    and   TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['alert_hostnames.age_difference'] | sql_quote }} as INT64) group by events_principal__hostname, events_metadata_id
  ;;
   }
 
@@ -32589,6 +32589,9 @@ select events.principal.hostname as events_principal__hostname, events.metadata.
     type: string
     sql: ${TABLE}.events_metadata_id ;;
     label: "Metadata ID"
+  }
+  filter: age_difference {
+    type: number
   }
 }
 
