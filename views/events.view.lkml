@@ -1,4 +1,23 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+view: events__principal__labels_isp {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
 view: events__about__labels__tld {
 
   dimension: key {
@@ -294,10 +313,10 @@ view: events {
       label: "Billing Contact - Org"
       value: "Billing_Contact_Org"
     }
-    # allowed_value: {
-    #   label: "Billing Contact - Email"
-    #   value: "Billing_Contact_Email"
-    # }
+    allowed_value: {
+      label: "Billing Contact - Email"
+      value: "Billing_Contact_Email"
+    }
     allowed_value: {
       label: "IP Address"
       value: "IP_Address"
@@ -305,6 +324,10 @@ view: events {
     allowed_value: {
       label: "IP ASN"
       value: "IP_ASN"
+    }
+    allowed_value: {
+      label: "IP ISP"
+      value: "IP_ISP"
     }
     allowed_value: {
       label: "Registrant Contact - Name"
@@ -364,17 +387,21 @@ view: events {
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Org'" %}
        ${TABLE}.principal.domain.admin.office_address.name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Email'" %}
-       ${TABLE}.principal.domain.admin.email_addresses
+       ${events__principal__domain__admin__email_addresses.events__principal__domain__admin__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Country_Code'" %}
        ${TABLE}.principal.domain.billing.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Name'" %}
        ${TABLE}.principal.domain.billing.user_display_name
-    {% elsif enrichment_filter_value._parameter_value == "Billing_Contact_Org" %}
+    {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Org'" %}
        ${TABLE}.principal.domain.billing.company_name
+    {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Email'" %}
+       ${events__principal__domain__billing__email_addresses.events__principal__domain__billing__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'IP_Address'" %}
       ${events__principal__ip.events__principal__ip}
     {% elsif enrichment_filter_value._parameter_value == "'IP_ASN'" %}
       ${TABLE}.network.asn
+    {% elsif enrichment_filter_value._parameter_value == "'IP_ISP'" %}
+      ${events__principal__labels_isp.value}
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Name'" %}
       ${TABLE}.principal.domain.registrant.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Org'" %}
