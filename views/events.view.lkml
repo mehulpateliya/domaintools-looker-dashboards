@@ -1,4 +1,99 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+view: events__about__labels__common_name {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__ssl_email {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__registrant_name {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__registrant_org {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__alt_names {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
 view: events__principal__labels_isp {
 
   dimension: key {
