@@ -32498,25 +32498,30 @@ view: young_domain_table_panel {
        WHERE rank = 1
        GROUP BY
          events__security_result_risk_score,
-        events_principal__hostname)
+        events_principal__hostname),
+
+filtered_data as (
+select events.principal.hostname as events_principal__hostname, events.metadata.id as events_metadata_id FROM datalake.events AS events where (events.metadata.log_type = 'UDM' ) and (events.principal.hostname ) IS NOT NULL
+    and   TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['events.domain_age'] | sql_quote }} as INT64) group by events_principal__hostname, events_metadata_id
+)
 
 SELECT
     events.principal.hostname as events_principal__hostname,
+    filtered_data.events_principal__hostname as host,
     TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY)  AS events_domain_age,
     security_result_main_risk_score.events__security_result_risk_score  AS security_result_main_risk_score_events__security_result_risk_score,
     FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(events.metadata.event_timestamp.seconds)) ) AS events_min_timestamp,
     FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MAX(events.metadata.event_timestamp.seconds)) ) AS events_max_timestamp,
     count(*) as event_count
 FROM `datalake.events`  AS events
+right JOIN filtered_data ON filtered_data.events_principal__hostname = events.principal.hostname
 LEFT JOIN security_result_main_risk_score ON security_result_main_risk_score.events_principal__hostname = events.principal.hostname
-WHERE LENGTH(events.principal.hostname ) <> 0 AND (events.metadata.log_type = 'UDM') AND (events.principal.hostname ) IS NOT NULL AND (security_result_main_risk_score.events__security_result_risk_score ) IS NOT NULL and exists (
-select events.principal.hostname as events_principal__hostname, events.metadata.id as events_metadata_id FROM `datalake.events` AS events where (events.metadata.log_type = 'UDM' ) and (events.principal.hostname ) IS NOT NULL
-    and TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= 10 group by events_principal__hostname, events_metadata_id
-)
+WHERE LENGTH(events.principal.hostname ) <> 0 AND (events.metadata.log_type = 'UDM') AND (events.principal.hostname ) IS NOT NULL AND (security_result_main_risk_score.events__security_result_risk_score ) IS NOT NULL
 GROUP BY
     1,
     2,
-    3;;
+    3,
+    4;;
 # ORDER BY
 #     5 DESC;;
   }
@@ -32524,6 +32529,9 @@ GROUP BY
     type: string
     sql: ${TABLE}.events_principal__hostname ;;
     label: "Domain"
+  }
+  filter: age_difference {
+    type: number
   }
   # dimension: events_metadata_id {
   #   primary_key: yes
