@@ -488,6 +488,26 @@ view: events {
       label: "SSL Issuer Common Name"
       value: "SSL_Issuer_Common_Name"
     }
+    allowed_value: {
+      label: "Registrant Name"
+      value: "Registrant_Name"
+    }
+    allowed_value: {
+      label: "Registrant Org"
+      value: "Registrant_Org"
+    }
+    allowed_value: {
+      label: "SSL Alt Names"
+      value: "SSL_Alt_Names"
+    }
+    allowed_value: {
+      label: "SSL Email"
+      value: "SSL_Email"
+    }
+    allowed_value: {
+      label: "SSL Subject Common Name"
+      value: "SSL_Subject_Common_Name"
+    }
   }
   dimension: another_fields{
     label: "Attribute Field"
@@ -553,13 +573,22 @@ view: events {
       ${events__principal__domain__tech__email_addresses.events__principal__domain__tech__email_addresses}
       {% elsif enrichment_filter_value._parameter_value == "'SSL_Issuer_Common_Name'" %}
       ${TABLE}.network.tls.server.certificate.issuer
+    {% elsif enrichment_filter_value._parameter_value == "'SSL_Alt_Names'" %}
+      ${events__about__labels__alt_names.value}
+    {% elsif enrichment_filter_value._parameter_value == "'SSL_Email'" %}
+      ${events__about__labels__ssl_email.value}
+    {% elsif enrichment_filter_value._parameter_value == "'SSL_Subject_Common_Name'" %}
+      ${events__about__labels__common_name.value}
+    {% elsif enrichment_filter_value._parameter_value == "'Registrant_Name'" %}
+      ${events__about__labels__registrant_name.value}
+    {% elsif enrichment_filter_value._parameter_value == "'Registrant_Org'" %}
+      ${events__about__labels__registrant_org.value}
     {% else %}
       ${TABLE}.principal.domain.status
     {% endif %};;
   }
 
-  #   {% elsif enrichment_filter_value._parameter_value == "" %}
-  #     ${TABLE}.
+
   #   {% elsif enrichment_filter_value._parameter_value == "" %}
   #     ${TABLE}.
 
