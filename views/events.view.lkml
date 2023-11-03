@@ -174,6 +174,48 @@ LEFT JOIN UNNEST(category_details) as events__security_result__category_details
     sql: ${TABLE}.events_metadata__id_derived;;
   }
 }
+view: events__security_result__detection_fields_threats_type {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: thread_type {
+  derived_table: {
+    sql: SELECT
+      STRING_AGG(events__security_result__detection_fields.value, ' , ' ORDER BY events__security_result__detection_fields.value)  AS events__security_result__detection_fields,
+      events.metadata.id  AS events_metadata__id_derived
+      FROM `datalake.events` AS events
+      LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
+      LEFT JOIN UNNEST(detection_fields) as events__security_result__detection_fields
+      WHERE ((events__security_result__detection_fields.key ) = 'threats' AND (events.metadata.log_type = 'UDM' ) AND offset = 1)
+      GROUP BY
+          2
+      ORDER BY
+          1;;
+  }
+  dimension: events__security_result__detection_fields_evidence {
+    type: string
+    sql: ${TABLE}.events__security_result__detection_fields;;
+  }
+  dimension: metadata__id_derived {
+    type: string
+    sql: ${TABLE}.events_metadata__id_derived;;
+  }
+}
 view: all_threat_evidence {
   derived_table: {
     sql: SELECT
@@ -587,13 +629,20 @@ view: events {
       ${TABLE}.principal.domain.status
     {% endif %};;
   }
-
-
-  #   {% elsif enrichment_filter_value._parameter_value == "" %}
-  #     ${TABLE}.
-
   measure: domain_count {
     type: count
+    drill_fields: [details*]
+  }
+  dimension: external_link {
+    sql: "link" ;;
+    link: {
+      label: "Look this event in chronicle"
+      url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
+    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
+  }
+  set: details {
+    fields: [principal__hostname,external_link]
   }
   dimension: about {
     hidden: yes
@@ -754,6 +803,7 @@ view: events {
   }
   dimension: metadata__id {
     type: string
+    primary_key: yes
     sql: ${TABLE}.metadata.id ;;
     group_label: "Metadata"
     group_item_label: "ID"

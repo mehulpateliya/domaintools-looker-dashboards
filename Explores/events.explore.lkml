@@ -89,10 +89,22 @@ explore: events {
     sql_on: ${security_result__category_details.metadata__id_derived} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
+  join: events__security_result__detection_fields_threats_type {
+    view_label: "Events: Security Result Detection Fields Threats Type"
+    sql: LEFT JOIN UNNEST(${events__security_result.detection_fields}) as events__security_result__detection_fields_threats_type ON ${events__security_result__detection_fields_threats_type.key}='threats' ;;
+    fields: [events__security_result__detection_fields_threats_type.value]
+    relationship: one_to_many
+  }
   join: all_threat_evidence {
     view_label: "Events: Security Result Detection Fields Combined Evidence "
     type: left_outer
     sql_on: ${all_threat_evidence.metadata__id_derived} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: thread_type {
+    view_label: "Events: Security Result Detection Fields Thread "
+    type: left_outer
+    sql_on: ${thread_type.metadata__id_derived} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
   # hidden: yes

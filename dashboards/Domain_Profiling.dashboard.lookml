@@ -109,8 +109,10 @@
     model: domaintools
     explore: events
     type: looker_pie
-    fields: [events.another_fields, count_of_principal_hostname]
-    sorts: [count_of_principal_hostname desc 0]
+    fields: [events.another_fields, events.domain_count]
+    filters:
+      events.another_fields: "-NULL"
+    sorts: [events.another_fields]
     limit: 50
     column_limit: 50
     dynamic_fields:
@@ -160,8 +162,8 @@
       Enrichment Filter Value: events.enrichment_filter_value
     row: 12
     col: 0
-    width: 8
-    height: 6
+    width: 24
+    height: 7
   filters:
   - name: Time Filter
     title: Time Filter
