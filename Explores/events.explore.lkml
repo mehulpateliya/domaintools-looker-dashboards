@@ -8,7 +8,7 @@ explore: events {
   join: events__principal__labels_isp {
     view_label: "Events: Principal Labels ISP"
     sql: LEFT JOIN UNNEST(${events.principal__labels}) as events__principal__labels_isp ON ${events__principal__labels_isp.key}='isp' ;;
-    fields: [events__about__labels__tld.value]
+    fields: [events__principal__labels_isp.value]
     relationship: one_to_many
   }
   join: events__about__labels__tld {
@@ -32,7 +32,7 @@ explore: events {
   join: events__about__labels__alt_names {
     view_label: "Events: About Labels Alt Names"
     sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__alt_names ON ${events__about__labels__alt_names.key} = 'alt_names' ;;
-    fields: [events__about__labels__tld.value]
+    fields: [events__about__labels__alt_names.value]
     relationship: one_to_many
   }
   join: events__about__labels__ssl_email {
