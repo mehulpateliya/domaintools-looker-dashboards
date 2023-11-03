@@ -330,12 +330,36 @@ view: events {
       value: "IP_ISP"
     }
     allowed_value: {
+        label: "MX Host"
+        value: "MX_Host"
+      }
+      allowed_value: {
+        label: "MX Domain"
+        value: "MX_Domain"
+      }
+      allowed_value: {
+        label: "MX IP"
+        value: "MX_IP"
+      }
+    allowed_value: {
+        label: "Name Server Host"
+        value: "Name_Server_Host"
+      }
+      allowed_value: {
+        label: "Registrant Contact - Country Code"
+        value: "Registrant_Contact_Country_Code"
+      }
+    allowed_value: {
       label: "Registrant Contact - Name"
       value: "Registrant_Contact_Name"
     }
     allowed_value: {
       label: "Registrant Contact - Org"
       value: "Registrant_Contact_Org"
+    }
+    allowed_value: {
+      label: "Registrant Contact - Email"
+      value: "Registrant_Contact_Email"
     }
     allowed_value: {
       label: "SSL Hash"
@@ -346,6 +370,10 @@ view: events {
       value: "SSL_Subject"
     }
     allowed_value: {
+      label: "Technical Contact - Country Code"
+      value: "Technical_Contact_Country_Code"
+    }
+    allowed_value: {
       label: "Technical Contact - Name"
       value: "Technical_Contact_Name"
     }
@@ -353,22 +381,18 @@ view: events {
       label: "Technical Contact - Org"
       value: "Technical_Contact_Org"
     }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
-    # allowed_value: {
-    #   label: ""
-    #   value: ""
-    # }
+    allowed_value: {
+      label: "Technical Contact - Email"
+      value: "Technical_Contact_Email"
+    }
+    allowed_value: {
+      label: "SOA Email"
+      value: "SOA_Email"
+    }
+    allowed_value: {
+      label: "SSL Issuer Common Name"
+      value: "SSL_Issuer_Common_Name"
+    }
   }
   dimension: another_fields{
     label: "Attribute Field"
@@ -402,25 +426,43 @@ view: events {
       ${TABLE}.network.asn
     {% elsif enrichment_filter_value._parameter_value == "'IP_ISP'" %}
       ${events__principal__labels_isp.value}
+    {% elsif enrichment_filter_value._parameter_value == "'MX_Host'" %}
+      ${events__security_result.about__hostname}
+    {% elsif enrichment_filter_value._parameter_value == "'MX_Domain'" %}
+      ${events__security_result.about__domain__name}
+    {% elsif enrichment_filter_value._parameter_value == "'MX_IP'" %}
+      ${events__about__ip.events__about__ip}
+    {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Host'" %}
+      ${events__principal__domain__name_server.events__principal__domain__name_server}
+    {% elsif enrichment_filter_value._parameter_value == "'SOA_Email'" %}
+      ${events__principal__user__email_addresses.events__principal__user__email_addresses}
+    {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Country_Code'" %}
+      ${TABLE}.principal.domain.registrant.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Name'" %}
       ${TABLE}.principal.domain.registrant.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Org'" %}
       ${TABLE}.principal.domain.registrant.company_name
+    {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Email'" %}
+      ${events__principal__domain__registrant__email_addresses.events__principal__domain__registrant__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'SSL_Hash'" %}
       ${TABLE}.network.tls.server.certificate.sha1
     {% elsif enrichment_filter_value._parameter_value == "'SSL_Subject'" %}
       ${TABLE}.network.tls.server.certificate.subject
+    {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Country_Code'" %}
+      ${TABLE}.principal.domain.tech.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Name'" %}
       ${TABLE}.principal.domain.tech.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Org'" %}
       ${TABLE}.principal.domain.tech.company_name
+    {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Email'" %}
+      ${events__principal__domain__tech__email_addresses.events__principal__domain__tech__email_addresses}
+      {% elsif enrichment_filter_value._parameter_value == "'SSL_Issuer_Common_Name'" %}
+      ${TABLE}.network.tls.server.certificate.issuer
     {% else %}
       ${TABLE}.principal.domain.status
     {% endif %};;
   }
 
-  # {% elsif enrichment_filter_value._parameter_value == "" %}
-  #     ${TABLE}.
   #   {% elsif enrichment_filter_value._parameter_value == "" %}
   #     ${TABLE}.
   #   {% elsif enrichment_filter_value._parameter_value == "" %}
