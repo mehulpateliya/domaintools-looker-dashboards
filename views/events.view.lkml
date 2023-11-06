@@ -151,29 +151,6 @@ view: events__about__labels_registrant_name {
     sql: ${TABLE}.value ;;
   }
 }
-view: security_result__category_details {
-  derived_table: {
-    sql: SELECT
-      STRING_AGG(events__security_result__category_details, ' , ' ORDER BY events__security_result__category_details)  AS events__security_result__category_details,
-      events.metadata.id  AS events_metadata__id_derived
-      FROM `datalake.events` AS events
-      LEFT JOIN UNNEST(events.security_result) as events__security_result
-LEFT JOIN UNNEST(category_details) as events__security_result__category_details
-      WHERE (events.metadata.log_type = 'UDM' )
-      GROUP BY
-          2
-      ORDER BY
-          1;;
-  }
-  dimension: security_result__category_details {
-    type: string
-    sql: ${TABLE}.events__security_result__category_details;;
-  }
-  dimension: metadata__id_derived {
-    type: string
-    sql: ${TABLE}.events_metadata__id_derived;;
-  }
-}
 view: events__security_result__detection_fields_threats_type {
 
   dimension: key {
@@ -196,18 +173,18 @@ view: events__security_result__detection_fields_threats_type {
 view: thread_type {
   derived_table: {
     sql: SELECT
-      STRING_AGG(events__security_result__detection_fields.value, ' , ' ORDER BY events__security_result__detection_fields.value)  AS events__security_result__detection_fields,
+      STRING_AGG(events__security_result__detection_fields_threats_type.value, ' , ' ORDER BY events__security_result__detection_fields_threats_type.value)  AS events__security_result__detection_fields,
       events.metadata.id  AS events_metadata__id_derived
       FROM `datalake.events` AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      LEFT JOIN UNNEST(detection_fields) as events__security_result__detection_fields
-      WHERE ((events__security_result__detection_fields.key ) = 'threats' AND (events.metadata.log_type = 'UDM' ) AND offset = 1)
+      LEFT JOIN UNNEST(detection_fields) as events__security_result__detection_fields_threats_type ON events__security_result__detection_fields_threats_type.key='threats'
+      WHERE (events.metadata.log_type = 'UDM' AND offset = 2)
       GROUP BY
           2
       ORDER BY
           1;;
   }
-  dimension: events__security_result__detection_fields_evidence {
+  dimension:  thread_type{
     type: string
     sql: ${TABLE}.events__security_result__detection_fields;;
   }
@@ -398,6 +375,13 @@ view: events {
     link: {
       label: "View in Chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
+  }
+  dimension: iris_redirect {
+    sql: "link" ;;
+    link: {
+      label: "View in DomainTools"
+      url: "https://iris.domaintools.com/investigate/search/?principal.hostname=\"{{events.principal__hostname_drill_down}}\""
     }
   }
   parameter: enrichment_filter_value {

@@ -83,12 +83,6 @@ explore: events {
     sql_on: ${security_result_threat_profile_spam.events_metadata__id} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
-  join: security_result__category_details {
-    view_label: "Events: Security Result Category Details Combined "
-    type: left_outer
-    sql_on: ${security_result__category_details.metadata__id_derived} = ${events.metadata__id} ;;
-    relationship: one_to_many
-  }
   join: events__security_result__detection_fields_threats_type {
     view_label: "Events: Security Result Detection Fields Threats Type"
     sql: LEFT JOIN UNNEST(${events__security_result.detection_fields}) as events__security_result__detection_fields_threats_type ON ${events__security_result__detection_fields_threats_type.key}='threats' ;;

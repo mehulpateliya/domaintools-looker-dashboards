@@ -12,11 +12,12 @@
     type: looker_grid
     fields: [events.principal__hostname_drill_down, events.domain_age, events.principal__domain__status,
       security_result_main_risk_score.events__security_result_risk_score, events.Event_DateTime_time,
-      security_result_proximity.events__security_result_risk_score, security_result__category_details.security_result__category_details,
-      all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
+      security_result_proximity.events__security_result_risk_score, all_threat_evidence.events__security_result__detection_fields_evidence,
+      thread_type.thread_type, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
-      events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region]
+      events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region,
+      events.iris_redirect]
     sorts: [events.principal__hostname_drill_down desc]
     limit: 1000
     column_limit: 50
@@ -240,7 +241,7 @@
     title: Threat Type
     type: field_filter
     default_value: ''
-    allow_multiple_values: true
+    allow_multiple_values: false
     required: false
     ui_config:
       type: dropdown_menu
@@ -248,7 +249,7 @@
     model: domaintools
     explore: events
     listens_to_filters: []
-    field: events__security_result__category_details.events__security_result__category_details
+    field: events__security_result__detection_fields_threats_type.value
   - name: Enrichment Filter Value
     title: Enrichment Filter Value
     type: field_filter
