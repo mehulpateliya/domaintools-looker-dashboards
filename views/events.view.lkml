@@ -15,15 +15,35 @@ view: events {
   filter: domain_age_for_filter {
     type: number
   }
+  # dimension: log_link {
+  #   type: string
+  #   label: "Go To Cloud Function"
+  #   sql:  "" ;;
+  #   link: {
+  #     url: "{{ _user_attributes['log_url'] }}"
+  #   }
+  # }
   measure:  domain_age_difference{
     type: number
     sql: TIMESTAMP_DIFF(TIMESTAMP_SECONDS(${metadata__event_timestamp__seconds}), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Domain age difference"
   }
+  measure: lower_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
+  }
+  measure: upper_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)), INTERVAL 1 SECOND) );;
+  }
   measure: event_counts {
     type: count
     label: "Events"
-    drill_fields: [ events.principal__hostname, events__security_result.risk_score , events.event_timestamp_time, events.metadata__id]
+    # drill_fields: [ events.principal__hostname, events__security_result.risk_score , events.event_timestamp_time, events.metadata__id]
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
   }
   dimension: principal__hostname_young_domains {
     type: string
@@ -235,11 +255,13 @@ view: events {
   measure: max_timestamp {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)) );;
+    label: "Last Observed"
   }
 
   measure: min_timestamp {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
+    label: "First Observed"
   }
 
   dimension: metadata__ingestion_labels {
@@ -32584,11 +32606,22 @@ select events.principal.hostname as events_principal__hostname, events.metadata.
     type: string
     sql: ${TABLE}.events_principal__hostname ;;
     label: "Domain"
+    primary_key: yes
+    link: {
+      label: "View in DomainTools"
+      url: "https://iris.domaintools.com/investigate/search/?q={{value}}"
+    }
   }
   dimension: events_metadata_id {
     type: string
     sql: ${TABLE}.events_metadata_id ;;
     label: "Metadata ID"
+  }
+  measure: unique_domains {
+    label: "Unique Domains"
+    type: count_distinct
+    sql: ${events_principal__hostname} ;;
+    # drill_fields: []
   }
   filter: age_difference {
     type: number
