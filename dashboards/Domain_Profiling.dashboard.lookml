@@ -114,7 +114,7 @@
     filters:
       events.another_fields: "-NULL"
     sorts: [events.another_fields]
-    limit: 50
+    limit: 20
     column_limit: 50
     dynamic_fields:
     - measure: count_of_principal_hostname

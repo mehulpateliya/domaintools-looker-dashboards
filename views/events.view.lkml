@@ -458,7 +458,7 @@ view: events {
     sql: "link" ;;
     link: {
       label: "View in DomainTools"
-      url: "https://iris.domaintools.com/investigate/search/?principal.hostname=\"{{events.principal__hostname_drill_down}}\""
+      url: "https://iris.domaintools.com/investigate/search/?principal.hostname=\"{{events.principal__hostname_drill_down}}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
@@ -643,7 +643,8 @@ view: events {
   }
   dimension: another_fields{
     label: "Attribute Field"
-    sql:{% if enrichment_filter_value._parameter_value == "'registrar'" %}
+    sql:
+    {% if enrichment_filter_value._parameter_value == "'registrar'" %}
       ${TABLE}.principal.domain.registrar
     {% elsif enrichment_filter_value._parameter_value == "'tld'" %}
        ${events__about__labels__tld.value}
