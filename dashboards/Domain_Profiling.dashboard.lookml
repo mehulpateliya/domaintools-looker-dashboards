@@ -5,8 +5,8 @@
   description: ''
   preferred_slug: FIQqKhyaWRWNP8UQ8V4Fza
   elements:
-  - title: Domain Details
-    name: Domain Details
+  - title: Enrichment Explorer
+    name: Enrichment Explorer
     model: domaintools
     explore: events
     type: looker_grid
@@ -105,15 +105,15 @@
     col: 0
     width: 24
     height: 12
-  - title: No of Domains by _attribute
-    name: No of Domains by _attribute
+  - title: Domain Profiles
+    name: Domain Profiles
     model: domaintools
     explore: events
     type: looker_pie
     fields: [events.another_fields, events.domain_count]
     filters:
       events.another_fields: "-NULL"
-    sorts: [events.another_fields]
+    sorts: [events.domain_count desc]
     limit: 20
     column_limit: 50
     dynamic_fields:
@@ -166,7 +166,7 @@
   - name: Time Filter
     title: Time Filter
     type: field_filter
-    default_value: ''
+    default_value: 15 minute
     allow_multiple_values: false
     required: false
     ui_config:
