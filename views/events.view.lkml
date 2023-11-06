@@ -1,4 +1,81 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+view: events__about__labels__additional_whois_email {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__email_domain {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__redirect_domain {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__organization {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
 view: events__about__labels__common_name {
 
   dimension: key {
@@ -383,9 +460,14 @@ view: events {
       label: "View in DomainTools"
       url: "https://iris.domaintools.com/investigate/search/?principal.hostname=\"{{events.principal__hostname_drill_down}}\""
     }
+    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
   parameter: enrichment_filter_value {
     type: string
+    allowed_value: {
+      label: "IP Country Code"
+      value: "IP_Country_Code"
+    }
     allowed_value: {
       label: "Registrar"
       value: "registrar"
@@ -534,6 +616,30 @@ view: events {
       label: "SSL Subject Common Name"
       value: "SSL_Subject_Common_Name"
     }
+    allowed_value: {
+      label: "Additional Whois Email"
+      value: "additional_whois_email"
+    }
+    allowed_value: {
+      label: "Email Domain of Registrant"
+      value: "email_domain"
+    }
+    allowed_value: {
+      label: "Redirect Domain"
+      value: "redirect_domain"
+    }
+    allowed_value: {
+      label: "SSL Subject Org Name"
+      value: "organization"
+    }
+    allowed_value: {
+      label: "Name Server Domain"
+      value: "Name_Server_Domain"
+    }
+    allowed_value: {
+      label: "Name Server IP"
+      value: "Name_Server_IP"
+    }
   }
   dimension: another_fields{
     label: "Attribute Field"
@@ -609,6 +715,20 @@ view: events {
       ${events__about__labels__registrant_name.value}
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Org'" %}
       ${events__about__labels__registrant_org.value}
+    {% elsif enrichment_filter_value._parameter_value == "'IP_Country_Code'" %}
+      ${TABLE}.principal.location.country_or_region
+    {% elsif enrichment_filter_value._parameter_value == "'additional_whois_email'" %}
+      ${events__about__labels__additional_whois_email.value}
+    {% elsif enrichment_filter_value._parameter_value == "'email_domain'" %}
+      ${events__about__labels__email_domain.value}
+    {% elsif enrichment_filter_value._parameter_value == "'redirect_domain'" %}
+      ${events__about__labels__redirect_domain.value}
+    {% elsif enrichment_filter_value._parameter_value == "'organization'" %}
+      ${events__about__labels__organization.value}
+    {% elsif enrichment_filter_value._parameter_value == "'Name_Server_IP'" %}
+      ${events__principal__ip.events__principal__ip}
+    {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Domain'" %}
+      ${events__security_result.about__hostname}
     {% else %}
       ${TABLE}.principal.domain.status
     {% endif %};;

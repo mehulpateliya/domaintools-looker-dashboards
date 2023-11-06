@@ -12,8 +12,8 @@
     type: looker_grid
     fields: [events.principal__hostname_drill_down, events.domain_age, events.principal__domain__status,
       security_result_main_risk_score.events__security_result_risk_score, events.Event_DateTime_time,
-      security_result_proximity.events__security_result_risk_score, all_threat_evidence.events__security_result__detection_fields_evidence,
-      thread_type.thread_type, security_result_threat_profile_malware.events__security_result_risk_score,
+      security_result_proximity.events__security_result_risk_score, thread_type.thread_type,
+      all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
       events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region,
@@ -95,12 +95,12 @@
     defaults_version: 1
     hidden_pivots: {}
     listen:
-      Domain: events.principal__hostname
-      Age Less Than (days): events.domain_age
-      Last Enriched: events.Event_DateTime_time
       'Risk Score Greater Than ': security_result_main_risk_score.events__security_result_risk_score
       Threat Type: events__security_result__category_details.events__security_result__category_details
       Time Filter: events.Event_DateTime_minute
+      Domain: events.principal__hostname
+      Age Less Than (days): events.domain_age
+      Last Enriched: events.Event_DateTime_time
     row: 0
     col: 0
     width: 24
@@ -157,9 +157,6 @@
     hidden_pivots: {}
     listen:
       Time Filter: events.Event_DateTime_minute
-      Domain: events.principal__hostname
-      Age Less Than (days): events.domain_age
-      Last Enriched: events.Event_DateTime_time
       Enrichment Filter Value: events.enrichment_filter_value
     row: 12
     col: 0
@@ -253,7 +250,7 @@
   - name: Enrichment Filter Value
     title: Enrichment Filter Value
     type: field_filter
-    default_value: registrar
+    default_value: IP^_Country^_Code
     allow_multiple_values: true
     required: false
     ui_config:

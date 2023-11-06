@@ -5,6 +5,30 @@ include: "/views/**/*.view.lkml"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
+  join: events__about__labels__additional_whois_email {
+    view_label: "Events: About Labels Additional Who IS Email"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__additional_whois_email ON ${events__about__labels__additional_whois_email.key} = 'additional_whois_email' ;;
+    fields: [events__about__labels__additional_whois_email.value]
+    relationship: one_to_many
+  }
+  join: events__about__labels__email_domain {
+    view_label: "Events: About Labels Email Domain"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__email_domain ON ${events__about__labels__email_domain.key} = 'email_domain' ;;
+    fields: [events__about__labels__email_domain.value]
+    relationship: one_to_many
+  }
+  join: events__about__labels__redirect_domain {
+    view_label: "Events: About Labels Redirect Domain"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__redirect_domain ON ${events__about__labels__redirect_domain.key} = 'redirect_domain' ;;
+    fields: [events__about__labels__redirect_domain.value]
+    relationship: one_to_many
+  }
+  join: events__about__labels__organization {
+    view_label: "Events: About Labels Origanization"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__organization ON ${events__about__labels__organization.key} = 'organization' ;;
+    fields: [events__about__labels__organization.value]
+    relationship: one_to_many
+  }
   join: events__principal__labels_isp {
     view_label: "Events: Principal Labels ISP"
     sql: LEFT JOIN UNNEST(${events.principal__labels}) as events__principal__labels_isp ON ${events__principal__labels_isp.key}='isp' ;;
