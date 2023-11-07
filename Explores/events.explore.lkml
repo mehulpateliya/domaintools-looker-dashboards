@@ -77,6 +77,12 @@ explore: events {
     fields: [events__about__labels_registrant_name.value]
     relationship: one_to_many
   }
+  join: enrichment_filters {
+    view_label: "enrichment_filters "
+    type: left_outer
+    sql_on: ${enrichment_filters.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
   join: security_result_main_risk_score {
     view_label: "Events: Security Result Latest Risk Score "
     type: left_outer
