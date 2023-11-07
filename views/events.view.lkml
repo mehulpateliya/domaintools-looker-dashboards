@@ -504,20 +504,20 @@ view: enrichment_filters {
                 {% else %}
                  events.principal.domain.status
                 {% endif %}) as  domain,
-                          events.metadata.id  AS events_metadata__id
+                          events.principal.hostname as principal_hostname
             FROM datalake.events  AS events
-            WHERE (events.metadata.log_type = 'UDM')
+            WHERE (events.metadata.log_type = 'UDM') and (events.principal.hostname != null)
             GROUP BY
             1,2;;
   }
-  dimension: events_metadata__id {
+  dimension: principal_hostname {
     type: string
-    sql: ${TABLE}.events_metadata__id ;;
+    sql: ${TABLE}.principal_hostname ;;
   }
-  dimension: domainRegistrar {
-    type: string
-    sql: ${TABLE}.enrichment_filters ;;
-  }
+  # dimension: domainRegistrar {
+  #   type: string
+  #   sql: ${TABLE}.enrichment_filters ;;
+  # }
   dimension: domain {
     type: string
     sql: ${TABLE}.domain ;;

@@ -78,9 +78,9 @@ explore: events {
     relationship: one_to_many
   }
   join: enrichment_filters {
-    view_label: "enrichment_filters "
+    view_label: "enrichment filters"
     type: left_outer
-    sql_on: ${enrichment_filters.events_metadata__id} = ${events.metadata__id} ;;
+    sql_on: ${enrichment_filters.principal_hostname} = ${events.principal__hostname} ;;
     relationship: one_to_many
   }
   join: security_result_main_risk_score {
