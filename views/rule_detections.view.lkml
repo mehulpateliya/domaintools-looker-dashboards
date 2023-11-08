@@ -39,6 +39,21 @@ view: rule_detections {
     group_label: "Detection Detection Timestamp"
     group_item_label: "Seconds"
   }
+  dimension_group: detection_timestamp__seconds {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${detection__detection_timestamp__seconds} ;;
+  }
   dimension: detection__events {
     hidden: yes
     sql: ${TABLE}.detection.events ;;
