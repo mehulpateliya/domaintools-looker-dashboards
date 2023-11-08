@@ -67,6 +67,7 @@
       events.principal__domain__admin__office_address__country_or_region: Domain Registered
         Region
       events.principal__hostname_drill_down: Domain
+      thread_type.thread_type: Threat Type
     x_axis_gridlines: false
     y_axis_gridlines: true
     show_y_axis_labels: true
@@ -97,7 +98,7 @@
     listen:
       'Risk Score Greater Than ': security_result_main_risk_score.events__security_result_risk_score
       Threat Type: events__security_result__category_details.events__security_result__category_details
-      Time Filter: events.Event_DateTime_minute
+      Time Range: events.Event_DateTime_minute
       Domain: events.principal__hostname
       Age Less Than (days): events.domain_age
       Last Enriched: events.Event_DateTime_time
@@ -156,15 +157,15 @@
     defaults_version: 1
     hidden_pivots: {}
     listen:
-      Time Filter: events.Event_DateTime_minute
+      Time Range: events.Event_DateTime_minute
       Enrichment Filter Value: events.enrichment_filter_value
     row: 12
     col: 0
     width: 24
     height: 7
   filters:
-  - name: Time Filter
-    title: Time Filter
+  - name: Time Range
+    title: Time Range
     type: field_filter
     default_value: 15 minute
     allow_multiple_values: false

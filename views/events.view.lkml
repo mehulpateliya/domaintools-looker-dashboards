@@ -1,4 +1,5 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+#domain-profiles
 view: events__about__labels__additional_whois_email {
 
   dimension: key {
@@ -18,6 +19,7 @@ view: events__about__labels__additional_whois_email {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__email_domain {
 
   dimension: key {
@@ -37,6 +39,7 @@ view: events__about__labels__email_domain {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__redirect_domain {
 
   dimension: key {
@@ -56,6 +59,7 @@ view: events__about__labels__redirect_domain {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__organization {
 
   dimension: key {
@@ -75,7 +79,7 @@ view: events__about__labels__organization {
     sql: ${TABLE}.value ;;
   }
 }
-
+#domain-profiles
 view: events__about__labels__common_name {
 
   dimension: key {
@@ -95,6 +99,7 @@ view: events__about__labels__common_name {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__ssl_email {
 
   dimension: key {
@@ -114,6 +119,7 @@ view: events__about__labels__ssl_email {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__registrant_name {
 
   dimension: key {
@@ -133,6 +139,7 @@ view: events__about__labels__registrant_name {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__registrant_org {
 
   dimension: key {
@@ -152,6 +159,7 @@ view: events__about__labels__registrant_org {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__alt_names {
 
   dimension: key {
@@ -171,6 +179,7 @@ view: events__about__labels__alt_names {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__principal__labels_isp {
 
   dimension: key {
@@ -190,6 +199,7 @@ view: events__principal__labels_isp {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels__tld {
 
   dimension: key {
@@ -209,6 +219,7 @@ view: events__about__labels__tld {
     sql: ${TABLE}.value ;;
   }
 }
+#domain-profiles
 view: events__about__labels_registrant_name {
 
   dimension: key {
@@ -228,6 +239,7 @@ view: events__about__labels_registrant_name {
     sql: ${TABLE}.value ;;
   }
 }
+#Enrichment-explorer
 view: events__security_result__detection_fields_threats_type {
 
   dimension: key {
@@ -247,6 +259,7 @@ view: events__security_result__detection_fields_threats_type {
     sql: ${TABLE}.value ;;
   }
 }
+#Enrichment-explorer
 view: thread_type {
   derived_table: {
     sql: SELECT
@@ -270,6 +283,7 @@ view: thread_type {
     sql: ${TABLE}.events_metadata__id_derived;;
   }
 }
+#Enrichment-explorer
 view: all_threat_evidence {
   derived_table: {
     sql: SELECT
@@ -293,6 +307,7 @@ view: all_threat_evidence {
     sql: ${TABLE}.events_metadata__id_derived;;
   }
 }
+#Enrichment-explorer
 view: security_result_main_risk_score {
   derived_table: {
     sql: SELECT
@@ -317,6 +332,7 @@ view: security_result_main_risk_score {
     label: "Risk Score"
   }
 }
+#Enrichment-explorer
 view: security_result_proximity {
   derived_table: {
     sql: SELECT
@@ -341,6 +357,7 @@ view: security_result_proximity {
     label: "Risk Score"
   }
 }
+#Enrichment-explorer
 view: security_result_threat_profile_malware {
   derived_table: {
     sql: SELECT
@@ -365,6 +382,7 @@ view: security_result_threat_profile_malware {
     label: "Risk Score"
   }
 }
+#Enrichment-explorer
 view: security_result_threat_profile_phishing {
   derived_table: {
     sql: SELECT
@@ -389,6 +407,7 @@ view: security_result_threat_profile_phishing {
     label: "Risk Score"
   }
 }
+#Enrichment-explorer
 view: security_result_threat_profile_spam {
   derived_table: {
     sql: SELECT
@@ -413,133 +432,25 @@ view: security_result_threat_profile_spam {
     label: "Risk Score"
   }
 }
-view: enrichment_filters {
-  derived_table: {
-    sql: SELECT ({% if events.enrichment_filter_value._parameter_value == "'registrar'" %}
-                  events.principal.domain.registrar
-                {% elsif events.enrichment_filter_value._parameter_value == "'tld'" %}
-                  events__about__labels__tld.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'admin_contact_name'" %}
-                   events.principal.domain.admin.user_display_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'server_type'" %}
-                   events.network.tls.client.server_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Admin_Contact_Country_Code'" %}
-                   events.principal.domain.admin.office_address.country_or_region
-                {% elsif events.enrichment_filter_value._parameter_value == "'Admin_Contact_Name'" %}
-                   events.principal.domain.admin.user_display_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Admin_Contact_Org'" %}
-                   events.principal.domain.admin.office_address.name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Admin_Contact_Email'" %}
-                   events__principal__domain__admin__email_addresses.events__principal__domain__admin__email_addresses
-                {% elsif events.enrichment_filter_value._parameter_value == "'Billing_Contact_Country_Code'" %}
-                   events.principal.domain.billing.office_address.country_or_region
-                {% elsif events.enrichment_filter_value._parameter_value == "'Billing_Contact_Name'" %}
-                   events.principal.domain.billing.user_display_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Billing_Contact_Org'" %}
-                   events.principal.domain.billing.company_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Billing_Contact_Email'" %}
-                   events__principal__domain__billing__email_addresses.events__principal__domain__billing__email_addresses
-                {% elsif events.enrichment_filter_value._parameter_value == "'IP_Address'" %}
-                  events__principal__ip.events__principal__ip
-                {% elsif events.enrichment_filter_value._parameter_value == "'IP_ASN'" %}
-                  events.network.asn
-                {% elsif events.enrichment_filter_value._parameter_value == "'IP_ISP'" %}
-                  events__principal__labels_isp.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'MX_Host'" %}
-                  events__security_result.about__hostname
-                {% elsif events.enrichment_filter_value._parameter_value == "'MX_Domain'" %}
-                  events__security_result.about__domain__name
-                {% elsif events.enrichment_filter_value._parameter_value == "'MX_IP'" %}
-                  events__about__ip.events__about__ip
-                {% elsif events.enrichment_filter_value._parameter_value == "'Name_Server_Host'" %}
-                  events__principal__domain__name_server.events__principal__domain__name_server
-                {% elsif events.enrichment_filter_value._parameter_value == "'SOA_Email'" %}
-                  events__principal__user__email_addresses.events__principal__user__email_addresses
-                {% elsif events.enrichment_filter_value._parameter_value == "'Registrant_Contact_Country_Code'" %}
-                  events.principal.domain.registrant.office_address.country_or_region
-                {% elsif events.enrichment_filter_value._parameter_value == "'Registrant_Contact_Name'" %}
-                  events.principal.domain.registrant.user_display_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Registrant_Contact_Org'" %}
-                  events.principal.domain.registrant.company_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Registrant_Contact_Email'" %}
-                  events__principal__domain__registrant__email_addresses.events__principal__domain__registrant__email_addresses
-                {% elsif events.enrichment_filter_value._parameter_value == "'SSL_Hash'" %}
-                  events.network.tls.server.certificate.sha1
-                {% elsif events.enrichment_filter_value._parameter_value == "'SSL_Subject'" %}
-                  events.network.tls.server.certificate.subject
-                {% elsif events.enrichment_filter_value._parameter_value == "'Technical_Contact_Country_Code'" %}
-                  events.principal.domain.tech.office_address.country_or_region
-                {% elsif events.enrichment_filter_value._parameter_value == "'Technical_Contact_Name'" %}
-                  events.principal.domain.tech.user_display_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Technical_Contact_Org'" %}
-                  events.principal.domain.tech.company_name
-                {% elsif events.enrichment_filter_value._parameter_value == "'Technical_Contact_Email'" %}
-                  events__principal__domain__tech__email_addresses.events__principal__domain__tech__email_addresses
-                {% elsif events.enrichment_filter_value._parameter_value == "'SSL_Issuer_Common_Name'" %}
-                  events.network.tls.server.certificate.issuer
-                {% elsif events.enrichment_filter_value._parameter_value == "'SSL_Alt_Names'" %}
-                  events__about__labels__alt_names.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'SSL_Email'" %}
-                  events__about__labels__ssl_email.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'SSL_Subject_Common_Name'" %}
-                  events__about__labels__common_name.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'Registrant_Name'" %}
-                  events__about__labels__registrant_name.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'Registrant_Org'" %}
-                  events__about__labels__registrant_org.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'IP_Country_Code'" %}
-                  events.principal.location.country_or_region
-                {% elsif events.enrichment_filter_value._parameter_value == "'additional_whois_email'" %}
-                  events__about__labels__additional_whois_email.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'email_domain'" %}
-                  events__about__labels__email_domain.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'redirect_domain'" %}
-                  events__about__labels__redirect_domain.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'organization'" %}
-                  events__about__labels__organization.value
-                {% elsif events.enrichment_filter_value._parameter_value == "'Name_Server_IP'" %}
-                  events__principal__ip.events__principal__ip
-                {% elsif events.enrichment_filter_value._parameter_value == "'Name_Server_Domain'" %}
-                  events__security_result.about__hostname
-                {% else %}
-                 events.principal.domain.status
-                {% endif %}) as  domain,
-                          events.principal.hostname as principal_hostname
-            FROM datalake.events  AS events
-            WHERE (events.metadata.log_type = 'UDM') and (events.principal.hostname != null)
-            GROUP BY
-            1,2;;
-  }
-  dimension: principal_hostname {
-    type: string
-    sql: ${TABLE}.principal_hostname ;;
-  }
-  # dimension: domainRegistrar {
-  #   type: string
-  #   sql: ${TABLE}.enrichment_filters ;;
-  # }
-  dimension: domain {
-    type: string
-    sql: ${TABLE}.domain ;;
-  }
-}
-
 view: events {
   sql_table_name: `chronicle-crds.datalake.events` ;;
+  #Enrichment-explorer
   measure: upper_date {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)), INTERVAL 1 SECOND) );;
   }
-
+  #Enrichment-explorer
   measure: lower_date {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
   }
+  #Enrichment-explorer
   dimension: domain_age {
     type: number
     sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Domain Age (in days)"
   }
+  #Enrichment-explorer
   dimension_group: Event_DateTime {
     type: time
     timeframes: [
@@ -555,6 +466,7 @@ view: events {
     datatype: epoch
     sql: ${TABLE}.metadata.event_timestamp.seconds ;;
   }
+  #Enrichment-explorer
   dimension: principal__hostname_drill_down{
     type: string
     sql: ${TABLE}.principal.hostname ;;
@@ -565,15 +477,17 @@ view: events {
       url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
+  #Enrichment-explorer
   dimension: iris_redirect {
     label: "View in Iris"
     sql: "link" ;;
     link: {
       label: "View in DomainTools"
-      url: "https://iris.domaintools.com/investigate/search/?principal.hostname=\"{{events.principal__hostname_drill_down}}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "https://iris.domaintools.com/investigate/search/?q={{events.principal__hostname_drill_down}}"
     }
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
+  #domain-profiles
   parameter: enrichment_filter_value {
     type: string
     allowed_value: {
@@ -753,6 +667,7 @@ view: events {
       value: "Name_Server_IP"
     }
   }
+  #domain-profiles
   dimension: another_fields{
     label: "Attribute Field"
     sql:
@@ -846,11 +761,14 @@ view: events {
       ${TABLE}.principal.domain.status
     {% endif %};;
   }
+  #domain-profiles
   measure: domain_count {
     type: count_distinct
     sql:${principal__hostname_drill_down}  ;;
     drill_fields: [details*]
+    label: "Domain Count"
   }
+  #Enrichment-explorer
   dimension: external_link {
     label: "View in Chronicle"
     sql: "link" ;;
@@ -860,8 +778,9 @@ view: events {
     }
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
+  #domain-profiles
   set: details {
-    fields: [principal__hostname,external_link]
+    fields: [principal__hostname,external_link,iris_redirect]
   }
   dimension: about {
     hidden: yes
