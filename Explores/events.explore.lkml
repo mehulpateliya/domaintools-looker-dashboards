@@ -5,6 +5,20 @@ include: "/views/**/*.view.lkml"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
+  #application-diagnostics
+  join: unique_hostname_enriched {
+    view_label: "Events: Unique Hostname enriched"
+    type: left_outer
+    sql_on: ${unique_hostname_enriched.events_principal_domain} = ${unique_hostname_ingested.events_principal_domain} ;;
+    relationship: one_to_one
+  }
+  #application-diagnostics
+  join: unique_hostname_ingested {
+    view_label: "Events: Unique Hostname ingested"
+    type: left_outer
+    sql_on: ${unique_hostname_ingested.events_principal_domain} = ${events.principal__hostname} ;;
+    relationship: one_to_one
+  }
   #domain-profiles
   join: events__about__labels__additional_whois_email {
     view_label: "Events: About Labels Additional Who IS Email"

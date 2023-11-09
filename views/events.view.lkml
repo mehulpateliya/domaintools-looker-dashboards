@@ -1,4 +1,77 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
+#Domain-enrichement-log
+view: unique_hostname_enriched {
+  derived_table: {
+    sql: SELECT
+          events.principal.hostname as events_principal__hostname,
+          MAX(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
+        FROM datalake.events AS events
+        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)
+        GROUP BY events_principal__hostname;;
+  }
+  dimension_group: event_timestamp {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${TABLE}.events_event_timestamp_time ;;
+  }
+  measure: upper_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.events_event_timestamp_time)), INTERVAL 1 SECOND) );;
+  }
+  dimension: events_principal_domain {
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+  }
+}
+#Domain-enrichement-log
+view: unique_hostname_ingested {
+  derived_table: {
+    sql: SELECT
+          events.principal.hostname as events_principal__hostname,
+          MIN(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
+        FROM datalake.events AS events
+        WHERE (events.principal.hostname IS NOT NULL)
+        GROUP BY events_principal__hostname
+     ;;
+  }
+  dimension_group: event_timestamp {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${TABLE}.events_event_timestamp_time ;;
+  }
+  measure: lower_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.events_event_timestamp_time)) );;
+  }
+  dimension: events_principal_domain {
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events_principal_domain }}\"&startTime={{ lower_date }}&endTime={{ unique_hostname_enriched.upper_date }}"
+    }
+  }
+}
 #domain-profiles
 view: events__about__labels__additional_whois_email {
 
@@ -444,11 +517,35 @@ view: events {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
   }
+  #application_diagnostics
+  measure: number_enriched_domain_count {
+    label: "Enriched Domain Count"
+    type: count
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
+  }
   #Enrichment-explorer
   dimension: domain_age {
     type: number
     sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Domain Age (in days)"
+  }
+  dimension_group: event_timestamp {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${TABLE}.metadata.event_timestamp.seconds ;;
   }
   #Enrichment-explorer
   dimension_group: Event_DateTime {
