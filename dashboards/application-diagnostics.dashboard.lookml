@@ -1,5 +1,5 @@
-- dashboard: application_diagnostics_imported
-  title: Application Diagnostics (imported)
+- dashboard: application_diagnostics
+  title: Application Diagnostics
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
