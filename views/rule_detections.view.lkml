@@ -83,6 +83,24 @@ view: rule_detections {
     sql: ${version_timestamp__seconds} ;;
     label: "Latest Version"
   }
+  measure: detection_count {
+    type: count_distinct
+    sql:  ${TABLE}.detection.id ;;
+    label: "Detection Count"
+    link: {
+      label: "View Detections"
+      url: "@{chronicle_url}/ruleDetections?ruleId={{rule_detections.rule_id}}&selectedList=RuleDetectionsViewTimeline&startTime={{rule_detections.lower_date}}&endTime={{rule_detections.upper_date}}"
+    }
+  }
+  measure: upper_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${detection__detection_timestamp__seconds})), INTERVAL 1 SECOND) );;
+  }
+  #Enrichment-explorer
+  measure: lower_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${detection__detection_timestamp__seconds}))) ;;
+  }
   dimension: detection__id {
     primary_key: yes
     type: string

@@ -15,6 +15,11 @@ view: events {
   filter: domain_age_for_filter {
     type: number
   }
+  # dimension: filter_user_attribute {
+  #   type: number
+  #   sql: {{ _user_attribute['high_risk_range'] }};;
+  #   label: "FIlter"
+  # }
   measure:  domain_age_difference{
     type: number
     sql: TIMESTAMP_DIFF(TIMESTAMP_SECONDS(${metadata__event_timestamp__seconds}), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
@@ -36,10 +41,40 @@ view: events {
       url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
+  dimension: external_link {
+    label: "View in Chronicle"
+    sql: "link" ;;
+    link: {
+      label: "Look this event in chronicle"
+      url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname_risky_domain }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
+    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
+  }
+  measure: event_counts_risky_domain {
+    type: count
+    label: "Events"
+    drill_fields: [events.principal__hostname_risky_domain, main_risk_score_each_event.events__security_result_risk_score, events.event_timestamp_time, events.metadata__id_risky_domain]
+  }
+  measure: event_counts_suspicious_domains {
+    type: count_distinct
+    label: "Suspicious Domains"
+    sql: ${principal__hostname_young_domains};;
+    drill_fields: [events.principal__hostname_risky_domain, main_risk_score.events__security_result_risk_score, events.max_timestamp, events.external_link]
+  }
   dimension: principal__hostname_young_domains {
     type: string
     sql: ${TABLE}.principal.hostname ;;
     label: "Domain"
+    # html: <p>{{value}} - {{main_risk_score.events__security_result_risk_score}}</p> ;;
+  }
+  dimension: principal__hostname_risky_domain {
+    type: string
+    sql: ${TABLE}.principal.hostname ;;
+    label: "Domain"
+    link: {
+      label: "View in DomainTools"
+      url: "https://iris.domaintools.com/investigate/search/?q={{value}}"
+    }
   }
   dimension: additional__fields {
     hidden: yes
@@ -201,6 +236,17 @@ view: events {
     sql: ${TABLE}.metadata.id ;;
     group_label: "Metadata"
     group_item_label: "ID"
+  }
+  dimension: metadata__id_risky_domain {
+    label: "View in Chronicle"
+    # primary_key: yes
+    type: string
+    sql: ${TABLE}.metadata.id ;;
+    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/search?query=metadata.id=b\"{{ value | url_encode }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
   }
   dimension: metadata__ingested_timestamp__nanos {
     type: number
@@ -32519,7 +32565,7 @@ view: main_risk_score {
 
     }
     dimension: events__security_result_risk_score {
-      type: string
+      type: number
       sql: ${TABLE}.events__security_result_risk_score ;;
       label: "Risk Score"
     }
@@ -32527,6 +32573,45 @@ view: main_risk_score {
       type: string
       sql: ${TABLE}.events_principal__hostname ;;
       label: "Domain"
+    }
+  }
+
+view: main_risk_score_each_event {
+  derived_table: {
+    sql: WITH ranked_events AS ( SELECT
+            risk_score  AS events__security_result_risk_score,
+            events.principal.hostname  AS events_principal__hostname,
+            events.metadata.id as event_metadata_id,
+            `offset`
+          FROM datalake.events  AS events
+          LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as `offset`
+          WHERE (events.metadata.log_type = 'UDM' AND `offset` = 0)
+          )
+          SELECT
+            events__security_result_risk_score,
+            events_principal__hostname,
+            event_metadata_id
+          FROM ranked_events
+          GROUP BY
+            event_metadata_id,
+            events__security_result_risk_score,
+            events_principal__hostname;;
+
+    }
+    dimension: events__security_result_risk_score {
+      type: number
+      sql: ${TABLE}.events__security_result_risk_score ;;
+      label: "Risk Score"
+    }
+    dimension: events_principal__hostname {
+      type: string
+      sql: ${TABLE}.events_principal__hostname ;;
+      label: "Domain"
+    }
+    dimension: event_metadata_id {
+      type: string
+      sql: ${TABLE}.event_metadata_id ;;
+      label: "Metadata ID"
     }
   }
 view: events__about {

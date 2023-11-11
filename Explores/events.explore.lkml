@@ -22,6 +22,12 @@ explore: events {
     sql_on: ${main_risk_score.events_principal__hostname} = ${events.principal__hostname} ;;
     relationship: one_to_many
   }
+  join: main_risk_score_each_event {
+    view_label: "Events: Main Risk Score Each Event"
+    type: left_outer
+    sql_on: ${main_risk_score_each_event.event_metadata_id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
   join: events__src__ip {
     view_label: "Events: Src Ip"
     sql: LEFT JOIN UNNEST(${events.src__ip}) as events__src__ip ;;
