@@ -16,7 +16,7 @@
       all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
-      events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region,
+      events__about__labels_registrant_name.value, events.principal__domain__registrant__office_address__country_or_region,
       events.iris_redirect]
     sorts: [events.principal__hostname_drill_down desc]
     limit: 1000
@@ -64,7 +64,7 @@
         Profile Spam
       events.principal__domain__registrar: Domain Registered From
       events__about__labels_registrant_name.value: Domain Registered Company
-      events.principal__domain__admin__office_address__country_or_region: Domain Registered
+      events.principal__domain__registrant__office_address__country_or_region: Domain Registered
         Region
       events.principal__hostname_drill_down: Domain
       thread_type.thread_type: Threat Type
