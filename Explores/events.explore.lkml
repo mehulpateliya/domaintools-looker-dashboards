@@ -1,9 +1,150 @@
 # include all the views
+
 include: "/views/**/*.view.lkml"
 include: "/Dashboards/**/*.dashboard"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
+  #domain-profiles
+  join: events__about__labels__additional_whois_email {
+    view_label: "Events: About Labels Additional Who IS Email"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__additional_whois_email ON ${events__about__labels__additional_whois_email.key} = 'additional_whois_email' ;;
+    fields: [events__about__labels__additional_whois_email.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__email_domain {
+    view_label: "Events: About Labels Email Domain"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__email_domain ON ${events__about__labels__email_domain.key} = 'email_domain' ;;
+    fields: [events__about__labels__email_domain.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__redirect_domain {
+    view_label: "Events: About Labels Redirect Domain"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__redirect_domain ON ${events__about__labels__redirect_domain.key} = 'redirect_domain' ;;
+    fields: [events__about__labels__redirect_domain.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__organization {
+    view_label: "Events: About Labels Origanization"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__organization ON ${events__about__labels__organization.key} = 'organization' ;;
+    fields: [events__about__labels__organization.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__principal__labels_isp {
+    view_label: "Events: Principal Labels ISP"
+    sql: LEFT JOIN UNNEST(${events.principal__labels}) as events__principal__labels_isp ON ${events__principal__labels_isp.key}='isp' ;;
+    fields: [events__principal__labels_isp.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__tld {
+    view_label: "Events: About Labels Watchlist Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__tld ON ${events__about__labels__tld.key} = 'tld' ;;
+    fields: [events__about__labels__tld.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__registrant_org {
+    view_label: "Events: About Labels Registrant Org"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__registrant_org ON ${events__about__labels__registrant_org.key} = 'registrant_org' ;;
+    fields: [events__about__labels__registrant_org.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__registrant_name {
+    view_label: "Events: About Labels Registrant Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__registrant_name ON ${events__about__labels__registrant_name.key} = 'registrant_name' ;;
+    fields: [events__about__labels__registrant_name.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__alt_names {
+    view_label: "Events: About Labels Alt Names"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__alt_names ON ${events__about__labels__alt_names.key} = 'alt_names' ;;
+    fields: [events__about__labels__alt_names.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__ssl_email {
+    view_label: "Events: About Labels SSl Email"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__ssl_email ON ${events__about__labels__ssl_email.key} = 'ssl_email' ;;
+    fields: [events__about__labels__ssl_email.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels__common_name {
+    view_label: "Events: About Labels Common Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__common_name ON ${events__about__labels__common_name.key} = 'common_name' ;;
+    fields: [events__about__labels__common_name.value]
+    relationship: one_to_many
+  }
+  #domain-profiles
+  join: events__about__labels_registrant_name {
+    view_label: "Events: About Labels Registrant Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels_registrant_name ON ${events__about__labels_registrant_name.key}='registrant_name' ;;
+    fields: [events__about__labels_registrant_name.value]
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: security_result_main_risk_score {
+    view_label: "Events: Security Result Latest Risk Score "
+    type: left_outer
+    sql_on: ${security_result_main_risk_score.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: security_result_proximity {
+    view_label: "Events: Security Result Proximity Risk Score "
+    type: left_outer
+    sql_on: ${security_result_proximity.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: security_result_threat_profile_malware {
+    view_label: "Events: Security Result Threat Profile Malware Risk Score "
+    type: left_outer
+    sql_on: ${security_result_threat_profile_malware.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: security_result_threat_profile_phishing {
+    view_label: "Events: Security Result Threat Profile Phishing Risk Score "
+    type: left_outer
+    sql_on: ${security_result_threat_profile_phishing.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: security_result_threat_profile_spam {
+    view_label: "Events: Security Result Threat Profile Spam Risk Score "
+    type: left_outer
+    sql_on: ${security_result_threat_profile_spam.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: events__security_result__detection_fields_threats_type {
+    view_label: "Events: Security Result Detection Fields Threats Type"
+    sql: LEFT JOIN UNNEST(${events__security_result.detection_fields}) as events__security_result__detection_fields_threats_type ON ${events__security_result__detection_fields_threats_type.key}='threats' ;;
+    fields: [events__security_result__detection_fields_threats_type.value]
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: all_threat_evidence {
+    view_label: "Events: Security Result Detection Fields Combined Evidence "
+    type: left_outer
+    sql_on: ${all_threat_evidence.metadata__id_derived} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: thread_type {
+    view_label: "Events: Security Result Detection Fields Thread "
+    type: left_outer
+    sql_on: ${thread_type.metadata__id_derived} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
   # hidden: yes
   join: events__about {
     view_label: "Events: About"
