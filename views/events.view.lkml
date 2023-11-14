@@ -240,35 +240,14 @@ view: events__about__labels_registrant_name {
   }
 }
 #Enrichment-explorer
-view: events__security_result__detection_fields_threats_type {
-
-  dimension: key {
-    type: string
-    sql: ${TABLE}.key ;;
-  }
-  dimension: rbac_enabled {
-    type: yesno
-    sql: ${TABLE}.rbac_enabled ;;
-  }
-  dimension: source {
-    type: string
-    sql: ${TABLE}.source ;;
-  }
-  dimension: value {
-    type: string
-    sql: ${TABLE}.value ;;
-  }
-}
-#Enrichment-explorer
 view: thread_type {
   derived_table: {
     sql: SELECT
-      STRING_AGG(events__security_result__detection_fields_threats_type.value, ' , ' ORDER BY events__security_result__detection_fields_threats_type.value)  AS events__security_result__detection_fields,
+      STRING_AGG(DISTINCT(events__security_result.threat_name), ' , ' ORDER BY events__security_result.threat_name)  AS threat_type,
       events.metadata.id  AS events_metadata__id_derived
       FROM `datalake.events` AS events
-      LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      LEFT JOIN UNNEST(detection_fields) as events__security_result__detection_fields_threats_type ON events__security_result__detection_fields_threats_type.key='threats'
-      WHERE (events.metadata.log_type = 'UDM' AND offset = 2)
+      LEFT JOIN UNNEST(events.security_result) as events__security_result
+      WHERE (events.metadata.log_type = 'UDM')
       GROUP BY
           2
       ORDER BY
@@ -276,7 +255,7 @@ view: thread_type {
   }
   dimension:  thread_type{
     type: string
-    sql: ${TABLE}.events__security_result__detection_fields;;
+    sql: ${TABLE}.threat_type;;
   }
   dimension: metadata__id_derived {
     type: string
