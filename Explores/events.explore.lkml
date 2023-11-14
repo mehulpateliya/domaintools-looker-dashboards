@@ -13,11 +13,17 @@ explore: events {
     relationship: one_to_one
   }
   #application-diagnostics
+  # join: unique_hostname_ingested {
+  #   view_label: "Events: Unique Hostname ingested"
+  #   type: left_outer
+  #   sql_on: ${unique_hostname_ingested.events_principal_domain} = ${events.principal__hostname} ;;
+  #   relationship: one_to_one
+  # }
   join: unique_hostname_ingested {
-    view_label: "Events: Unique Hostname ingested"
-    type: left_outer
-    sql_on: ${unique_hostname_ingested.events_principal_domain} = ${events.principal__hostname} ;;
-    relationship: one_to_one
+      view_label: "Events: Unique Hostname ingested"
+      type: left_outer
+      sql_on: ${unique_hostname_ingested.events_metadata__id} = ${events.metadata__id} ;;
+      relationship: one_to_one
   }
   #domain-profiles
   join: events__about__labels__additional_whois_email {

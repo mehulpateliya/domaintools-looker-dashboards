@@ -36,13 +36,21 @@ view: unique_hostname_enriched {
 #Domain-enrichement-log
 view: unique_hostname_ingested {
   derived_table: {
+    # sql: SELECT
+    #       events.principal.hostname as events_principal__hostname,
+    #       MIN(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
+    #     FROM datalake.events AS events
+    #     WHERE (events.principal.hostname IS NOT NULL)
+    #     GROUP BY events_principal__hostname
+    # ;;
     sql: SELECT
           events.principal.hostname as events_principal__hostname,
+          events.src.hostname as events_src__hostname,
+          events.metadata.id as events_metadata__id,
           MIN(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
         FROM datalake.events AS events
-        WHERE (events.principal.hostname IS NOT NULL)
-        GROUP BY events_principal__hostname
-     ;;
+        WHERE (events.principal.hostname IS NOT NULL) and (events.src.hostname IS NOT NULL)
+        GROUP BY events_principal__hostname,events_src__hostname,events_metadata__id;;
   }
   dimension_group: event_timestamp {
     type: time
@@ -63,6 +71,7 @@ view: unique_hostname_ingested {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.events_event_timestamp_time)) );;
   }
+
   dimension: events_principal_domain {
     type: string
     sql: ${TABLE}.events_principal__hostname ;;
@@ -71,6 +80,26 @@ view: unique_hostname_ingested {
       url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events_principal_domain }}\"&startTime={{ lower_date }}&endTime={{ unique_hostname_enriched.upper_date }}"
     }
   }
+  dimension: events_src__hostname {
+    type: string
+    sql: ${TABLE}.events_src__hostname ;;
+  }
+  dimension: events_metadata__id {
+    type: string
+    sql: ${TABLE}.events_metadata__id ;;
+  }
+  dimension: third_dimension_values {
+    type: string
+    sql: CONCAT(${events_principal_domain}, ',',${events_src__hostname});;
+    hidden: yes
+  }
+
+  dimension: third_dimension_array {
+    type: string
+    sql: split(${third_dimension_values}, ',');;
+    label: "Third Dimension Array"
+  }
+
 }
 #domain-profiles
 view: events__about__labels__additional_whois_email {
