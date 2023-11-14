@@ -470,8 +470,7 @@ view: events {
   dimension: principal__hostname_drill_down{
     type: string
     sql: ${TABLE}.principal.hostname ;;
-    group_label: "Principal"
-    group_item_label: "Hostname Drill Down"
+    label: "Domain"
     link: {
       label: "View in Chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
@@ -503,16 +502,8 @@ view: events {
       value: "tld"
     }
     allowed_value: {
-      label: "Admin Contact Name"
-      value: "admin_contact_name"
-    }
-    allowed_value: {
       label: "Server Type"
       value: "server_type"
-    }
-    allowed_value: {
-      label: "Status"
-      value: "status"
     }
     allowed_value: {
       label: "Admin Contact - Country Code"
@@ -675,8 +666,6 @@ view: events {
       ${TABLE}.principal.domain.registrar
     {% elsif enrichment_filter_value._parameter_value == "'tld'" %}
        ${events__about__labels__tld.value}
-    {% elsif enrichment_filter_value._parameter_value == "'admin_contact_name'" %}
-       ${TABLE}.principal.domain.admin.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'server_type'" %}
        ${TABLE}.network.tls.client.server_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Country_Code'" %}
@@ -757,8 +746,6 @@ view: events {
       ${events__principal__ip.events__principal__ip}
     {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Domain'" %}
       ${events__security_result.about__hostname}
-    {% else %}
-      ${TABLE}.principal.domain.status
     {% endif %};;
   }
   #domain-profiles
@@ -773,14 +760,14 @@ view: events {
     label: "View in Chronicle"
     sql: "link" ;;
     link: {
-      label: "Look this event in chronicle"
+      label: "View in Chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
   #domain-profiles
   set: details {
-    fields: [principal__hostname,external_link,iris_redirect]
+    fields: [principal__hostname_drill_down,external_link,iris_redirect]
   }
   dimension: about {
     hidden: yes
