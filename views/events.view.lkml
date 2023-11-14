@@ -787,11 +787,6 @@ view: events {
     hidden: yes
     sql: ${TABLE}.about ;;
   }
-  dimension: domain_age {
-    type: number
-    sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
-    label: "Domain Age (in days)"
-  }
   filter: domain_age_for_filter {
     type: number
   }
@@ -805,14 +800,6 @@ view: events {
     sql: TIMESTAMP_DIFF(TIMESTAMP_SECONDS(${metadata__event_timestamp__seconds}), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Domain age difference"
   }
-  measure: lower_date {
-    type: string
-    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
-  }
-  measure: upper_date {
-    type: string
-    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)), INTERVAL 1 SECOND) );;
-  }
   measure: event_counts {
     type: count
     label: "Events"
@@ -820,15 +807,6 @@ view: events {
       label: "View in Chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
-  }
-  dimension: external_link {
-    label: "View in Chronicle"
-    sql: "link" ;;
-    link: {
-      label: "Look this event in chronicle"
-      url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname_risky_domain }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
-    }
-    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
   measure: event_counts_risky_domain {
     type: count
@@ -1013,7 +991,6 @@ view: events {
   dimension: metadata__id {
     primary_key: yes
     type: string
-    primary_key: yes
     sql: ${TABLE}.metadata.id ;;
     group_label: "Metadata"
     group_item_label: "ID"
