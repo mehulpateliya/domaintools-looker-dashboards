@@ -1,7 +1,7 @@
 # include all the views
 
 include: "/views/**/*.view.lkml"
-# include: "/Dashboard/**/*.dashboard"
+include: "/dashboards/**/*.dashboard"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
@@ -149,6 +149,24 @@ explore: events {
   join: events__about {
     view_label: "Events: About"
     sql: LEFT JOIN UNNEST(${events.about}) as events__about ;;
+    relationship: one_to_many
+  }
+  join: alert_hostnames {
+    view_label: "Events: alert hostnames"
+    type: left_outer
+    sql_on: ${alert_hostnames.events_principal__hostname} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+  join: main_risk_score {
+    view_label: "Events: Main Risk Score"
+    type: left_outer
+    sql_on: ${main_risk_score.events_principal__hostname} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+  join: main_risk_score_each_event {
+    view_label: "Events: Main Risk Score Each Event"
+    type: left_outer
+    sql_on: ${main_risk_score_each_event.event_metadata_id} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
   join: events__src__ip {
