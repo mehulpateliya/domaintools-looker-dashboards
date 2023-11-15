@@ -1,4 +1,3 @@
----
 - dashboard: threat_intelligence_dashboard
   title: Threat Intelligence Dashboard
   layout: newspaper
