@@ -3,7 +3,7 @@
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
-  preferred_slug: c3wQhlARy1ZrQZbVWpR9hi
+  preferred_slug: elZz8L0ijvZUaXlHS1XrHK
   elements:
   - title: No of Enriched domains based on timestamp
     name: No of Enriched domains based on timestamp
@@ -62,7 +62,7 @@
     defaults_version: 1
     listen:
       Time Range: events.event_timestamp_time
-    row: 10
+    row: 13
     col: 0
     width: 24
     height: 8
@@ -131,10 +131,35 @@
     defaults_version: 1
     listen:
       Time Range: unique_hostname_enriched.event_timestamp_time
-    row: 0
+    row: 3
     col: 0
     width: 24
     height: 10
+  - title: View logs for cloud functions
+    name: View logs for cloud functions
+    model: domaintools
+    explore: events
+    type: single_value
+    fields: [events.cloud_function_url]
+    sorts: [events.cloud_function_url]
+    limit: 500
+    column_limit: 50
+    custom_color_enabled: true
+    show_single_value_title: true
+    show_comparison: false
+    comparison_type: value
+    comparison_reverse_colors: false
+    show_comparison_label: true
+    enable_conditional_formatting: false
+    conditional_formatting_include_totals: false
+    conditional_formatting_include_nulls: false
+    defaults_version: 1
+    listen:
+      Time Range: events.event_timestamp_time
+    row: 0
+    col: 0
+    width: 24
+    height: 3
   filters:
   - name: Time Range
     title: Time Range

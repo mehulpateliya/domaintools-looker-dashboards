@@ -36,21 +36,13 @@ view: unique_hostname_enriched {
 #Domain-enrichement-log
 view: unique_hostname_ingested {
   derived_table: {
-    # sql: SELECT
-    #       events.principal.hostname as events_principal__hostname,
-    #       MIN(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
-    #     FROM datalake.events AS events
-    #     WHERE (events.principal.hostname IS NOT NULL)
-    #     GROUP BY events_principal__hostname
-    # ;;
     sql: SELECT
           events.principal.hostname as events_principal__hostname,
-          events.src.hostname as events_src__hostname,
-          events.metadata.id as events_metadata__id,
           MIN(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
         FROM datalake.events AS events
-        WHERE (events.principal.hostname IS NOT NULL) and (events.src.hostname IS NOT NULL)
-        GROUP BY events_principal__hostname,events_src__hostname,events_metadata__id;;
+        WHERE (events.principal.hostname IS NOT NULL)
+        GROUP BY events_principal__hostname
+    ;;
   }
   dimension_group: event_timestamp {
     type: time
@@ -555,6 +547,15 @@ view: events {
       url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
+  #application_diagnostics
+  dimension: cloud_function_url {
+    label: "View logs for cloud functions"
+    sql: "link" ;;
+    link: {
+      label: "View logs for cloud functions"
+      url: "@{cloud_function_url};query=%2528resource.type =\"@{resource_type_function}\"%0Aresource.labels.function_name = \"@{resource_labels_function_name}\"%0Aresource.labels.region = \"@{resource_labels_function_region}\"%2529%0AOR%0A%2528resource.type =\"@{resource_type_service}\"%0Aresource.labels.service_name=\"@{resource_labels_service_name}\"%0Aresource.labels.location=\"@{resource_labels_location}\"%2529%0Aseverity>=@{sevarity};cursorTimestamp=@{cursorTimestamp};startTime=@{startTime};endTime=@{endTime}?cloudshell=@{cloudshell}&project=@{google_cloud_project_id}"
+    }
+  }
   #Enrichment-explorer
   dimension: domain_age {
     type: number
@@ -902,7 +903,7 @@ view: events {
       label: "Look this event in chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
-    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
+    # html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
   #domain-profiles
   set: details {
