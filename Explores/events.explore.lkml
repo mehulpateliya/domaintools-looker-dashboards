@@ -1,7 +1,7 @@
 # include all the views
 
 include: "/views/**/*.view.lkml"
-include: "/Dashboards/**/*.dashboard"
+include: "/dashboards/**/*.dashboard"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
