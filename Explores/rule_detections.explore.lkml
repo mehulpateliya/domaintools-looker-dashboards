@@ -7,6 +7,18 @@ explore: rule_detections {
     sql: LEFT JOIN UNNEST(${rule_detections.rulesets}) as rule_detections__rulesets ;;
     relationship: one_to_many
   }
+  join: latest_version_timestamp {
+    view_label: "Rule Detections: Latest rule version"
+    type: left_outer
+    sql_on: ${latest_version_timestamp.rule_name} = ${rule_detections.rule_name} ;;
+    relationship: one_to_many
+  }
+  join: latest_version_timestamp_for_tags {
+    view_label: "Rule Detections: Latest rule version for tag"
+    type: left_outer
+    sql_on: ${latest_version_timestamp_for_tags.rule_name} = ${rule_detections.rule_name} ;;
+    relationship: one_to_many
+  }
   join: rule_detections__detection__assets {
     view_label: "Rule Detections: Detection Assets"
     sql: LEFT JOIN UNNEST(${rule_detections.detection__assets}) as rule_detections__detection__assets ;;

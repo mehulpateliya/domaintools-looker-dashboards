@@ -1,5 +1,45 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
 
+view: latest_version_timestamp {
+  derived_table: {
+    explore_source: rule_detections {
+      column: version_timestamp__seconds {
+        field: rule_detections.version_timestamp__seconds
+      }
+      column: rule_name {
+        field: rule_detections.rule_name
+      }
+      sorts: [rule_detections.version_timestamp__seconds: desc]
+      expression_custom_filter: ${rule_detections.rule_name} = "domain_from_monitoring_list" ;;
+      # filters: [latest_version_timestamp.rule_name =  rule_detections.rule_name]
+      limit: 1
+    }
+  }
+  dimension: version_timestamp__seconds {
+    type: number
+  }
+  dimension: rule_name {}
+}
+view: latest_version_timestamp_for_tags {
+  derived_table: {
+    explore_source: rule_detections {
+      column: version_timestamp__seconds {
+        field: rule_detections.version_timestamp__seconds
+      }
+      column: rule_name {
+        field: rule_detections.rule_name
+      }
+      sorts: [rule_detections.version_timestamp__seconds: desc]
+      expression_custom_filter: ${rule_detections.rule_name} = "domain_with_specified_tag" ;;
+      # filters: [latest_version_timestamp.rule_name =  rule_detections.rule_name]
+      limit: 1
+    }
+  }
+  dimension: version_timestamp__seconds {
+    type: number
+  }
+  dimension: rule_name {}
+}
 view: rule_detections {
   sql_table_name: `datalake.rule_detections` ;;
 
@@ -184,7 +224,7 @@ view: rule_detections {
   }
   measure: count {
     type: count
-    drill_fields: [rule_name]
+    # drill_fields: [rule_name]
   }
 }
 
