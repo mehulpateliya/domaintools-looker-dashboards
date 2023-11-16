@@ -247,7 +247,7 @@
     model: domaintools
     explore: events
     listens_to_filters: []
-    field: events__security_result__detection_fields_threats_type.value
+    field: events__security_result.threat_name
   - name: Enrichment Filter Value
     title: Enrichment Filter Value
     type: field_filter
