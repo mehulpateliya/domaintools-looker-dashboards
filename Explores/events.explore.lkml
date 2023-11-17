@@ -47,6 +47,21 @@ explore: events {
     fields: [events__about__labels__tld.value]
     relationship: one_to_many
   }
+  #monitoring-domains
+  join: events__about__labels__tag_list_name {
+    view_label: "Events: About Labels Monitoring Tag List Name"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__tag_list_name ON ${events__about__labels__tag_list_name.key} = 'monitoring_tag_list_name' ;;
+    # sql_where:  ;;
+    fields: [events__about__labels__tag_list_name.value]
+    relationship: one_to_many
+  }
+  join: events__about__labels__timestamp {
+    view_label: "Events: About Labels Timestamp"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__timestamp ON ${events__about__labels__timestamp.key} = 'timestamp' ;;
+    # sql_where:  ;;
+    fields: [events__about__labels__timestamp.value_date]
+    relationship: one_to_many
+  }
   #domain-profiles
   join: events__about__labels__registrant_org {
     view_label: "Events: About Labels Registrant Org"
@@ -94,6 +109,21 @@ explore: events {
     view_label: "Events: Security Result Latest Risk Score "
     type: left_outer
     sql_on: ${security_result_main_risk_score.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  #Enrichment-explorer
+  join: monitor_tag_ref_list_name {
+    view_label: "Events: Monitoring Tag Ref List Name"
+    type: left_outer
+    sql_on: ${monitor_tag_ref_list_name.metadata_id} = ${events.metadata__id} ;;
+    sql_where: ${monitor_tag_ref_list_name.events__about__labels__tag_list_name_value} is not null ;;
+    relationship: one_to_many
+  }
+  join: monitor_domain_ref_list_name {
+    view_label: "Events: Monitoring Domain Ref List Name"
+    type: left_outer
+    sql_on: ${monitor_domain_ref_list_name.metadata_id} = ${events.metadata__id} ;;
+    sql_where: ${monitor_domain_ref_list_name.events__about__labels__monitor_list_name_value} is not null ;;
     relationship: one_to_many
   }
   #Enrichment-explorer
