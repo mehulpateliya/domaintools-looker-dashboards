@@ -1,5 +1,5 @@
-- dashboard: domain_profiling
-  title: Domain Profiling
+- dashboard: domain_profiling_dashboard
+  title: Domain Profiling Dashboard
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
@@ -16,7 +16,7 @@
       all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
-      events__about__labels_registrant_name.value, events.principal__domain__registrant__office_address__country_or_region,
+      events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region,
       events.iris_redirect]
     sorts: [events.principal__hostname_drill_down desc]
     limit: 1000
@@ -46,7 +46,7 @@
       events.principal__hostname: Domain
       all_threat_evidence.events__security_result__detection_fields_evidence: Threat
         Evidence
-      events.domain_age: Age
+      events.domain_age: Age (in days)
       security_result_main_risk_score.events__security_result_risk_score: Overall
         Risk Score
       events.Event_DateTime_time: Last Enriched DateTime
@@ -59,7 +59,7 @@
         Profile Spam
       events.principal__domain__registrar: Domain Registered From
       events__about__labels_registrant_name.value: Domain Registered Company
-      events.principal__domain__registrant__office_address__country_or_region: Domain Registered
+      events.principal__domain__admin__office_address__country_or_region: Domain Registered
         Region
       events.principal__hostname_drill_down: Domain
       thread_type.thread_type: Threat Type
@@ -94,7 +94,7 @@
       Domain: events.principal__hostname
       Age: events.domain_age
       Last Enriched: events.Event_DateTime_time
-      Threat Type: events__security_result.threat_name
+      Threat Type: thread_type.thread_type
     row: 0
     col: 0
     width: 24
@@ -232,7 +232,7 @@
     title: Threat Type
     type: field_filter
     default_value: ''
-    allow_multiple_values: false
+    allow_multiple_values: true
     required: false
     ui_config:
       type: dropdown_menu
@@ -240,7 +240,7 @@
     model: domaintools
     explore: events
     listens_to_filters: [Last Enriched]
-    field: events__security_result.threat_name
+    field: events.Threat_type_filter
   - name: Enrichment Filter Value
     title: Enrichment Filter Value
     type: field_filter
