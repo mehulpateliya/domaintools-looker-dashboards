@@ -243,7 +243,7 @@ view: events__about__labels_registrant_name {
 view: thread_type {
   derived_table: {
     sql: SELECT
-      STRING_AGG(DISTINCT(events__security_result.threat_name), ' , ' ORDER BY events__security_result.threat_name)  AS threat_type,
+       STRING_AGG(DISTINCT(events__security_result.threat_name), ' , ' ORDER BY events__security_result.threat_name)  AS threat_type,
       events.metadata.id  AS events_metadata__id_derived
       FROM `datalake.events` AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result
@@ -255,7 +255,12 @@ view: thread_type {
   }
   dimension:  thread_type{
     type: string
-    sql: ${TABLE}.threat_type;;
+    sql: CASE
+      WHEN ${TABLE}.threat_type IS NULL
+      THEN "Not a Threat"
+      ELSE
+        INITCAP(${TABLE}.threat_type)
+      END;;
   }
   dimension: metadata__id_derived {
     type: string
@@ -450,8 +455,7 @@ view: events {
   dimension: principal__hostname_drill_down{
     type: string
     sql: ${TABLE}.principal.hostname ;;
-    group_label: "Principal"
-    group_item_label: "Hostname Drill Down"
+    label: "Domain"
     link: {
       label: "View in Chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
@@ -471,32 +475,16 @@ view: events {
   parameter: enrichment_filter_value {
     type: string
     allowed_value: {
-      label: "IP Country Code"
-      value: "IP_Country_Code"
-    }
-    allowed_value: {
-      label: "Registrar"
-      value: "registrar"
-    }
-    allowed_value: {
-      label: "TLD"
-      value: "tld"
-    }
-    allowed_value: {
-      label: "Admin Contact Name"
-      value: "admin_contact_name"
-    }
-    allowed_value: {
-      label: "Server Type"
-      value: "server_type"
-    }
-    allowed_value: {
-      label: "Status"
-      value: "status"
+      label: "Additional Whois Email"
+      value: "additional_whois_email"
     }
     allowed_value: {
       label: "Admin Contact - Country Code"
       value: "Admin_Contact_Country_Code"
+    }
+    allowed_value: {
+      label: "Admin Contact - Email"
+      value: "Admin_Contact_Email"
     }
     allowed_value: {
       label: "Admin Contact - Name"
@@ -507,12 +495,12 @@ view: events {
       value: "Admin_Contact_Org"
     }
     allowed_value: {
-      label: "Admin Contact - Email"
-      value: "Admin_Contact_Email"
-    }
-    allowed_value: {
       label: "Billing Contact - Country Code"
       value: "Billing_Contact_Country_Code"
+    }
+    allowed_value: {
+      label: "Billing Contact - Email"
+      value: "Billing_Contact_Email"
     }
     allowed_value: {
       label: "Billing Contact - Name"
@@ -523,8 +511,8 @@ view: events {
       value: "Billing_Contact_Org"
     }
     allowed_value: {
-      label: "Billing Contact - Email"
-      value: "Billing_Contact_Email"
+      label: "Email Domain of Registrant"
+      value: "email_domain"
     }
     allowed_value: {
       label: "IP Address"
@@ -535,29 +523,53 @@ view: events {
       value: "IP_ASN"
     }
     allowed_value: {
+      label: "IP Country Code"
+      value: "IP_Country_Code"
+    }
+    allowed_value: {
       label: "IP ISP"
       value: "IP_ISP"
     }
     allowed_value: {
-        label: "MX Host"
-        value: "MX_Host"
-      }
-      allowed_value: {
-        label: "MX Domain"
-        value: "MX_Domain"
-      }
-      allowed_value: {
-        label: "MX IP"
-        value: "MX_IP"
-      }
+      label: "MX Domain"
+      value: "MX_Domain"
+    }
     allowed_value: {
-        label: "Name Server Host"
-        value: "Name_Server_Host"
-      }
-      allowed_value: {
-        label: "Registrant Contact - Country Code"
-        value: "Registrant_Contact_Country_Code"
-      }
+      label: "MX Host"
+      value: "MX_Host"
+    }
+    allowed_value: {
+      label: "MX IP"
+      value: "MX_IP"
+    }
+    allowed_value: {
+      label: "Name Server Domain"
+      value: "Name_Server_Domain"
+    }
+    allowed_value: {
+      label: "Name Server Host"
+      value: "Name_Server_Host"
+    }
+    allowed_value: {
+      label: "Name Server IP"
+      value: "Name_Server_IP"
+    }
+    allowed_value: {
+      label: "Redirect Domain"
+      value: "redirect_domain"
+    }
+    allowed_value: {
+      label: "Registrar"
+      value: "registrar"
+    }
+    allowed_value: {
+      label: "Registrant Contact - Country Code"
+      value: "Registrant_Contact_Country_Code"
+    }
+    allowed_value: {
+      label: "Registrant Contact - Email"
+      value: "Registrant_Contact_Email"
+    }
     allowed_value: {
       label: "Registrant Contact - Name"
       value: "Registrant_Contact_Name"
@@ -567,20 +579,57 @@ view: events {
       value: "Registrant_Contact_Org"
     }
     allowed_value: {
-      label: "Registrant Contact - Email"
-      value: "Registrant_Contact_Email"
+      label: "Registrant Name"
+      value: "Registrant_Name"
+    }
+    allowed_value: {
+      label: "Registrant Org"
+      value: "Registrant_Org"
+    }
+
+    allowed_value: {
+      label: "SSL Alt Names"
+      value: "SSL_Alt_Names"
+    }
+    allowed_value: {
+      label: "Server Type"
+      value: "server_type"
+    }
+    allowed_value: {
+      label: "SOA Email"
+      value: "SOA_Email"
+    }
+    allowed_value: {
+      label: "SSL Email"
+      value: "SSL_Email"
     }
     allowed_value: {
       label: "SSL Hash"
       value: "SSL_Hash"
     }
     allowed_value: {
+      label: "SSL Issuer Common Name"
+      value: "SSL_Issuer_Common_Name"
+    }
+    allowed_value: {
       label: "SSL Subject"
       value: "SSL_Subject"
     }
     allowed_value: {
+      label: "SSL Subject Common Name"
+      value: "SSL_Subject_Common_Name"
+    }
+    allowed_value: {
+      label: "SSL Subject Org Name"
+      value: "organization"
+    }
+    allowed_value: {
       label: "Technical Contact - Country Code"
       value: "Technical_Contact_Country_Code"
+    }
+    allowed_value: {
+      label: "Technical Contact - Email"
+      value: "Technical_Contact_Email"
     }
     allowed_value: {
       label: "Technical Contact - Name"
@@ -591,60 +640,8 @@ view: events {
       value: "Technical_Contact_Org"
     }
     allowed_value: {
-      label: "Technical Contact - Email"
-      value: "Technical_Contact_Email"
-    }
-    allowed_value: {
-      label: "SOA Email"
-      value: "SOA_Email"
-    }
-    allowed_value: {
-      label: "SSL Issuer Common Name"
-      value: "SSL_Issuer_Common_Name"
-    }
-    allowed_value: {
-      label: "Registrant Name"
-      value: "Registrant_Name"
-    }
-    allowed_value: {
-      label: "Registrant Org"
-      value: "Registrant_Org"
-    }
-    allowed_value: {
-      label: "SSL Alt Names"
-      value: "SSL_Alt_Names"
-    }
-    allowed_value: {
-      label: "SSL Email"
-      value: "SSL_Email"
-    }
-    allowed_value: {
-      label: "SSL Subject Common Name"
-      value: "SSL_Subject_Common_Name"
-    }
-    allowed_value: {
-      label: "Additional Whois Email"
-      value: "additional_whois_email"
-    }
-    allowed_value: {
-      label: "Email Domain of Registrant"
-      value: "email_domain"
-    }
-    allowed_value: {
-      label: "Redirect Domain"
-      value: "redirect_domain"
-    }
-    allowed_value: {
-      label: "SSL Subject Org Name"
-      value: "organization"
-    }
-    allowed_value: {
-      label: "Name Server Domain"
-      value: "Name_Server_Domain"
-    }
-    allowed_value: {
-      label: "Name Server IP"
-      value: "Name_Server_IP"
+      label: "TLD"
+      value: "tld"
     }
   }
   #domain-profiles
@@ -655,8 +652,6 @@ view: events {
       ${TABLE}.principal.domain.registrar
     {% elsif enrichment_filter_value._parameter_value == "'tld'" %}
        ${events__about__labels__tld.value}
-    {% elsif enrichment_filter_value._parameter_value == "'admin_contact_name'" %}
-       ${TABLE}.principal.domain.admin.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'server_type'" %}
        ${TABLE}.network.tls.client.server_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Country_Code'" %}
@@ -737,8 +732,6 @@ view: events {
       ${events__principal__ip.events__principal__ip}
     {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Domain'" %}
       ${events__security_result.about__hostname}
-    {% else %}
-      ${TABLE}.principal.domain.status
     {% endif %};;
   }
   #domain-profiles
@@ -760,7 +753,7 @@ view: events {
   }
   #domain-profiles
   set: details {
-    fields: [principal__hostname,external_link,iris_redirect]
+    fields: [principal__hostname_drill_down,external_link,iris_redirect]
   }
   dimension: about {
     hidden: yes
@@ -769,6 +762,16 @@ view: events {
   filter: domain_age_for_filter {
     type: number
   }
+  dimension: Threat_type_filter {
+    type: string
+    sql: CASE
+      WHEN ${events__security_result.threat_name} IS NULL
+      THEN "Not a Threat"
+      ELSE
+        INITCAP(${events__security_result.threat_name})
+      END;;
+  }
+
   # dimension: filter_user_attribute {
   #   type: number
   #   sql: {{ _user_attribute['high_risk_range'] }};;
