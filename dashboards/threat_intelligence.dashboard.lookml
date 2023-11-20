@@ -26,8 +26,8 @@
       Time Range: events.event_timestamp_time
       Young Domain Threshold: alert_hostnames.age_difference
     row: 0
-    col: 1
-    width: 8
+    col: 0
+    width: 12
     height: 6
   - title: Young Domains
     name: Young Domains (2)
@@ -226,8 +226,8 @@
       Time Range: events.event_timestamp_time
       Suspicious Domain Range: main_risk_score.events__security_result_risk_score
     row: 0
-    col: 14
-    width: 8
+    col: 12
+    width: 12
     height: 6
   filters:
   - name: Time Range
