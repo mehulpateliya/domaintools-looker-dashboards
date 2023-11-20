@@ -801,11 +801,16 @@ view: events {
     sql: ${events.event_timestamp_time} ;;
 
   }
+  dimension: event_timestamp_suspicious_domains {
+    label: "Last Observed"
+    sql: ${events.event_timestamp_time} ;;
+
+  }
   measure: event_counts_suspicious_domains {
     type: count_distinct
     label: "Suspicious Domains"
     sql: ${principal__hostname_young_domains};;
-    drill_fields: [events.principal__hostname_risky_domain, main_risk_score.events__security_result_risk_score, events.max_timestamp, events.external_link]
+    drill_fields: [events.principal__hostname_risky_domain, main_risk_score.events__security_result_risk_score, events.event_timestamp_suspicious_domains, events.external_link]
   }
   dimension: principal__hostname_young_domains {
     type: string
