@@ -1,9 +1,9 @@
-- dashboard: domain_profiling
-  title: Domain Profiling
+- dashboard: domain_profiling_dashboard
+  title: Domain Profiling Dashboard
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
-  preferred_slug: FIQqKhyaWRWNP8UQ8V4Fza
+  preferred_slug: mr7I6ux5zIZWfRF6URsV4J
   elements:
   - title: Enrichment Explorer
     name: Enrichment Explorer
@@ -16,7 +16,7 @@
       all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
-      events__about__labels_registrant_name.value, events.principal__domain__registrant__office_address__country_or_region,
+      events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region,
       events.iris_redirect]
     sorts: [events.principal__hostname_drill_down desc]
     limit: 1000
@@ -44,18 +44,13 @@
     series_labels:
       events.principal__domain__status: Active Status
       events.principal__hostname: Domain
-      events__security_result__category_details.events__security_result__category_details: Threat
-        Type
-      events__security_result__detection_fields_evidence.value: Threat Profile Evidence
-      events.domain_age: Age
+      all_threat_evidence.events__security_result__detection_fields_evidence: Threat
+        Evidence
+      events.domain_age: Age (in days)
       security_result_main_risk_score.events__security_result_risk_score: Overall
         Risk Score
       events.Event_DateTime_time: Last Enriched DateTime
       security_result_proximity.events__security_result_risk_score: Proximity Score
-      security_result__category_details.security_result__category_details: Threat
-        Type
-      all_threat_evidence.events__security_result__detection_fields_evidence: Threat
-        Profile Evidence
       security_result_threat_profile_malware.events__security_result_risk_score: Threat
         Profile Malware
       security_result_threat_profile_phishing.events__security_result_risk_score: Threat
@@ -64,7 +59,7 @@
         Profile Spam
       events.principal__domain__registrar: Domain Registered From
       events__about__labels_registrant_name.value: Domain Registered Company
-      events.principal__domain__registrant__office_address__country_or_region: Domain Registered
+      events.principal__domain__admin__office_address__country_or_region: Domain Registered
         Region
       events.principal__hostname_drill_down: Domain
       thread_type.thread_type: Threat Type
@@ -96,12 +91,10 @@
     defaults_version: 1
     hidden_pivots: {}
     listen:
-      'Risk Score Greater Than ': security_result_main_risk_score.events__security_result_risk_score
-      Threat Type: events__security_result__category_details.events__security_result__category_details
-      Time Range: events.Event_DateTime_minute
       Domain: events.principal__hostname
-      Age Less Than (days): events.domain_age
+      Age: events.domain_age
       Last Enriched: events.Event_DateTime_time
+      Threat Type: thread_type.thread_type
     row: 0
     col: 0
     width: 24
@@ -157,8 +150,8 @@
     defaults_version: 1
     hidden_pivots: {}
     listen:
-      Time Range: events.Event_DateTime_minute
       Enrichment Filter Value: events.enrichment_filter_value
+      Time Range: events.Event_DateTime_minute
     row: 12
     col: 0
     width: 24
@@ -189,10 +182,10 @@
       display: inline
     model: domaintools
     explore: events
-    listens_to_filters: []
+    listens_to_filters: [Last Enriched]
     field: events.principal__hostname
-  - name: Age Less Than (days)
-    title: Age Less Than (days)
+  - name: Age
+    title: Age
     type: field_filter
     default_value: "[0,999]"
     allow_multiple_values: true
@@ -221,8 +214,8 @@
     explore: events
     listens_to_filters: []
     field: events.Event_DateTime_time
-  - name: 'Risk Score Greater Than '
-    title: 'Risk Score Greater Than '
+  - name: Risk Score
+    title: Risk Score
     type: field_filter
     default_value: "[0,100]"
     allow_multiple_values: true
@@ -239,15 +232,15 @@
     title: Threat Type
     type: field_filter
     default_value: ''
-    allow_multiple_values: false
+    allow_multiple_values: true
     required: false
     ui_config:
       type: dropdown_menu
       display: inline
     model: domaintools
     explore: events
-    listens_to_filters: []
-    field: events__security_result.threat_name
+    listens_to_filters: [Last Enriched]
+    field: events.Threat_type_filter
   - name: Enrichment Filter Value
     title: Enrichment Filter Value
     type: field_filter
