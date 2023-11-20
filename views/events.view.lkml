@@ -428,7 +428,7 @@ view: events {
   dimension: domain_age {
     type: number
     sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
-    label: "Domain Age (in days)"
+    label: "Age (in days)"
   }
   #Enrichment-explorer
   dimension_group: Event_DateTime {
@@ -753,7 +753,7 @@ view: events {
     label: "View in Chronicle"
     sql: "link" ;;
     link: {
-      label: "Look this event in chronicle"
+      label: "View in Chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
@@ -790,7 +790,13 @@ view: events {
   measure: event_counts_risky_domain {
     type: count
     label: "Events"
-    drill_fields: [events.principal__hostname_risky_domain, main_risk_score_each_event.events__security_result_risk_score, events.event_timestamp_time, events.metadata__id_risky_domain]
+    drill_fields: [events.principal__hostname_risky_domain, main_risk_score_each_event.events__security_result_risk_score, events.event_timestamp_risky_domains, events.metadata__id_risky_domain]
+  }
+
+  dimension: event_timestamp_risky_domains {
+    label: "Event Timestamp"
+    sql: ${events.event_timestamp_time} ;;
+
   }
   measure: event_counts_suspicious_domains {
     type: count_distinct
