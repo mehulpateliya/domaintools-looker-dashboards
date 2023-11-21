@@ -903,7 +903,7 @@ view: events {
       label: "Look this event in chronicle"
       url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
-    # html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
+    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
   #domain-profiles
   set: details {

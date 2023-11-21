@@ -14,7 +14,7 @@ constant: chronicle_url {
   value: "https://crestdatasys.backstory.chronicle.security"
   export: override_required
 }
-# this constancr value contains URL for Cloud function
+# this constant value contains URL for Cloud function
 constant: cloud_function_url {
   value: "https://console.cloud.google.com/logs/query"
   export: override_required
@@ -49,7 +49,7 @@ constant: resource_labels_location {
   value: "us-central1"
   export: override_required
 }
-#
+# sevarity must be DEFAULT
 constant: sevarity {
   value: "DEFAULT"
   export: override_required
