@@ -510,6 +510,134 @@ view: security_result_threat_profile_spam {
     label: "Risk Score"
   }
 }
+
+# Monitoring Dashboard
+view: events__about__labels__timestamp {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+  dimension: value_date {
+    type: date_time
+    sql: timestamp(${value}) ;;
+  }
+  measure: max_timestamp {
+    type: max
+    sql: ${value_date} ;;
+  }
+}
+view: events__about__labels__tag_list_name {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__monitor_list_name {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: monitor_tag_ref_list_name {
+  derived_table: {
+    sql: SELECT
+          events__about__labels__tag_list_name.value  AS events__about__labels__tag_list_name_value,
+              (FORMAT_TIMESTAMP('%F %T', timestamp(events__about__labels__timestamp.value) )) AS events__about__labels__timestamp_value_date,
+              events.metadata.id as metadata_id
+      FROM `datalake.events`  AS events
+      LEFT JOIN UNNEST(events.about) as events__about
+      LEFT JOIN UNNEST(labels) as events__about__labels__tag_list_name ON events__about__labels__tag_list_name.key = 'monitoring_tag_list_name'
+      LEFT JOIN UNNEST(labels) as events__about__labels__timestamp ON events__about__labels__timestamp.key = 'timestamp'
+      WHERE (events.metadata.log_type = 'UDM' ) and events__about__labels__timestamp.value is not null
+      and events__about__labels__tag_list_name.value is not null
+      GROUP BY
+          1,
+          2,
+          3
+      ORDER BY
+          2 DESC
+      LIMIT 1 ;;
+  }
+  dimension: events__about__labels__tag_list_name_value {
+    sql: ${TABLE}.events__about__labels__tag_list_name_value ;;
+  }
+  dimension: events__about__labels__timestamp_value_date {
+    sql: ${TABLE}.events__about__labels__timestamp_value_date ;;
+  }
+  dimension: metadata_id {
+    sql: ${TABLE}.metadata_id ;;
+  }
+}
+view: monitor_domain_ref_list_name {
+  derived_table: {
+    sql: SELECT
+          events__about__labels__monitor_list_name.value  AS events__about__labels__monitor_list_name_value,
+              (FORMAT_TIMESTAMP('%F %T', timestamp(events__about__labels__timestamp.value) )) AS events__about__labels__timestamp_value_date,
+              events.metadata.id as metadata_id
+      FROM `datalake.events`  AS events
+      LEFT JOIN UNNEST(events.about) as events__about
+      LEFT JOIN UNNEST(labels) as events__about__labels__monitor_list_name ON events__about__labels__monitor_list_name.key = 'monitoring_domain_list_name'
+      LEFT JOIN UNNEST(labels) as events__about__labels__timestamp ON events__about__labels__timestamp.key = 'timestamp'
+      WHERE (events.metadata.log_type = 'UDM' ) and events__about__labels__timestamp.value is not null
+      and events__about__labels__monitor_list_name.value is not null
+      GROUP BY
+          1,
+          2,
+          3
+      ORDER BY
+          2 DESC
+      LIMIT 1 ;;
+  }
+  dimension: events__about__labels__monitor_list_name_value {
+    sql: ${TABLE}.events__about__labels__monitor_list_name_value ;;
+  }
+  dimension: events__about__labels__timestamp_value_date {
+    sql: ${TABLE}.events__about__labels__timestamp_value_date ;;
+  }
+  dimension: metadata_id {
+    sql: ${TABLE}.metadata_id ;;
+  }
+}
 view: events {
   sql_table_name: `datalake.events` ;;
 
@@ -909,6 +1037,14 @@ view: events {
     sql: TIMESTAMP_DIFF(TIMESTAMP_SECONDS(${metadata__event_timestamp__seconds}), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Domain age difference"
   }
+  dimension: monitor_tag_link {
+    sql: ${monitor_tag_ref_list_name.events__about__labels__tag_list_name_value} ;;
+    html: <a href="@{chronicle_url}/?refLists=id:{{value}}" target="_blank">Link</a>;;
+  }
+  dimension: monitor_domain_link {
+    sql: ${monitor_domain_ref_list_name.events__about__labels__monitor_list_name_value} ;;
+    html: <a href="@{chronicle_url}/?refLists=id:{{value}}" target="_blank">Link</a>;;
+  }
   measure: event_counts {
     type: count
     label: "Events"
@@ -926,7 +1062,6 @@ view: events {
   dimension: event_timestamp_risky_domains {
     label: "Event Timestamp"
     sql: ${events.event_timestamp_time} ;;
-
   }
   measure: event_counts_suspicious_domains {
     type: count_distinct
@@ -33436,18 +33571,18 @@ view: main_risk_score {
             events__security_result_risk_score,
             events_principal__hostname;;
 
-    }
-    dimension: events__security_result_risk_score {
-      type: number
-      sql: ${TABLE}.events__security_result_risk_score ;;
-      label: "Risk Score"
-    }
-    dimension: events_principal__hostname {
-      type: string
-      sql: ${TABLE}.events_principal__hostname ;;
-      label: "Domain"
-    }
   }
+  dimension: events__security_result_risk_score {
+    type: number
+    sql: ${TABLE}.events__security_result_risk_score ;;
+    label: "Risk Score"
+  }
+  dimension: events_principal__hostname {
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+    label: "Domain"
+  }
+}
 
 view: main_risk_score_each_event {
   derived_table: {
@@ -33470,23 +33605,23 @@ view: main_risk_score_each_event {
             events__security_result_risk_score,
             events_principal__hostname;;
 
-    }
-    dimension: events__security_result_risk_score {
-      type: number
-      sql: ${TABLE}.events__security_result_risk_score ;;
-      label: "Risk Score"
-    }
-    dimension: events_principal__hostname {
-      type: string
-      sql: ${TABLE}.events_principal__hostname ;;
-      label: "Domain"
-    }
-    dimension: event_metadata_id {
-      type: string
-      sql: ${TABLE}.event_metadata_id ;;
-      label: "Metadata ID"
-    }
   }
+  dimension: events__security_result_risk_score {
+    type: number
+    sql: ${TABLE}.events__security_result_risk_score ;;
+    label: "Risk Score"
+  }
+  dimension: events_principal__hostname {
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+    label: "Domain"
+  }
+  dimension: event_metadata_id {
+    type: string
+    sql: ${TABLE}.event_metadata_id ;;
+    label: "Metadata ID"
+  }
+}
 view: events__about {
 
   dimension: administrative_domain {
