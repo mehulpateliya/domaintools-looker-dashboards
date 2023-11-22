@@ -1059,10 +1059,6 @@ view: events {
       value: "redirect_domain"
     }
     allowed_value: {
-      label: "Registrar"
-      value: "registrar"
-    }
-    allowed_value: {
       label: "Registrant Contact - Country Code"
       value: "Registrant_Contact_Country_Code"
     }
@@ -1086,10 +1082,9 @@ view: events {
       label: "Registrant Org"
       value: "Registrant_Org"
     }
-
     allowed_value: {
-      label: "SSL Alt Names"
-      value: "SSL_Alt_Names"
+      label: "Registrar"
+      value: "registrar"
     }
     allowed_value: {
       label: "Server Type"
@@ -1098,6 +1093,10 @@ view: events {
     allowed_value: {
       label: "SOA Email"
       value: "SOA_Email"
+    }
+    allowed_value: {
+      label: "SSL Alt Names"
+      value: "SSL_Alt_Names"
     }
     allowed_value: {
       label: "SSL Email"
