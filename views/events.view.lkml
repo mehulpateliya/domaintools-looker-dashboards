@@ -878,7 +878,8 @@ view: ssl_info_organization_view {
     WITH ssl_info_organization_fields AS (
     SELECT
     events__about__labels__organization.value  AS events__about__labels__organization_value,
-    events.network.organization_name  AS events_network__organization_name
+    events.network.organization_name  AS events_network__organization_name,
+    events.metadata.id AS metadata__id
 FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about__labels__organization.key = 'organization'
