@@ -613,7 +613,7 @@ view: ip_country_code_fields_view {
     events.metadata.id AS metadata__id
   FROM `datalake.events` AS events
   LEFT JOIN UNNEST(events.about) AS events__about
-  WHERE (events.metadata.log_type = 'UDM') and  {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+  WHERE (events.metadata.log_type = 'UDM') and  {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -625,16 +625,14 @@ SELECT
 FROM (
   SELECT ip_country_code_fields.about__location__country_or_region AS country_code_field,
   ip_country_code_fields.metadata__id as metadata__id
-  FROM `datalake.events` AS events
-  LEFT JOIN ip_country_code_fields ON ip_country_code_fields.metadata__id = events.metadata.id
+  FROM ip_country_code_fields
   WHERE ip_country_code_fields.about__location__country_or_region IS NOT NULL
 
   UNION ALL
 
   SELECT ip_country_code_fields.principal__location__country_or_region AS country_code_field,
   ip_country_code_fields.metadata__id as metadata__id
-  FROM `datalake.events` AS events
-  LEFT JOIN ip_country_code_fields ON ip_country_code_fields.metadata__id = events.metadata.id
+  FROM ip_country_code_fields
   WHERE ip_country_code_fields.principal__location__country_or_region IS NOT NULL
 ) ;;
   }
@@ -659,7 +657,7 @@ LEFT JOIN UNNEST(events.principal.labels) as events__principal__labels_isp ON ev
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_isp ON events__about__labels_isp.key='isp'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -671,16 +669,14 @@ SELECT
 FROM (
   SELECT ip_isn_fields.events__about__labels_isp_value AS isn_field,
   ip_isn_fields.metadata__id as metadata__id
-  FROM `datalake.events` AS events
-  LEFT JOIN ip_isn_fields ON ip_isn_fields.metadata__id = events.metadata.id
+  FROM ip_isn_fields
   WHERE ip_isn_fields.events__about__labels_isp_value IS NOT NULL
 
   UNION ALL
 
   SELECT ip_isn_fields.events__principal__labels_isp_value AS isn_field,
   ip_isn_fields.metadata__id as metadata__id
-  FROM `datalake.events` AS events
-  LEFT JOIN ip_isn_fields ON ip_isn_fields.metadata__id = events.metadata.id
+  FROM ip_isn_fields
   WHERE ip_isn_fields.events__principal__labels_isp_value IS NOT NULL
 ) ;;
   }
@@ -704,7 +700,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_asn ON events__about__labels_asn.key='asn'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -716,16 +712,14 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timesta
     FROM (
       SELECT ip_asn_fields.events__network_asn AS asn_field,
       ip_asn_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ip_asn_fields ON ip_asn_fields.metadata__id = events.metadata.id
+      FROM ip_asn_fields
       WHERE ip_asn_fields.events__network_asn IS NOT NULL
 
       UNION ALL
 
       SELECT ip_asn_fields.events__about__labels_asn_value AS asn_field,
       ip_asn_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ip_asn_fields ON ip_asn_fields.metadata__id = events.metadata.id
+      FROM ip_asn_fields
       WHERE ip_asn_fields.events__about__labels_asn_value IS NOT NULL
     ) ;;
   }
@@ -749,7 +743,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_hash ON events__about__labels_ssl_hash.key='hash'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -761,16 +755,14 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timesta
     FROM (
       SELECT ssl_info_hash_fields.events__network__tls__server__certificate__sha1 AS ssl_hash,
       ssl_info_hash_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_hash_fields ON ssl_info_hash_fields.metadata__id = events.metadata.id
+      FROM ssl_info_hash_fields
       WHERE ssl_info_hash_fields.events__network__tls__server__certificate__sha1 IS NOT NULL
 
       UNION ALL
 
       SELECT ssl_info_hash_fields.events__about__labels_ssl_hash_value AS ssl_hash,
       ssl_info_hash_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_hash_fields ON ssl_info_hash_fields.metadata__id = events.metadata.id
+      FROM ssl_info_hash_fields
       WHERE ssl_info_hash_fields.events__about__labels_ssl_hash_value IS NOT NULL
     ) ;;
   }
@@ -794,7 +786,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_subject ON events__about__labels_ssl_subject.key='subject'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -806,16 +798,14 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timesta
     FROM (
       SELECT ssl_info_subject_fields.events__network__tls__server__certificate__subject AS ssl_subject,
       ssl_info_subject_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_subject_fields ON ssl_info_subject_fields.metadata__id = events.metadata.id
+      FROM ssl_info_subject_fields
       WHERE ssl_info_subject_fields.events__network__tls__server__certificate__subject IS NOT NULL
 
       UNION ALL
 
       SELECT ssl_info_subject_fields.events__about__labels_ssl_subject_subject AS ssl_subject,
       ssl_info_subject_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_subject_fields ON ssl_info_subject_fields.metadata__id = events.metadata.id
+      FROM ssl_info_subject_fields
       WHERE ssl_info_subject_fields.events__about__labels_ssl_subject_subject IS NOT NULL
     ) ;;
   }
@@ -839,7 +829,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_issuer_common_name ON events__about__labels_ssl_issuer_common_name.key='issuer_common_name'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -851,16 +841,14 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timesta
     FROM (
       SELECT ssl_info_issuer_common_name_fields.events__network__tls__server__certificate__issuer AS ssl_issuer_common_name,
       ssl_info_issuer_common_name_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_issuer_common_name_fields ON ssl_info_issuer_common_name_fields.metadata__id = events.metadata.id
+      FROM ssl_info_issuer_common_name_fields
       WHERE ssl_info_issuer_common_name_fields.events__network__tls__server__certificate__issuer IS NOT NULL
 
       UNION ALL
 
       SELECT ssl_info_issuer_common_name_fields.events__about__labels_ssl_issuer_common_name_value AS ssl_issuer_common_name,
       ssl_info_issuer_common_name_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_issuer_common_name_fields ON ssl_info_issuer_common_name_fields.metadata__id = events.metadata.id
+      FROM ssl_info_issuer_common_name_fields
       WHERE ssl_info_issuer_common_name_fields.events__about__labels_ssl_issuer_common_name_value IS NOT NULL
     ) ;;
   }
@@ -884,7 +872,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about__labels__organization.key = 'organization'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -896,16 +884,14 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.event_timesta
     FROM (
       SELECT ssl_info_organization_fields.events__about__labels__organization_value AS ssl_organization_name,
       ssl_info_organization_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_organization_fields ON ssl_info_organization_fields.metadata__id = events.metadata.id
+      FROM ssl_info_organization_fields
       WHERE ssl_info_organization_fields.events__about__labels__organization_value IS NOT NULL
 
       UNION ALL
 
       SELECT ssl_info_organization_fields.events_network__organization_name AS ssl_organization_name,
       ssl_info_organization_fields.metadata__id as metadata__id
-      FROM `datalake.events` AS events
-      LEFT JOIN ssl_info_organization_fields ON ssl_info_organization_fields.metadata__id = events.metadata.id
+      FROM ssl_info_organization_fields
       WHERE ssl_info_organization_fields.events_network__organization_name IS NOT NULL
     ) ;;
   }
@@ -1152,25 +1138,25 @@ view: events {
     {% if enrichment_filter_value._parameter_value == "'registrar'" %}
       ${TABLE}.principal.domain.registrar
     {% elsif enrichment_filter_value._parameter_value == "'tld'" %}
-       ${events__about__labels__tld.value}
+      ${events__about__labels__tld.value}
     {% elsif enrichment_filter_value._parameter_value == "'server_type'" %}
-       ${TABLE}.network.tls.client.server_name
+      ${TABLE}.network.tls.client.server_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Country_Code'" %}
-       ${TABLE}.principal.domain.admin.office_address.country_or_region
+      ${TABLE}.principal.domain.admin.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Name'" %}
-       ${TABLE}.principal.domain.admin.user_display_name
+      ${TABLE}.principal.domain.admin.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Org'" %}
-       ${TABLE}.principal.domain.admin.company_name
+      ${TABLE}.principal.domain.admin.company_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Email'" %}
-       ${events__principal__domain__admin__email_addresses.events__principal__domain__admin__email_addresses}
+      ${events__principal__domain__admin__email_addresses.events__principal__domain__admin__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Country_Code'" %}
-       ${TABLE}.principal.domain.billing.office_address.country_or_region
+      ${TABLE}.principal.domain.billing.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Name'" %}
-       ${TABLE}.principal.domain.billing.user_display_name
+      ${TABLE}.principal.domain.billing.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Org'" %}
-       ${TABLE}.principal.domain.billing.company_name
+      ${TABLE}.principal.domain.billing.company_name
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Email'" %}
-       ${events__principal__domain__billing__email_addresses.events__principal__domain__billing__email_addresses}
+      ${events__principal__domain__billing__email_addresses.events__principal__domain__billing__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'IP_Address'" %}
       ${events__principal__ip.events__principal__ip}
     {% elsif enrichment_filter_value._parameter_value == "'IP_ASN'" %}
@@ -1233,7 +1219,8 @@ view: events {
       ${events__about__labels__name_server_ip.value}
     {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Domain'" %}
       ${events__about__labels__name_server_domain.value}
-    {% endif %};;
+    {% endif %}
+    ;;
   }
   #domain-profiles
   measure: domain_count {
@@ -33868,6 +33855,7 @@ view: main_risk_score_each_event {
     label: "Metadata ID"
   }
 }
+
 view: events__about {
 
   dimension: administrative_domain {
