@@ -112,13 +112,6 @@ explore: events {
     fields: [events__about__labels__common_name.value]
     relationship: one_to_many
   }
-  #domain-profiles
-  join: events__about__labels_registrant_name {
-    view_label: "Events: About Labels Registrant Name"
-    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels_registrant_name ON ${events__about__labels_registrant_name.key}='registrant_name' ;;
-    fields: [events__about__labels_registrant_name.value]
-    relationship: one_to_many
-  }
   join: events__about__labels__name_server_ip {
     view_label: "Events: About Labels name server ip"
     sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__name_server_ip ON ${events__about__labels__name_server_ip.key}='ip' ;;

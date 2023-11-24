@@ -10,7 +10,7 @@
     model: domaintools
     explore: events
     type: looker_grid
-    fields: [unique_hostname_enriched_with_latest_time.events_principal_domain, events.domain_age, events.principal__domain__status,
+    fields: [events.principal__hostname_drill_down, events.domain_age, events.principal__domain__status,
       security_result_main_risk_score.events__security_result_risk_score, events.Event_DateTime_time,
       security_result_proximity.events__security_result_risk_score, thread_type.thread_type,
       all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
@@ -62,7 +62,7 @@
       events__about_registrant_name.events__about__labels__registrant_name__value: Domain Registered Company
       events.principal__domain__admin__office_address__country_or_region: Domain Registered
         Region
-      unique_hostname_enriched_with_latest_time.events_principal_domain: Domain
+      events.principal__hostname_drill_down: Domain
       thread_type.thread_type: Threat Type
     x_axis_gridlines: false
     y_axis_gridlines: true
