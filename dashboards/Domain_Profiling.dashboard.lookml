@@ -10,17 +10,18 @@
     model: domaintools
     explore: events
     type: looker_grid
-    fields: [events.principal__hostname_drill_down, events.domain_age, events.principal__domain__status,
+    fields: [unique_hostname_enriched_with_latest_time.events_principal_domain, events.domain_age, events.principal__domain__status,
       security_result_main_risk_score.events__security_result_risk_score, events.Event_DateTime_time,
       security_result_proximity.events__security_result_risk_score, thread_type.thread_type,
       all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
-      events__about__labels_registrant_name.value, events.principal__domain__admin__office_address__country_or_region,
+      events__about_registrant_name.events__about__labels__registrant_name__value, events.principal__domain__admin__office_address__country_or_region,
       events.iris_redirect]
-    sorts: [events.principal__hostname_drill_down desc]
+    sorts: [events.Event_DateTime_time desc]
     limit: 1000
     column_limit: 50
+    filter_expression: "${events.metadata__event_timestamp__seconds}=${unique_hostname_enriched_with_latest_time.events_event_timestamp_time}"
     show_view_names: false
     show_row_numbers: true
     transpose: false
@@ -58,10 +59,10 @@
       security_result_threat_profile_spam.events__security_result_risk_score: Threat
         Profile Spam
       events.principal__domain__registrar: Domain Registered From
-      events__about__labels_registrant_name.value: Domain Registered Company
+      events__about_registrant_name.events__about__labels__registrant_name__value: Domain Registered Company
       events.principal__domain__admin__office_address__country_or_region: Domain Registered
         Region
-      events.principal__hostname_drill_down: Domain
+      unique_hostname_enriched_with_latest_time.events_principal_domain: Domain
       thread_type.thread_type: Threat Type
     x_axis_gridlines: false
     y_axis_gridlines: true

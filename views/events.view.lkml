@@ -1,5 +1,45 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
 #domain-profiles
+#Enrichment-explorer
+
+view: unique_hostname_enriched_with_latest_time {
+  derived_table: {
+    sql: SELECT
+          events.principal.hostname as events_principal__hostname,
+          MAX(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
+        FROM datalake.events AS events
+        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)
+        GROUP BY events_principal__hostname;;
+  }
+  dimension_group: event_timestamp {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${TABLE}.events_event_timestamp_time ;;
+  }
+  dimension: events_event_timestamp_time{
+    type: number
+    sql: ${TABLE}.events_event_timestamp_time ;;
+  }
+  measure: upper_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_ADD(TIMESTAMP_SECONDS(MAX(${TABLE}.events_event_timestamp_time)), INTERVAL 1 SECOND) );;
+  }
+  dimension: events_principal_domain {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+  }
+}
 view: events__about__labels__additional_whois_email {
 
   dimension: key {
@@ -219,26 +259,7 @@ view: events__about__labels__tld {
     sql: ${TABLE}.value ;;
   }
 }
-#domain-profiles
-view: events__about__labels_registrant_name {
 
-  dimension: key {
-    type: string
-    sql: ${TABLE}.key ;;
-  }
-  dimension: rbac_enabled {
-    type: yesno
-    sql: ${TABLE}.rbac_enabled ;;
-  }
-  dimension: source {
-    type: string
-    sql: ${TABLE}.source ;;
-  }
-  dimension: value {
-    type: string
-    sql: ${TABLE}.value ;;
-  }
-}
 #Enrichment-explorer
 view: thread_type {
   derived_table: {
@@ -33495,6 +33516,26 @@ view: main_risk_score_each_event {
     label: "Metadata ID"
   }
 }
+
+view: events__about_registrant_name {
+  derived_table: {
+    sql: SELECT
+          events.metadata.id as events_metadata_id,
+          events__about__labels__registrant_name.value as events__about__labels__registrant_name__value
+        FROM datalake.events AS events
+        LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels__registrant_name ON events__about__labels__registrant_name.key = 'registrant_name'
+        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)  AND  events__about__labels__registrant_name.value is not null
+        GROUP BY events_metadata_id, events__about__labels__registrant_name__value ;;
+  }
+  dimension: events_metadata_id {
+    sql: ${TABLE}.events_metadata_id ;;
+  }
+  dimension: events__about__labels__registrant_name__value {
+    sql: ${TABLE}.events__about__labels__registrant_name__value ;;
+  }
+}
+
 view: events__about {
 
   dimension: administrative_domain {
