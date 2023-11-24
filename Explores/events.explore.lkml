@@ -54,6 +54,12 @@ explore: events {
     fields: [events__principal__labels_isp.value]
     relationship: one_to_many
   }
+  join: events__about__labels_isp {
+    view_label: "Events: About Labels ISP"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels_isp ON ${events__about__labels_isp.key}='isp' ;;
+    fields: [events__about__labels_isp.value]
+    relationship: one_to_many
+  }
   #domain-profiles
   join: events__about__labels__tld {
     view_label: "Events: About Labels Watchlist Name"
@@ -118,11 +124,65 @@ explore: events {
     fields: [events__about__labels_registrant_name.value]
     relationship: one_to_many
   }
+  join: events__about__labels__name_server_ip {
+    view_label: "Events: About Labels name server ip"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__name_server_ip ON ${events__about__labels__name_server_ip.key}='ip' ;;
+    fields: [events__about__labels__name_server_ip.value]
+    relationship: one_to_many
+  }
+  join: events__about__labels__name_server_domain {
+    view_label: "Events: About Labels name server domain"
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__name_server_domain ON ${events__about__labels__name_server_domain.key}='name_server_domain' ;;
+    fields: [events__about__labels__name_server_domain.value]
+    relationship: one_to_many
+  }
   #Enrichment-explorer
   join: security_result_main_risk_score {
     view_label: "Events: Security Result Latest Risk Score "
     type: left_outer
     sql_on: ${security_result_main_risk_score.events_metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ip_country_code_fields_view {
+    view_label: "Events: IP Country code"
+    type: left_outer
+    sql_on: ${ip_country_code_fields_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ip_isn_fields_view {
+    view_label: "Events: IP ISP"
+    type: left_outer
+    sql_on: ${ip_isn_fields_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ip_asn_fields_view {
+    view_label: "Events: IP ASN"
+    type: left_outer
+    sql_on: ${ip_asn_fields_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ssl_info_hash_view {
+    view_label: "Events: SSL INFO HASH"
+    type: left_outer
+    sql_on: ${ssl_info_hash_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ssl_info_subject_view {
+    view_label: "Events: SSL INFO SUBJECT"
+    type: left_outer
+    sql_on: ${ssl_info_subject_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ssl_info_issuer_common_name_view {
+    view_label: "Events: SSL INFO ISSUER COMMON NAME"
+    type: left_outer
+    sql_on: ${ssl_info_issuer_common_name_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
+  join: ssl_info_organization_view {
+    view_label: "Events: SSL INFO Organization NAME"
+    type: left_outer
+    sql_on: ${ssl_info_organization_view.metadata__id} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
   #Enrichment-explorer
