@@ -239,6 +239,25 @@ view: events__principal__labels_isp {
     sql: ${TABLE}.value ;;
   }
 }
+view: events__about__labels_isp {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
 #domain-profiles
 view: events__about__labels__tld {
 
@@ -565,6 +584,346 @@ view: monitor_domain_ref_list_name {
     sql: ${TABLE}.metadata_id ;;
   }
 }
+
+view: events__about__labels__name_server_domain {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+view: events__about__labels__name_server_ip {
+
+  dimension: key {
+    type: string
+    sql: ${TABLE}.key ;;
+  }
+  dimension: rbac_enabled {
+    type: yesno
+    sql: ${TABLE}.rbac_enabled ;;
+  }
+  dimension: source {
+    type: string
+    sql: ${TABLE}.source ;;
+  }
+  dimension: value {
+    type: string
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: ip_country_code_fields_view {
+  derived_table: {
+    sql:
+    WITH ip_country_code_fields AS (
+  SELECT
+    events.principal.location.country_or_region AS principal__location__country_or_region,
+    events__about.location.country_or_region  AS about__location__country_or_region,
+    events.metadata.id AS metadata__id
+  FROM `datalake.events` AS events
+  LEFT JOIN UNNEST(events.about) AS events__about
+  WHERE (events.metadata.log_type = 'UDM') and  {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+SELECT
+  country_code_field, metadata__id
+FROM (
+  SELECT ip_country_code_fields.about__location__country_or_region AS country_code_field,
+  ip_country_code_fields.metadata__id as metadata__id
+  FROM ip_country_code_fields
+  WHERE ip_country_code_fields.about__location__country_or_region IS NOT NULL
+
+  UNION ALL
+
+  SELECT ip_country_code_fields.principal__location__country_or_region AS country_code_field,
+  ip_country_code_fields.metadata__id as metadata__id
+  FROM ip_country_code_fields
+  WHERE ip_country_code_fields.principal__location__country_or_region IS NOT NULL
+) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: country_code_field {
+    sql: ${TABLE}.country_code_field;;
+  }
+}
+
+view: ip_isn_fields_view {
+  derived_table: {
+    sql:
+    WITH ip_isn_fields AS (
+    SELECT
+    events__about__labels_isp.value  AS events__about__labels_isp_value,
+    events__principal__labels_isp.value  AS events__principal__labels_isp_value,
+    events.metadata.id AS metadata__id
+FROM `datalake.events`  AS events
+LEFT JOIN UNNEST(events.principal.labels) as events__principal__labels_isp ON events__principal__labels_isp.key='isp'
+LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels_isp ON events__about__labels_isp.key='isp'
+
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+SELECT
+  isn_field, metadata__id
+FROM (
+  SELECT ip_isn_fields.events__about__labels_isp_value AS isn_field,
+  ip_isn_fields.metadata__id as metadata__id
+  FROM ip_isn_fields
+  WHERE ip_isn_fields.events__about__labels_isp_value IS NOT NULL
+
+  UNION ALL
+
+  SELECT ip_isn_fields.events__principal__labels_isp_value AS isn_field,
+  ip_isn_fields.metadata__id as metadata__id
+  FROM ip_isn_fields
+  WHERE ip_isn_fields.events__principal__labels_isp_value IS NOT NULL
+) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: isn_field {
+    sql: ${TABLE}.isn_field;;
+  }
+}
+
+view: ip_asn_fields_view {
+  derived_table: {
+    sql:
+    WITH ip_asn_fields AS (
+    SELECT
+    events.network.asn  AS events__network_asn,
+    events__about__labels_asn.value  AS events__about__labels_asn_value,
+    events.metadata.id AS metadata__id
+FROM `datalake.events`  AS events
+LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels_asn ON events__about__labels_asn.key='asn'
+
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+    SELECT
+      asn_field, metadata__id
+    FROM (
+      SELECT ip_asn_fields.events__network_asn AS asn_field,
+      ip_asn_fields.metadata__id as metadata__id
+      FROM ip_asn_fields
+      WHERE ip_asn_fields.events__network_asn IS NOT NULL
+
+      UNION ALL
+
+      SELECT ip_asn_fields.events__about__labels_asn_value AS asn_field,
+      ip_asn_fields.metadata__id as metadata__id
+      FROM ip_asn_fields
+      WHERE ip_asn_fields.events__about__labels_asn_value IS NOT NULL
+    ) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: asn_field {
+    sql: ${TABLE}.asn_field;;
+  }
+}
+
+view: ssl_info_hash_view {
+  derived_table: {
+    sql:
+    WITH ssl_info_hash_fields AS (
+    SELECT
+    events.network.tls.server.certificate.sha1  AS events__network__tls__server__certificate__sha1,
+    events__about__labels_ssl_hash.value  AS events__about__labels_ssl_hash_value,
+    events.metadata.id AS metadata__id
+FROM `datalake.events`  AS events
+LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels_ssl_hash ON events__about__labels_ssl_hash.key='hash'
+
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+    SELECT
+      ssl_hash, metadata__id
+    FROM (
+      SELECT ssl_info_hash_fields.events__network__tls__server__certificate__sha1 AS ssl_hash,
+      ssl_info_hash_fields.metadata__id as metadata__id
+      FROM ssl_info_hash_fields
+      WHERE ssl_info_hash_fields.events__network__tls__server__certificate__sha1 IS NOT NULL
+
+      UNION ALL
+
+      SELECT ssl_info_hash_fields.events__about__labels_ssl_hash_value AS ssl_hash,
+      ssl_info_hash_fields.metadata__id as metadata__id
+      FROM ssl_info_hash_fields
+      WHERE ssl_info_hash_fields.events__about__labels_ssl_hash_value IS NOT NULL
+    ) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: ssl_hash {
+    sql: ${TABLE}.ssl_hash;;
+  }
+}
+
+view: ssl_info_subject_view {
+  derived_table: {
+    sql:
+    WITH ssl_info_subject_fields AS (
+    SELECT
+    events.network.tls.server.certificate.subject  AS events__network__tls__server__certificate__subject,
+    events__about__labels_ssl_subject.value  AS events__about__labels_ssl_subject_subject,
+    events.metadata.id AS metadata__id
+FROM `datalake.events`  AS events
+LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels_ssl_subject ON events__about__labels_ssl_subject.key='subject'
+
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+    SELECT
+      ssl_subject, metadata__id
+    FROM (
+      SELECT ssl_info_subject_fields.events__network__tls__server__certificate__subject AS ssl_subject,
+      ssl_info_subject_fields.metadata__id as metadata__id
+      FROM ssl_info_subject_fields
+      WHERE ssl_info_subject_fields.events__network__tls__server__certificate__subject IS NOT NULL
+
+      UNION ALL
+
+      SELECT ssl_info_subject_fields.events__about__labels_ssl_subject_subject AS ssl_subject,
+      ssl_info_subject_fields.metadata__id as metadata__id
+      FROM ssl_info_subject_fields
+      WHERE ssl_info_subject_fields.events__about__labels_ssl_subject_subject IS NOT NULL
+    ) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: ssl_subject {
+    sql: ${TABLE}.ssl_subject;;
+  }
+}
+
+view: ssl_info_issuer_common_name_view {
+  derived_table: {
+    sql:
+    WITH ssl_info_issuer_common_name_fields AS (
+    SELECT
+    events.network.tls.server.certificate.issuer  AS events__network__tls__server__certificate__issuer,
+    events__about__labels_ssl_issuer_common_name.value  AS events__about__labels_ssl_issuer_common_name_value,
+    events.metadata.id AS metadata__id
+FROM `datalake.events`  AS events
+LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels_ssl_issuer_common_name ON events__about__labels_ssl_issuer_common_name.key='issuer_common_name'
+
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+    SELECT
+      ssl_issuer_common_name, metadata__id
+    FROM (
+      SELECT ssl_info_issuer_common_name_fields.events__network__tls__server__certificate__issuer AS ssl_issuer_common_name,
+      ssl_info_issuer_common_name_fields.metadata__id as metadata__id
+      FROM ssl_info_issuer_common_name_fields
+      WHERE ssl_info_issuer_common_name_fields.events__network__tls__server__certificate__issuer IS NOT NULL
+
+      UNION ALL
+
+      SELECT ssl_info_issuer_common_name_fields.events__about__labels_ssl_issuer_common_name_value AS ssl_issuer_common_name,
+      ssl_info_issuer_common_name_fields.metadata__id as metadata__id
+      FROM ssl_info_issuer_common_name_fields
+      WHERE ssl_info_issuer_common_name_fields.events__about__labels_ssl_issuer_common_name_value IS NOT NULL
+    ) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: ssl_issuer_common_name {
+    sql: ${TABLE}.ssl_issuer_common_name;;
+  }
+}
+
+view: ssl_info_organization_view {
+  derived_table: {
+    sql:
+    WITH ssl_info_organization_fields AS (
+    SELECT
+    events__about__labels__organization.value  AS events__about__labels__organization_value,
+    events.network.organization_name  AS events_network__organization_name,
+    events.metadata.id AS metadata__id
+FROM `datalake.events`  AS events
+LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about__labels__organization.key = 'organization'
+
+WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  GROUP BY
+    1,
+    2,
+    3
+)
+
+    SELECT
+      ssl_organization_name, metadata__id
+    FROM (
+      SELECT ssl_info_organization_fields.events__about__labels__organization_value AS ssl_organization_name,
+      ssl_info_organization_fields.metadata__id as metadata__id
+      FROM ssl_info_organization_fields
+      WHERE ssl_info_organization_fields.events__about__labels__organization_value IS NOT NULL
+
+      UNION ALL
+
+      SELECT ssl_info_organization_fields.events_network__organization_name AS ssl_organization_name,
+      ssl_info_organization_fields.metadata__id as metadata__id
+      FROM ssl_info_organization_fields
+      WHERE ssl_info_organization_fields.events_network__organization_name IS NOT NULL
+    ) ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: ssl_organization_name {
+    sql: ${TABLE}.ssl_organization_name;;
+  }
+}
+
 view: events {
   sql_table_name: `datalake.events` ;;
 
@@ -708,10 +1067,6 @@ view: events {
       value: "redirect_domain"
     }
     allowed_value: {
-      label: "Registrar"
-      value: "registrar"
-    }
-    allowed_value: {
       label: "Registrant Contact - Country Code"
       value: "Registrant_Contact_Country_Code"
     }
@@ -735,10 +1090,9 @@ view: events {
       label: "Registrant Org"
       value: "Registrant_Org"
     }
-
     allowed_value: {
-      label: "SSL Alt Names"
-      value: "SSL_Alt_Names"
+      label: "Registrar"
+      value: "registrar"
     }
     allowed_value: {
       label: "Server Type"
@@ -747,6 +1101,10 @@ view: events {
     allowed_value: {
       label: "SOA Email"
       value: "SOA_Email"
+    }
+    allowed_value: {
+      label: "SSL Alt Names"
+      value: "SSL_Alt_Names"
     }
     allowed_value: {
       label: "SSL Email"
@@ -794,41 +1152,42 @@ view: events {
     }
   }
   #domain-profiles
+
   dimension: another_fields{
     label: "Attribute Field"
     sql:
     {% if enrichment_filter_value._parameter_value == "'registrar'" %}
       ${TABLE}.principal.domain.registrar
     {% elsif enrichment_filter_value._parameter_value == "'tld'" %}
-       ${events__about__labels__tld.value}
+      ${events__about__labels__tld.value}
     {% elsif enrichment_filter_value._parameter_value == "'server_type'" %}
-       ${TABLE}.network.tls.client.server_name
+      ${TABLE}.network.tls.client.server_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Country_Code'" %}
-       ${TABLE}.principal.domain.admin.office_address.country_or_region
+      ${TABLE}.principal.domain.admin.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Name'" %}
-       ${TABLE}.principal.domain.admin.user_display_name
+      ${TABLE}.principal.domain.admin.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Org'" %}
-       ${TABLE}.principal.domain.admin.office_address.name
+      ${TABLE}.principal.domain.admin.company_name
     {% elsif enrichment_filter_value._parameter_value == "'Admin_Contact_Email'" %}
-       ${events__principal__domain__admin__email_addresses.events__principal__domain__admin__email_addresses}
+      ${events__principal__domain__admin__email_addresses.events__principal__domain__admin__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Country_Code'" %}
-       ${TABLE}.principal.domain.billing.office_address.country_or_region
+      ${TABLE}.principal.domain.billing.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Name'" %}
-       ${TABLE}.principal.domain.billing.user_display_name
+      ${TABLE}.principal.domain.billing.user_display_name
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Org'" %}
-       ${TABLE}.principal.domain.billing.company_name
+      ${TABLE}.principal.domain.billing.company_name
     {% elsif enrichment_filter_value._parameter_value == "'Billing_Contact_Email'" %}
-       ${events__principal__domain__billing__email_addresses.events__principal__domain__billing__email_addresses}
+      ${events__principal__domain__billing__email_addresses.events__principal__domain__billing__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'IP_Address'" %}
       ${events__principal__ip.events__principal__ip}
     {% elsif enrichment_filter_value._parameter_value == "'IP_ASN'" %}
-      ${TABLE}.network.asn
+      ${ip_asn_fields_view.asn_field}
     {% elsif enrichment_filter_value._parameter_value == "'IP_ISP'" %}
-      ${events__principal__labels_isp.value}
+      ${ip_isn_fields_view.isn_field}
     {% elsif enrichment_filter_value._parameter_value == "'MX_Host'" %}
-      ${events__security_result.about__hostname}
+      ${events__about.hostname}
     {% elsif enrichment_filter_value._parameter_value == "'MX_Domain'" %}
-      ${events__security_result.about__domain__name}
+      ${events__about.domain__name}
     {% elsif enrichment_filter_value._parameter_value == "'MX_IP'" %}
       ${events__about__ip.events__about__ip}
     {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Host'" %}
@@ -844,9 +1203,9 @@ view: events {
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Contact_Email'" %}
       ${events__principal__domain__registrant__email_addresses.events__principal__domain__registrant__email_addresses}
     {% elsif enrichment_filter_value._parameter_value == "'SSL_Hash'" %}
-      ${TABLE}.network.tls.server.certificate.sha1
+      ${ssl_info_hash_view.ssl_hash}
     {% elsif enrichment_filter_value._parameter_value == "'SSL_Subject'" %}
-      ${TABLE}.network.tls.server.certificate.subject
+      ${ssl_info_subject_view.ssl_subject}
     {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Country_Code'" %}
       ${TABLE}.principal.domain.tech.office_address.country_or_region
     {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Name'" %}
@@ -855,8 +1214,8 @@ view: events {
       ${TABLE}.principal.domain.tech.company_name
     {% elsif enrichment_filter_value._parameter_value == "'Technical_Contact_Email'" %}
       ${events__principal__domain__tech__email_addresses.events__principal__domain__tech__email_addresses}
-      {% elsif enrichment_filter_value._parameter_value == "'SSL_Issuer_Common_Name'" %}
-      ${TABLE}.network.tls.server.certificate.issuer
+    {% elsif enrichment_filter_value._parameter_value == "'SSL_Issuer_Common_Name'" %}
+      ${ssl_info_issuer_common_name_view.ssl_issuer_common_name}
     {% elsif enrichment_filter_value._parameter_value == "'SSL_Alt_Names'" %}
       ${events__about__labels__alt_names.value}
     {% elsif enrichment_filter_value._parameter_value == "'SSL_Email'" %}
@@ -868,7 +1227,7 @@ view: events {
     {% elsif enrichment_filter_value._parameter_value == "'Registrant_Org'" %}
       ${events__about__labels__registrant_org.value}
     {% elsif enrichment_filter_value._parameter_value == "'IP_Country_Code'" %}
-      ${TABLE}.principal.location.country_or_region
+      ${ip_country_code_fields_view.country_code_field}
     {% elsif enrichment_filter_value._parameter_value == "'additional_whois_email'" %}
       ${events__about__labels__additional_whois_email.value}
     {% elsif enrichment_filter_value._parameter_value == "'email_domain'" %}
@@ -876,12 +1235,13 @@ view: events {
     {% elsif enrichment_filter_value._parameter_value == "'redirect_domain'" %}
       ${events__about__labels__redirect_domain.value}
     {% elsif enrichment_filter_value._parameter_value == "'organization'" %}
-      ${events__about__labels__organization.value}
+      ${ssl_info_organization_view.ssl_organization_name}
     {% elsif enrichment_filter_value._parameter_value == "'Name_Server_IP'" %}
-      ${events__principal__ip.events__principal__ip}
+      ${events__about__labels__name_server_ip.value}
     {% elsif enrichment_filter_value._parameter_value == "'Name_Server_Domain'" %}
-      ${events__security_result.about__hostname}
-    {% endif %};;
+      ${events__about__labels__name_server_domain.value}
+    {% endif %}
+    ;;
   }
   #domain-profiles
   measure: domain_count {
