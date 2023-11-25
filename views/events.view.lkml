@@ -714,21 +714,21 @@ view: ip_country_code_fields_view {
     3
 )
 
-SELECT
-  country_code_field, metadata__id
-FROM (
-  SELECT ip_country_code_fields.about__location__country_or_region AS country_code_field,
-  ip_country_code_fields.metadata__id as metadata__id
-  FROM ip_country_code_fields
-  WHERE ip_country_code_fields.about__location__country_or_region IS NOT NULL
+      SELECT
+      country_code_field, metadata__id
+      FROM (
+      SELECT ip_country_code_fields.about__location__country_or_region AS country_code_field,
+      ip_country_code_fields.metadata__id as metadata__id
+      FROM ip_country_code_fields
+      WHERE ip_country_code_fields.about__location__country_or_region IS NOT NULL
 
-  UNION ALL
+      UNION ALL
 
-  SELECT ip_country_code_fields.principal__location__country_or_region AS country_code_field,
-  ip_country_code_fields.metadata__id as metadata__id
-  FROM ip_country_code_fields
-  WHERE ip_country_code_fields.principal__location__country_or_region IS NOT NULL
-) ;;
+      SELECT ip_country_code_fields.principal__location__country_or_region AS country_code_field,
+      ip_country_code_fields.metadata__id as metadata__id
+      FROM ip_country_code_fields
+      WHERE ip_country_code_fields.principal__location__country_or_region IS NOT NULL
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -751,28 +751,28 @@ LEFT JOIN UNNEST(events.principal.labels) as events__principal__labels_isp ON ev
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_isp ON events__about__labels_isp.key='isp'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-SELECT
-  isn_field, metadata__id
-FROM (
-  SELECT ip_isn_fields.events__about__labels_isp_value AS isn_field,
-  ip_isn_fields.metadata__id as metadata__id
-  FROM ip_isn_fields
-  WHERE ip_isn_fields.events__about__labels_isp_value IS NOT NULL
+      SELECT
+      isn_field, metadata__id
+      FROM (
+      SELECT ip_isn_fields.events__about__labels_isp_value AS isn_field,
+      ip_isn_fields.metadata__id as metadata__id
+      FROM ip_isn_fields
+      WHERE ip_isn_fields.events__about__labels_isp_value IS NOT NULL
 
-  UNION ALL
+      UNION ALL
 
-  SELECT ip_isn_fields.events__principal__labels_isp_value AS isn_field,
-  ip_isn_fields.metadata__id as metadata__id
-  FROM ip_isn_fields
-  WHERE ip_isn_fields.events__principal__labels_isp_value IS NOT NULL
-) ;;
+      SELECT ip_isn_fields.events__principal__labels_isp_value AS isn_field,
+      ip_isn_fields.metadata__id as metadata__id
+      FROM ip_isn_fields
+      WHERE ip_isn_fields.events__principal__labels_isp_value IS NOT NULL
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -794,16 +794,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_asn ON events__about__labels_asn.key='asn'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       asn_field, metadata__id
-    FROM (
+      FROM (
       SELECT ip_asn_fields.events__network_asn AS asn_field,
       ip_asn_fields.metadata__id as metadata__id
       FROM ip_asn_fields
@@ -815,7 +815,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ip_asn_fields.metadata__id as metadata__id
       FROM ip_asn_fields
       WHERE ip_asn_fields.events__about__labels_asn_value IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -837,16 +837,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_hash ON events__about__labels_ssl_hash.key='hash'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_hash, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_hash_fields.events__network__tls__server__certificate__sha1 AS ssl_hash,
       ssl_info_hash_fields.metadata__id as metadata__id
       FROM ssl_info_hash_fields
@@ -858,7 +858,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_hash_fields.metadata__id as metadata__id
       FROM ssl_info_hash_fields
       WHERE ssl_info_hash_fields.events__about__labels_ssl_hash_value IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -880,16 +880,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_subject ON events__about__labels_ssl_subject.key='subject'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_subject, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_subject_fields.events__network__tls__server__certificate__subject AS ssl_subject,
       ssl_info_subject_fields.metadata__id as metadata__id
       FROM ssl_info_subject_fields
@@ -901,7 +901,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_subject_fields.metadata__id as metadata__id
       FROM ssl_info_subject_fields
       WHERE ssl_info_subject_fields.events__about__labels_ssl_subject_subject IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -923,16 +923,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_issuer_common_name ON events__about__labels_ssl_issuer_common_name.key='issuer_common_name'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_issuer_common_name, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_issuer_common_name_fields.events__network__tls__server__certificate__issuer AS ssl_issuer_common_name,
       ssl_info_issuer_common_name_fields.metadata__id as metadata__id
       FROM ssl_info_issuer_common_name_fields
@@ -944,7 +944,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_issuer_common_name_fields.metadata__id as metadata__id
       FROM ssl_info_issuer_common_name_fields
       WHERE ssl_info_issuer_common_name_fields.events__about__labels_ssl_issuer_common_name_value IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -966,16 +966,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about__labels__organization.key = 'organization'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_organization_name, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_organization_fields.events__about__labels__organization_value AS ssl_organization_name,
       ssl_info_organization_fields.metadata__id as metadata__id
       FROM ssl_info_organization_fields
@@ -987,13 +987,720 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_organization_fields.metadata__id as metadata__id
       FROM ssl_info_organization_fields
       WHERE ssl_info_organization_fields.events_network__organization_name IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
   }
   dimension: ssl_organization_name {
     sql: ${TABLE}.ssl_organization_name;;
+  }
+}
+
+view: enrichment_log_all_domains_view {
+  derived_table: {
+    sql:
+    # WITH enrichment_log_all_domains_fields AS (
+    # SELECT
+    #       events.principal.hostname  AS events_principal__hostname,
+    #       events.src.hostname  AS events_src__hostname,
+    #       events.target.hostname  AS events_target__hostname,
+    #       events.observer.hostname  AS events_observer__hostname,
+    #       events__intermediary.hostname  AS events__intermediary_hostname,
+    #       events.principal.asset.hostname  AS events_principal__asset__hostname,
+    #       events.src.asset.hostname  AS events_src__asset__hostname,
+    #       events.target.asset.hostname  AS events_target__asset__hostname,
+    #       events.network.dns_domain  AS events_network__dns_domain,
+    #       events.principal.administrative_domain  AS events_principal__administrative_domain,
+    #       events.target.administrative_domain  AS events_target__administrative_domain,
+    #       events__about.administrative_domain  AS events__about_administrative_domain,
+    #       events__about.hostname  AS events__about_hostname,
+    #       events.principal.asset.network_domain  AS events_principal__asset__network_domain,
+    #       events.target.asset.network_domain  AS events_target__asset__network_domain,
+    #       events__about.asset.hostname  AS events__about_asset__hostname,
+    #       events__about.asset.network_domain  AS events__about_asset__network_domain,
+    #       events__about.domain.name  AS events__about_domain__name,
+    #       events__about.network.dns_domain  AS events__about_network__dns_domain,
+    #       events__intermediary.administrative_domain  AS events__intermediary_administrative_domain,
+    #       events__intermediary.domain.name  AS events__intermediary_domain__name,
+    #       events__intermediary.network.dns_domain  AS events__intermediary_network__dns_domain,
+    #       events__intermediary.asset.hostname  AS events__intermediary_asset__hostname,
+    #       events__intermediary.asset.network_domain  AS events__intermediary_asset__network_domain,
+    #       events.observer.administrative_domain  AS events_observer__administrative_domain,
+    #       events.observer.domain.name  AS events_observer__domain__name,
+    #       events.observer.network.dns_domain  AS events_observer__network__dns_domain,
+    #       events.observer.asset.hostname  AS events_observer__asset__hostname,
+    #       events.observer.asset.network_domain  AS events_observer__asset__network_domain,
+    #       events.principal.domain.name  AS events_principal__domain__name,
+    #       events.principal.network.dns_domain  AS events_principal__network__dns_domain,
+    #       events.src.administrative_domain  AS events_src__administrative_domain,
+    #       events.src.domain.name  AS events_src__domain__name,
+    #       events.src.network.dns_domain  AS events_src__network__dns_domain,
+    #       events.src.asset.network_domain  AS events_src__asset__network_domain,
+    #       events.target.domain.name  AS events_target__domain__name,
+    #       events.target.network.dns_domain  AS events_target__network__dns_domain,
+    #       events__about__network__dns__questions.name  AS events__about__network__dns__questions_name,
+    #       events__network__dns__questions.name  AS events__network__dns__questions_name,
+    #       events__intermediary__network__dns__questions.name  AS events__intermediary__network__dns__questions_name,
+    #       events__observer__network__dns__questions.name  AS events__observer__network__dns__questions_name,
+    #       events__principal__network__dns__questions.name  AS events__principal__network__dns__questions_name,
+    #       events__src__network__dns__questions.name  AS events__src__network__dns__questions_name,
+    #       events__target__network__dns__questions.name  AS events__target__network__dns__questions_name,
+    #       events.metadata.id as metadata__id
+    # FROM `datalake.events`  AS events
+    # LEFT JOIN UNNEST(events.about) as events__about
+    # LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+    # LEFT JOIN UNNEST(events.network.dns.questions) as events__network__dns__questions
+    # LEFT JOIN UNNEST(events.src.network.dns.questions) as events__src__network__dns__questions
+    # LEFT JOIN UNNEST(events__about.network.dns.questions) as events__about__network__dns__questions
+    # LEFT JOIN UNNEST(events.target.network.dns.questions) as events__target__network__dns__questions
+    # LEFT JOIN UNNEST(events.observer.network.dns.questions) as events__observer__network__dns__questions
+    # LEFT JOIN UNNEST(events.principal.network.dns.questions) as events__principal__network__dns__questions
+    # LEFT JOIN UNNEST(events__intermediary.network.dns.questions) as events__intermediary__network__dns__questions
+    # WHERE  {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+    # GROUP BY
+    #     1,
+    #     2,
+    #     3,
+    #     4,
+    #     5,
+    #     6,
+    #     7,
+    #     8,
+    #     9,
+    #     10,
+    #     11,
+    #     12,
+    #     13,
+    #     14,
+    #     15,
+    #     16,
+    #     17,
+    #     18,
+    #     19,
+    #     20,
+    #     21,
+    #     22,
+    #     23,
+    #     24,
+    #     25,
+    #     26,
+    #     27,
+    #     28,
+    #     29,
+    #     30,
+    #     31,
+    #     32,
+    #     33,
+    #     34,
+    #     35,
+    #     36,
+    #     37,
+    #     38,
+    #     39,
+    #     40,
+    #     41,
+    #     42,
+    #     43,
+    #     44,
+    #     45
+    # )
+
+    #   SELECT
+    #   domain_name, metadata__id
+    #   FROM (
+    #   SELECT enrichment_log_all_domains_fields.events_principal__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_principal__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_src__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_src__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_target__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_target__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_observer__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_observer__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary_hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary_hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_principal__asset__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_principal__asset__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_src__asset__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_src__asset__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_target__asset__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_target__asset__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_principal__administrative_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_principal__administrative_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_target__administrative_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_target__administrative_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about_administrative_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about_administrative_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about_hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about_hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_principal__asset__network_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_principal__asset__network_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_target__asset__network_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_target__asset__network_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about_asset__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about_asset__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about_asset__network_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about_asset__network_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about_domain__name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about_domain__name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about_network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about_network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary_administrative_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary_administrative_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary_domain__name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary_domain__name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary_network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary_network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary_asset__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary_asset__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary_asset__network_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary_asset__network_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_observer__administrative_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_observer__administrative_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_observer__domain__name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_observer__domain__name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_observer__network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_observer__network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_observer__asset__hostname AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_observer__asset__hostname IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_observer__asset__network_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_observer__asset__network_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_principal__domain__name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_principal__domain__name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_principal__network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_principal__network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_src__administrative_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_src__administrative_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_src__domain__name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_src__domain__name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_src__network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_src__network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_src__asset__network_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_src__asset__network_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_target__domain__name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_target__domain__name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events_target__network__dns_domain AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events_target__network__dns_domain IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__about__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__about__network__dns__questions_name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__network__dns__questions_name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__intermediary__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__intermediary__network__dns__questions_name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__observer__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__observer__network__dns__questions_name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__principal__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__principal__network__dns__questions_name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__src__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__src__network__dns__questions_name IS NOT NULL
+
+    #   UNION ALL
+
+    #   SELECT enrichment_log_all_domains_fields.events__target__network__dns__questions_name AS domain_name,
+    #   enrichment_log_all_domains_fields.metadata__id as metadata__id
+    #   FROM enrichment_log_all_domains_fields
+    #   WHERE enrichment_log_all_domains_fields.events__target__network__dns__questions_name IS NOT NULL
+
+    #   )
+
+      SELECT
+      domain_name, metadata__id
+      FROM (
+      SELECT events.principal.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      WHERE events.principal.hostname  IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.src.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      WHERE events.src.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.target.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      WHERE events.target.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.observer.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      WHERE events.observer.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__intermediary.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+      WHERE events__intermediary.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.principal.asset.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      WHERE events.principal.asset.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.src.asset.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events` as events
+      WHERE events.src.asset.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.target.asset.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.target.asset.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.principal.administrative_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.principal.administrative_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.target.administrative_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.target.administrative_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__about.administrative_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.about) as events__about
+      WHERE events__about.administrative_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__about.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.about) as events__about
+      WHERE events__about.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.principal.asset.network_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.principal.asset.network_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.target.asset.network_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.target.asset.network_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__about.asset.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.about) as events__about
+      WHERE events__about.asset.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__about.asset.network_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.about) as events__about
+      WHERE events__about.asset.network_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__about.domain.name AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.about) as events__about
+      WHERE events__about.domain.name IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__about.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.about) as events__about
+      WHERE events__about.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__intermediary.administrative_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+      WHERE events__intermediary.administrative_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__intermediary.domain.name AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+      WHERE events__intermediary.domain.name IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__intermediary.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+      WHERE events__intermediary.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__intermediary.asset.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+      WHERE events__intermediary.asset.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events__intermediary.asset.network_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+      WHERE events__intermediary.asset.network_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.observer.administrative_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.observer.administrative_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.observer.domain.name AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.observer.domain.name IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.observer.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.observer.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.observer.asset.hostname AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.observer.asset.hostname IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.observer.asset.network_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.observer.asset.network_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.principal.domain.name AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.principal.domain.name IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.principal.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.principal.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.src.administrative_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.src.administrative_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.src.domain.name AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.src.domain.name IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.src.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.src.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.src.asset.network_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.src.asset.network_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.target.domain.name AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.target.domain.name IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+      UNION ALL
+
+      SELECT events.target.network.dns_domain AS domain_name,
+      events.metadata.id as metadata__id
+      FROM `datalake.events`as events
+      WHERE events.target.network.dns_domain IS NOT NULL and {% condition events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
+
+
+
+
+
+      )
+      ;;
+  }
+  dimension: metadata__id {
+    sql: ${TABLE}.metadata__id ;;
+  }
+  dimension: ssl_organization_name {
+    sql: ${TABLE}.domain_name;;
   }
 }
 
@@ -1628,21 +2335,7 @@ view: events {
     group_label: "Metadata Ingested Timestamp"
     group_item_label: "Seconds"
   }
-  dimension_group: event_timestamp {
-    type: time
-    timeframes: [
-      raw,
-      time,
-      date,
-      week,
-      month,
-      hour,
-      minute,
-      year
-    ]
-    datatype: epoch
-    sql: ${TABLE}.metadata.event_timestamp.seconds ;;
-  }
+
   measure: max_timestamp {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)) );;
