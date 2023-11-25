@@ -150,6 +150,12 @@ explore: events {
     sql_on: ${ip_country_code_fields_view.metadata__id} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
+  join: enrichment_log_all_domains_view {
+    view_label: "Events: Enrichment log all domains"
+    type: left_outer
+    sql_on: ${enrichment_log_all_domains_view.metadata__id} = ${events.metadata__id} ;;
+    relationship: one_to_many
+  }
   join: ip_isn_fields_view {
     view_label: "Events: IP ISP"
     type: left_outer
