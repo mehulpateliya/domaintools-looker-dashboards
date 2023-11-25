@@ -3,7 +3,7 @@
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
-  preferred_slug: elZz8L0ijvZUaXlHS1XrHK
+  preferred_slug: GPdycWo6qwo1EosgcbjqBL
   elements:
   - title: No of Enriched domains based on timestamp
     name: No of Enriched domains based on timestamp
@@ -154,8 +154,7 @@
     conditional_formatting_include_totals: false
     conditional_formatting_include_nulls: false
     defaults_version: 1
-    listen:
-      Time Range: events.event_timestamp_time
+    listen: {}
     row: 0
     col: 0
     width: 24

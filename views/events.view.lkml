@@ -1740,7 +1740,7 @@ view: events {
     type: count
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{chronicle_url}/search?query=metadata.log_type=\"UDM\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
   #application_diagnostics
