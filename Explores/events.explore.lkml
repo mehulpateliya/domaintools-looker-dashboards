@@ -5,6 +5,14 @@ include: "/dashboards/**/*.dashboard"
 
 explore: events {
   sql_always_where: ${metadata__log_type} = 'UDM' ;;
+  #application-diagnostics
+  join: unique_hostname_enriched_with_latest_time {
+    view_label: "Events: Unique Hostname enriched with latest time"
+    type: left_outer
+    sql_on: ${unique_hostname_enriched_with_latest_time.events_principal_domain} = ${events.principal__hostname} ;;
+    # sql_where: ${events.metadata__event_timestamp__seconds}=${unique_hostname_enriched_with_latest_time.events_event_timestamp_time};;
+    relationship: one_to_many
+  }
   #domain-profiles
   join: events__about__labels__additional_whois_email {
     view_label: "Events: About Labels Additional Who IS Email"
@@ -78,7 +86,8 @@ explore: events {
   #domain-profiles
   join: events__about__labels__registrant_name {
     view_label: "Events: About Labels Registrant Name"
-    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__registrant_name ON ${events__about__labels__registrant_name.key} = 'registrant_name' ;;
+    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__registrant_name ON ${events__about__labels__registrant_name.key} = 'registrant_name'  ;;
+    # sql_where:  ${events__about__labels__registrant_name.key} is not null;;
     fields: [events__about__labels__registrant_name.value]
     relationship: one_to_many
   }
@@ -101,13 +110,6 @@ explore: events {
     view_label: "Events: About Labels Common Name"
     sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels__common_name ON ${events__about__labels__common_name.key} = 'common_name' ;;
     fields: [events__about__labels__common_name.value]
-    relationship: one_to_many
-  }
-  #domain-profiles
-  join: events__about__labels_registrant_name {
-    view_label: "Events: About Labels Registrant Name"
-    sql: LEFT JOIN UNNEST(${events__about.labels}) as events__about__labels_registrant_name ON ${events__about__labels_registrant_name.key}='registrant_name' ;;
-    fields: [events__about__labels_registrant_name.value]
     relationship: one_to_many
   }
   join: events__about__labels__name_server_ip {
@@ -232,6 +234,12 @@ explore: events {
   join: events__about {
     view_label: "Events: About"
     sql: LEFT JOIN UNNEST(${events.about}) as events__about ;;
+    relationship: one_to_many
+  }
+  join: events__about_registrant_name{
+    view_label: "Events: About registrant name"
+    sql_on: ${events__about_registrant_name.events_metadata_id} =  ${events.metadata__id} ;;
+    type: left_outer
     relationship: one_to_many
   }
   join: alert_hostnames {

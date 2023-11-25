@@ -1,5 +1,41 @@
 # Un-hide and use this explore, or copy the joins into another explore, to get all the fully nested relationships from this view
 #domain-profiles
+#Enrichment-explorer
+
+view: unique_hostname_enriched_with_latest_time {
+  derived_table: {
+    sql: SELECT
+          events.principal.hostname as events_principal__hostname,
+          MAX(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
+        FROM datalake.events AS events
+        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)
+        GROUP BY events_principal__hostname;;
+  }
+  dimension_group: event_timestamp {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${TABLE}.events_event_timestamp_time ;;
+  }
+  dimension: events_event_timestamp_time{
+    type: number
+    sql: ${TABLE}.events_event_timestamp_time ;;
+  }
+  dimension: events_principal_domain {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.events_principal__hostname ;;
+  }
+}
 view: events__about__labels__additional_whois_email {
 
   dimension: key {
@@ -238,26 +274,7 @@ view: events__about__labels__tld {
     sql: ${TABLE}.value ;;
   }
 }
-#domain-profiles
-view: events__about__labels_registrant_name {
 
-  dimension: key {
-    type: string
-    sql: ${TABLE}.key ;;
-  }
-  dimension: rbac_enabled {
-    type: yesno
-    sql: ${TABLE}.rbac_enabled ;;
-  }
-  dimension: source {
-    type: string
-    sql: ${TABLE}.source ;;
-  }
-  dimension: value {
-    type: string
-    sql: ${TABLE}.value ;;
-  }
-}
 #Enrichment-explorer
 view: thread_type {
   derived_table: {
@@ -620,21 +637,21 @@ view: ip_country_code_fields_view {
     3
 )
 
-SELECT
-  country_code_field, metadata__id
-FROM (
-  SELECT ip_country_code_fields.about__location__country_or_region AS country_code_field,
-  ip_country_code_fields.metadata__id as metadata__id
-  FROM ip_country_code_fields
-  WHERE ip_country_code_fields.about__location__country_or_region IS NOT NULL
+      SELECT
+      country_code_field, metadata__id
+      FROM (
+      SELECT ip_country_code_fields.about__location__country_or_region AS country_code_field,
+      ip_country_code_fields.metadata__id as metadata__id
+      FROM ip_country_code_fields
+      WHERE ip_country_code_fields.about__location__country_or_region IS NOT NULL
 
-  UNION ALL
+      UNION ALL
 
-  SELECT ip_country_code_fields.principal__location__country_or_region AS country_code_field,
-  ip_country_code_fields.metadata__id as metadata__id
-  FROM ip_country_code_fields
-  WHERE ip_country_code_fields.principal__location__country_or_region IS NOT NULL
-) ;;
+      SELECT ip_country_code_fields.principal__location__country_or_region AS country_code_field,
+      ip_country_code_fields.metadata__id as metadata__id
+      FROM ip_country_code_fields
+      WHERE ip_country_code_fields.principal__location__country_or_region IS NOT NULL
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -657,28 +674,28 @@ LEFT JOIN UNNEST(events.principal.labels) as events__principal__labels_isp ON ev
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_isp ON events__about__labels_isp.key='isp'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-SELECT
-  isn_field, metadata__id
-FROM (
-  SELECT ip_isn_fields.events__about__labels_isp_value AS isn_field,
-  ip_isn_fields.metadata__id as metadata__id
-  FROM ip_isn_fields
-  WHERE ip_isn_fields.events__about__labels_isp_value IS NOT NULL
+      SELECT
+      isn_field, metadata__id
+      FROM (
+      SELECT ip_isn_fields.events__about__labels_isp_value AS isn_field,
+      ip_isn_fields.metadata__id as metadata__id
+      FROM ip_isn_fields
+      WHERE ip_isn_fields.events__about__labels_isp_value IS NOT NULL
 
-  UNION ALL
+      UNION ALL
 
-  SELECT ip_isn_fields.events__principal__labels_isp_value AS isn_field,
-  ip_isn_fields.metadata__id as metadata__id
-  FROM ip_isn_fields
-  WHERE ip_isn_fields.events__principal__labels_isp_value IS NOT NULL
-) ;;
+      SELECT ip_isn_fields.events__principal__labels_isp_value AS isn_field,
+      ip_isn_fields.metadata__id as metadata__id
+      FROM ip_isn_fields
+      WHERE ip_isn_fields.events__principal__labels_isp_value IS NOT NULL
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -700,16 +717,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_asn ON events__about__labels_asn.key='asn'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       asn_field, metadata__id
-    FROM (
+      FROM (
       SELECT ip_asn_fields.events__network_asn AS asn_field,
       ip_asn_fields.metadata__id as metadata__id
       FROM ip_asn_fields
@@ -721,7 +738,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ip_asn_fields.metadata__id as metadata__id
       FROM ip_asn_fields
       WHERE ip_asn_fields.events__about__labels_asn_value IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -743,16 +760,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_hash ON events__about__labels_ssl_hash.key='hash'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_hash, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_hash_fields.events__network__tls__server__certificate__sha1 AS ssl_hash,
       ssl_info_hash_fields.metadata__id as metadata__id
       FROM ssl_info_hash_fields
@@ -764,7 +781,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_hash_fields.metadata__id as metadata__id
       FROM ssl_info_hash_fields
       WHERE ssl_info_hash_fields.events__about__labels_ssl_hash_value IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -786,16 +803,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_subject ON events__about__labels_ssl_subject.key='subject'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_subject, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_subject_fields.events__network__tls__server__certificate__subject AS ssl_subject,
       ssl_info_subject_fields.metadata__id as metadata__id
       FROM ssl_info_subject_fields
@@ -807,7 +824,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_subject_fields.metadata__id as metadata__id
       FROM ssl_info_subject_fields
       WHERE ssl_info_subject_fields.events__about__labels_ssl_subject_subject IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -829,16 +846,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_issuer_common_name ON events__about__labels_ssl_issuer_common_name.key='issuer_common_name'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_issuer_common_name, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_issuer_common_name_fields.events__network__tls__server__certificate__issuer AS ssl_issuer_common_name,
       ssl_info_issuer_common_name_fields.metadata__id as metadata__id
       FROM ssl_info_issuer_common_name_fields
@@ -850,7 +867,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_issuer_common_name_fields.metadata__id as metadata__id
       FROM ssl_info_issuer_common_name_fields
       WHERE ssl_info_issuer_common_name_fields.events__about__labels_ssl_issuer_common_name_value IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -872,16 +889,16 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about__labels__organization.key = 'organization'
 
-WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
-  GROUP BY
-    1,
-    2,
-    3
-)
+      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      GROUP BY
+      1,
+      2,
+      3
+      )
 
-    SELECT
+      SELECT
       ssl_organization_name, metadata__id
-    FROM (
+      FROM (
       SELECT ssl_info_organization_fields.events__about__labels__organization_value AS ssl_organization_name,
       ssl_info_organization_fields.metadata__id as metadata__id
       FROM ssl_info_organization_fields
@@ -893,7 +910,7 @@ WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTim
       ssl_info_organization_fields.metadata__id as metadata__id
       FROM ssl_info_organization_fields
       WHERE ssl_info_organization_fields.events_network__organization_name IS NOT NULL
-    ) ;;
+      ) ;;
   }
   dimension: metadata__id {
     sql: ${TABLE}.metadata__id ;;
@@ -33853,6 +33870,25 @@ view: main_risk_score_each_event {
     type: string
     sql: ${TABLE}.event_metadata_id ;;
     label: "Metadata ID"
+  }
+}
+
+view: events__about_registrant_name {
+  derived_table: {
+    sql: SELECT
+          events.metadata.id as events_metadata_id,
+          events__about__labels__registrant_name.value as events__about__labels__registrant_name__value
+        FROM datalake.events AS events
+        LEFT JOIN UNNEST(events.about) as events__about
+LEFT JOIN UNNEST(labels) as events__about__labels__registrant_name ON events__about__labels__registrant_name.key = 'registrant_name'
+        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)  AND  events__about__labels__registrant_name.value is not null
+        GROUP BY events_metadata_id, events__about__labels__registrant_name__value ;;
+  }
+  dimension: events_metadata_id {
+    sql: ${TABLE}.events_metadata_id ;;
+  }
+  dimension: events__about__labels__registrant_name__value {
+    sql: ${TABLE}.events__about__labels__registrant_name__value ;;
   }
 }
 
