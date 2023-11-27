@@ -4,7 +4,7 @@ include: "/views/**/*.view.lkml"
 include: "/dashboards/**/*.dashboard"
 
 explore: events {
-  sql_always_where: ${metadata__log_type} = 'UDM' ;;
+  # sql_always_where: ${metadata__log_type} = 'UDM' ;;
   #application-diagnostics
   join: unique_hostname_enriched {
     view_label: "Events: Unique Hostname enriched"
@@ -18,6 +18,24 @@ explore: events {
     type: left_outer
     sql_on: ${unique_hostname_ingested.events_principal_domain} = ${events.principal__hostname} ;;
     relationship: one_to_one
+  }
+  join: combined {
+    view_label: "Events: Combined"
+    type: left_outer
+    sql_on: ${combined.host} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+  join: enriched_hostname_view {
+    view_label: "Events: Combined enriched_hostname"
+    type: left_outer
+    sql_on: ${enriched_hostname_view.enriched_hostname} = ${events.principal__hostname} ;;
+    relationship: one_to_many
+  }
+  join: another_fields {
+    view_label: "Events: Combined another_fields"
+    type: left_outer
+    sql_on: ${another_fields.domain_name} = ${events.principal__hostname} ;;
+    relationship: one_to_many
   }
   join: unique_hostname_enriched_with_latest_time {
     view_label: "Events: Unique Hostname enriched with latest time"
