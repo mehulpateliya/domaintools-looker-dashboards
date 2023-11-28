@@ -1,4 +1,3 @@
----
 - dashboard: monitoring_dashboard
   title: Monitoring Dashboard
   layout: newspaper
@@ -72,8 +71,8 @@
     col: 16
     width: 8
     height: 6
-  - title: Monitored Domain Detections Over Time
-    name: Monitored Domain Detections Over Time
+  - title: Monitored Domain Detections over Time
+    name: Monitored Domain Detections over Time
     model: domaintools
     explore: rule_detections
     type: looker_area
@@ -82,9 +81,8 @@
     pivots: [rule_detections__detection__assets.hostname]
     filters:
       rule_detections.rule_name: '"domain_from_monitoring_list"'
-    sorts: [rule_detections__detection__assets.hostname, rule_detections.detection_timestamp__seconds_time
-        desc]
-    limit: 500
+    sorts: [rule_detections__detection__assets.hostname, rule_detections.detection_timestamp__seconds_time]
+    limit: 1000
     column_limit: 50
     filter_expression: "${rule_detections.version_timestamp__seconds} = ${latest_version_timestamp.version_timestamp__seconds}"
     x_axis_gridlines: false
@@ -133,8 +131,8 @@
     col: 0
     width: 16
     height: 6
-  - title: Monitored Tags over Time
-    name: Monitored Tags over Time
+  - title: Monitored Tag Detections over Time
+    name: Monitored Tag Detections over Time
     model: domaintools
     explore: rule_detections
     type: looker_area
@@ -143,9 +141,8 @@
     pivots: [rule_detections__detection__assets.hostname]
     filters:
       rule_detections.rule_name: '"domain_with_specified_tag"'
-    sorts: [rule_detections__detection__assets.hostname, rule_detections.detection_timestamp__seconds_time
-        desc]
-    limit: 500
+    sorts: [rule_detections__detection__assets.hostname, rule_detections.detection_timestamp__seconds_time]
+    limit: 1000
     column_limit: 50
     filter_expression: "${rule_detections.version_timestamp__seconds} = ${latest_version_timestamp_for_tags.version_timestamp__seconds}"
     x_axis_gridlines: false
@@ -260,8 +257,8 @@
     col: 16
     width: 8
     height: 6
-  - title: Tag List Management
-    name: Tag List Management
+  - title: Monitoring Tag List Management
+    name: Monitoring Tag List Management
     model: domaintools
     explore: events
     type: single_value
@@ -308,11 +305,11 @@
     defaults_version: 1
     listen: {}
     row: 12
-    col: 4
-    width: 7
+    col: 12
+    width: 12
     height: 6
-  - title: Monitoring List Management
-    name: Monitoring List Management
+  - title: Monitoring Domain List Management
+    name: Monitoring Domain List Management
     model: domaintools
     explore: events
     type: single_value
@@ -332,8 +329,8 @@
     defaults_version: 1
     listen: {}
     row: 12
-    col: 15
-    width: 7
+    col: 0
+    width: 12
     height: 6
   filters:
   - name: Time Range

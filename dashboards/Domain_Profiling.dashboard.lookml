@@ -50,7 +50,7 @@
       events.domain_age: Age (in days)
       security_result_main_risk_score.events__security_result_risk_score: Overall
         Risk Score
-      events.Event_DateTime_time: Last Enriched DateTime
+      events.Event_DateTime_time: 'Last Enriched DateTime (UTC)'
       security_result_proximity.events__security_result_risk_score: Proximity Score
       security_result_threat_profile_malware.events__security_result_risk_score: Threat
         Profile Malware
@@ -96,6 +96,7 @@
       Age: events.domain_age
       Last Enriched: events.Event_DateTime_time
       Threat Type: thread_type.thread_type
+      Risk Score: security_result_main_risk_score.events__security_result_risk_score
     row: 0
     col: 0
     width: 24
@@ -183,7 +184,7 @@
       display: inline
     model: domaintools
     explore: events
-    listens_to_filters: [Last Enriched]
+    listens_to_filters: ['Last Enriched', 'Age', 'Risk Score']
     field: events.principal__hostname
   - name: Age
     title: Age

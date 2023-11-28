@@ -1258,7 +1258,7 @@ view: events {
   }
   #domain-profiles
   set: details {
-    fields: [principal__hostname_drill_down,external_link,iris_redirect]
+    fields: [principal__hostname_drill_down,iris_redirect]
   }
   dimension: about {
     hidden: yes
@@ -1536,7 +1536,7 @@ view: events {
   measure: max_timestamp {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)) );;
-    label: "Last Observed"
+    label: "Last Observed (UTC)"
   }
 
   measure: min_timestamp {
