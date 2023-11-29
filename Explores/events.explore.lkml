@@ -171,7 +171,8 @@ explore: events {
   join: enrichment_log_all_domains_view {
     view_label: "Events: Enrichment log all domains"
     type: left_outer
-    sql_on: ${enrichment_log_all_domains_view.metadata__id} = ${events.metadata__id} ;;
+    sql_on: ${enrichment_log_all_domains_view.domain} = ${events.principal__hostname} ;;
+    sql_where:  ${enrichment_log_all_domains_view.domain} is not null;;
     relationship: one_to_many
   }
   join: ip_isn_fields_view {

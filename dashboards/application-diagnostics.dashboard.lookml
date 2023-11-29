@@ -62,23 +62,44 @@
     defaults_version: 1
     listen:
       Time Range: events.event_timestamp_time
-    row: 13
+    row: 12
     col: 0
     width: 24
     height: 8
+  - title: View logs for cloud functions
+    name: View logs for cloud functions
+    model: domaintools
+    explore: events
+    type: single_value
+    fields: [events.cloud_function_url]
+    sorts: [events.cloud_function_url]
+    limit: 500
+    column_limit: 50
+    custom_color_enabled: true
+    show_single_value_title: true
+    show_comparison: false
+    comparison_type: value
+    comparison_reverse_colors: false
+    show_comparison_label: true
+    enable_conditional_formatting: false
+    conditional_formatting_include_totals: false
+    conditional_formatting_include_nulls: false
+    defaults_version: 1
+    listen: {}
+    row: 0
+    col: 0
+    width: 24
+    height: 3
   - title: Domain Enrichment Log
     name: Domain Enrichment Log
     model: domaintools
     explore: events
     type: looker_grid
-    fields: [unique_hostname_ingested.events_principal_domain, unique_hostname_ingested.event_timestamp_time,
-      unique_hostname_enriched.event_timestamp_time]
-    filters:
-      unique_hostname_ingested.events_principal_domain: "-NULL,-EMPTY"
-    sorts: [unique_hostname_ingested.events_principal_domain]
-    limit: 5000
+    fields: [enrichment_log_all_domains_view.domain, enrichment_log_all_domains_view.first_observed,
+      enrichment_log_all_domains_view.recent_enriched]
+    sorts: [enrichment_log_all_domains_view.first_observed desc]
+    limit: 1000
     column_limit: 50
-    filter_expression: "${unique_hostname_enriched.events_principal_domain}=${unique_hostname_ingested.events_principal_domain}"
     show_view_names: false
     show_row_numbers: true
     transpose: false
@@ -90,19 +111,10 @@
     limit_displayed_rows: false
     enable_conditional_formatting: false
     header_text_alignment: left
-    header_font_size: '12'
-    rows_font_size: '12'
+    header_font_size: 12
+    rows_font_size: 12
     conditional_formatting_include_totals: false
     conditional_formatting_include_nulls: false
-    show_sql_query_menu_options: false
-    show_totals: true
-    show_row_totals: true
-    truncate_header: false
-    minimum_column_width: 75
-    series_labels:
-      unique_hostname_ingested.events_principal_domain: Domain
-      unique_hostname_ingested.event_timestamp_time: First Ingested
-      unique_hostname_enriched.event_timestamp_time: Most Recent Enrichment
     x_axis_gridlines: false
     y_axis_gridlines: true
     show_y_axis_labels: true
@@ -130,35 +142,11 @@
     totals_color: "#808080"
     defaults_version: 1
     listen:
-      Time Range: unique_hostname_enriched.event_timestamp_time
+      Time Range: enrichment_log_all_domains_view.time_range_filter
     row: 3
     col: 0
     width: 24
-    height: 10
-  - title: View logs for cloud functions
-    name: View logs for cloud functions
-    model: domaintools
-    explore: events
-    type: single_value
-    fields: [events.cloud_function_url]
-    sorts: [events.cloud_function_url]
-    limit: 500
-    column_limit: 50
-    custom_color_enabled: true
-    show_single_value_title: true
-    show_comparison: false
-    comparison_type: value
-    comparison_reverse_colors: false
-    show_comparison_label: true
-    enable_conditional_formatting: false
-    conditional_formatting_include_totals: false
-    conditional_formatting_include_nulls: false
-    defaults_version: 1
-    listen: {}
-    row: 0
-    col: 0
-    width: 24
-    height: 3
+    height: 9
   filters:
   - name: Time Range
     title: Time Range
