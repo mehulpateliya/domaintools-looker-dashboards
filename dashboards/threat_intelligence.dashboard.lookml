@@ -210,6 +210,8 @@
     explore: events
     type: single_value
     fields: [events.event_counts_suspicious_domains]
+    filters:
+      events.metadata__log_type: "UDM"
     limit: 500
     column_limit: 50
     custom_color_enabled: true
