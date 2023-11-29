@@ -920,6 +920,199 @@ LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about
   }
 }
 
+view: enrichment_log_all_domains_view {
+  derived_table: {
+    sql:
+    WITH enrichment_log_all_domains_fields AS (
+    SELECT
+          REGEXP_EXTRACT(events.principal.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)')  AS events_principal__hostname,
+          REGEXP_EXTRACT(events.src.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_src__hostname,
+          REGEXP_EXTRACT(events.target.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_target__hostname,
+          REGEXP_EXTRACT(events.observer.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_observer__hostname,
+          REGEXP_EXTRACT(events__intermediary.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary_hostname,
+          REGEXP_EXTRACT(events.principal.asset.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_principal__asset__hostname,
+          REGEXP_EXTRACT(events.src.asset.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_src__asset__hostname,
+          REGEXP_EXTRACT(events.target.asset.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_target__asset__hostname,
+          REGEXP_EXTRACT(events.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_network__dns_domain,
+          REGEXP_EXTRACT(events.principal.administrative_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_principal__administrative_domain,
+          REGEXP_EXTRACT(events.target.administrative_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_target__administrative_domain,
+          REGEXP_EXTRACT(events__about.administrative_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about_administrative_domain,
+          REGEXP_EXTRACT(events__about.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about_hostname,
+          REGEXP_EXTRACT(events.principal.asset.network_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_principal__asset__network_domain,
+          REGEXP_EXTRACT(events.target.asset.network_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_target__asset__network_domain,
+          REGEXP_EXTRACT(events__about.asset.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about_asset__hostname,
+          REGEXP_EXTRACT(events__about.asset.network_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about_asset__network_domain,
+          REGEXP_EXTRACT(events__about.domain.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about_domain__name,
+          REGEXP_EXTRACT(events__about.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about_network__dns_domain,
+          REGEXP_EXTRACT(events__intermediary.administrative_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary_administrative_domain,
+          REGEXP_EXTRACT(events__intermediary.domain.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary_domain__name,
+          REGEXP_EXTRACT(events__intermediary.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary_network__dns_domain,
+          REGEXP_EXTRACT(events__intermediary.asset.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary_asset__hostname,
+          REGEXP_EXTRACT(events__intermediary.asset.network_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary_asset__network_domain,
+          REGEXP_EXTRACT(events.observer.administrative_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_observer__administrative_domain,
+          REGEXP_EXTRACT(events.observer.domain.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_observer__domain__name,
+          REGEXP_EXTRACT(events.observer.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_observer__network__dns_domain,
+          REGEXP_EXTRACT(events.observer.asset.hostname, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_observer__asset__hostname,
+          REGEXP_EXTRACT(events.observer.asset.network_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_observer__asset__network_domain,
+          REGEXP_EXTRACT(events.principal.domain.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_principal__domain__name,
+          REGEXP_EXTRACT(events.principal.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_principal__network__dns_domain,
+          REGEXP_EXTRACT(events.src.administrative_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_src__administrative_domain,
+          REGEXP_EXTRACT(events.src.domain.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_src__domain__name,
+          REGEXP_EXTRACT(events.src.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_src__network__dns_domain,
+          REGEXP_EXTRACT(events.src.asset.network_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_src__asset__network_domain,
+          REGEXP_EXTRACT(events.target.domain.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_target__domain__name,
+          REGEXP_EXTRACT(events.target.network.dns_domain, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events_target__network__dns_domain,
+          REGEXP_EXTRACT(events__about__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__about__network__dns__questions_name,
+          REGEXP_EXTRACT(events__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__network__dns__questions_name,
+          REGEXP_EXTRACT(events__intermediary__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__intermediary__network__dns__questions_name,
+          REGEXP_EXTRACT(events__observer__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__observer__network__dns__questions_name,
+          REGEXP_EXTRACT(events__principal__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__principal__network__dns__questions_name,
+          REGEXP_EXTRACT(events__src__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__src__network__dns__questions_name,
+          REGEXP_EXTRACT(events__target__network__dns__questions.name, r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)') AS events__target__network__dns__questions_name,
+          events.metadata.event_timestamp.seconds as events_timestamp
+    FROM `datalake.events`  AS events
+    LEFT JOIN UNNEST(events.about) as events__about
+    LEFT JOIN UNNEST(events.intermediary) as events__intermediary
+    LEFT JOIN UNNEST(events.network.dns.questions) as events__network__dns__questions
+    LEFT JOIN UNNEST(events.src.network.dns.questions) as events__src__network__dns__questions
+    LEFT JOIN UNNEST(events__about.network.dns.questions) as events__about__network__dns__questions
+    LEFT JOIN UNNEST(events.target.network.dns.questions) as events__target__network__dns__questions
+    LEFT JOIN UNNEST(events.observer.network.dns.questions) as events__observer__network__dns__questions
+    LEFT JOIN UNNEST(events.principal.network.dns.questions) as events__principal__network__dns__questions
+    LEFT JOIN UNNEST(events__intermediary.network.dns.questions) as events__intermediary__network__dns__questions
+    WHERE  {% condition time_range_filter %} TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds) {% endcondition %}
+    and events.metadata.log_type != "UDM"
+    GROUP BY
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45
+    ),
+    enriched_domains as (
+      select events.principal.hostname as enriched_hostname,
+    (events.metadata.event_timestamp.seconds) as events_timestamp_seconds
+
+    from datalake.events as events where events.metadata.log_type="UDM" and events.principal.hostname is not null
+    )
+
+    select  domain_name as domain, min(events_timestamp) as first_observed, max(enriched_domains.events_timestamp_seconds) as recent_enriched  from enrichment_log_all_domains_fields
+unpivot (domain_name for domain_name_column in ( events_principal__hostname,
+           events_src__hostname,
+           events_target__hostname,
+           events_observer__hostname,
+           events__intermediary_hostname,
+           events_principal__asset__hostname,
+           events_src__asset__hostname,
+           events_target__asset__hostname,
+           events_network__dns_domain,
+           events_principal__administrative_domain,
+           events_target__administrative_domain,
+           events__about_administrative_domain,
+           events__about_hostname,
+           events_principal__asset__network_domain,
+           events_target__asset__network_domain,
+           events__about_asset__hostname,
+           events__about_asset__network_domain,
+           events__about_domain__name,
+           events__about_network__dns_domain,
+           events__intermediary_administrative_domain,
+           events__intermediary_domain__name,
+           events__intermediary_network__dns_domain,
+           events__intermediary_asset__hostname,
+           events__intermediary_asset__network_domain,
+           events_observer__administrative_domain,
+           events_observer__domain__name,
+           events_observer__network__dns_domain,
+           events_observer__asset__hostname,
+           events_observer__asset__network_domain,
+           events_principal__domain__name,
+           events_principal__network__dns_domain,
+           events_src__administrative_domain,
+           events_src__domain__name,
+           events_src__network__dns_domain,
+           events_src__asset__network_domain,
+           events_target__domain__name,
+           events_target__network__dns_domain,
+           events__about__network__dns__questions_name,
+           events__network__dns__questions_name,
+           events__intermediary__network__dns__questions_name,
+           events__observer__network__dns__questions_name,
+           events__principal__network__dns__questions_name,
+           events__src__network__dns__questions_name,
+           events__target__network__dns__questions_name )) as unpvt
+          left join enriched_domains on enriched_domains.enriched_hostname = domain_name
+          group by 1
+      ;;
+  }
+  dimension: domain {
+    sql: ${TABLE}.domain;;
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/rawLogScanResults?searchQuery={{ enrichment_log_all_domains_view.domain }}&startTime={{ enrichment_log_all_domains_view.lower_date }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&selectedList=RawLogScanViewTimeline"
+    }
+  }
+  dimension: CURRENT_TIMESTAMP_DATE {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ",current_timestamp );;
+  }
+  filter: time_range_filter {
+    type: date_time
+  }
+  measure: lower_date {
+    type: string
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(min(${TABLE}.first_observed)) );;
+  }
+  dimension: recent_enriched {
+    label: "Most Recent Enriched"
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(${TABLE}.recent_enriched));;
+  }
+  dimension: first_observed {
+    label: "First Ingested"
+    sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(${TABLE}.first_observed));;
+  }
+}
+
 view: events {
   sql_table_name: `datalake.events` ;;
 
@@ -933,11 +1126,44 @@ view: events {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
   }
+  #application_diagnostics
+  measure: number_enriched_domain_count {
+    label: "Enriched Domain Count"
+    type: count
+    link: {
+      label: "View in Chronicle"
+      url: "@{chronicle_url}/search?query=metadata.log_type=\"UDM\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+    }
+  }
+  #application_diagnostics
+  dimension: cloud_function_url {
+    label: "View logs for cloud functions"
+    sql: "link" ;;
+    link: {
+      label: "View logs for cloud functions"
+      url: "https://console.cloud.google.com/functions/details/@{cloud_function_region}/@{function_name}?project=@{google_cloud_project_id}&tab=logs"
+    }
+  }
   #Enrichment-explorer
   dimension: domain_age {
     type: number
     sql: TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
     label: "Age (in days)"
+  }
+  dimension_group: event_timestamp {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      hour,
+      minute,
+      year
+    ]
+    datatype: epoch
+    sql: ${TABLE}.metadata.event_timestamp.seconds ;;
   }
   #Enrichment-explorer
   dimension_group: Event_DateTime {
@@ -1518,21 +1744,7 @@ view: events {
     group_label: "Metadata Ingested Timestamp"
     group_item_label: "Seconds"
   }
-  dimension_group: event_timestamp {
-    type: time
-    timeframes: [
-      raw,
-      time,
-      date,
-      week,
-      month,
-      hour,
-      minute,
-      year
-    ]
-    datatype: epoch
-    sql: ${TABLE}.metadata.event_timestamp.seconds ;;
-  }
+
   measure: max_timestamp {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MAX(${TABLE}.metadata.event_timestamp.seconds)) );;
