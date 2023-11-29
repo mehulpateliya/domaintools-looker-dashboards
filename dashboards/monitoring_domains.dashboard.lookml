@@ -266,6 +266,8 @@
     explore: events
     type: single_value
     fields: [events.monitor_tag_link]
+    filters:
+      events.metadata__log_type: '"UDM"'
     sorts: [events.monitor_tag_link]
     limit: 500
     column_limit: 50
@@ -317,6 +319,8 @@
     explore: events
     type: single_value
     fields: [events.monitor_domain_link]
+    filters:
+      events.metadata__log_type: '"UDM"'
     sorts: [events.monitor_domain_link]
     limit: 500
     column_limit: 50
