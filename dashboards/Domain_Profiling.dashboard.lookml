@@ -8,13 +8,13 @@
     name: Domain Profiles
     model: domaintools
     explore: events
-    type: looker_pie
+    type: domaintools::custom_pie_chart
     fields: [events.another_fields, events.domain_count]
     filters:
       events.another_fields: "-NULL"
       events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
     sorts: [events.domain_count desc]
-    limit: 20
+    limit: 5000
     column_limit: 50
     dynamic_fields:
     - measure: count_of_principal_hostname

@@ -40,7 +40,7 @@
         },
       });
     },
-    update: function (data, element, config, queryResponse, done) {
+    update: function (data, element, config, queryResponse, details, done) {
       // Extract the data from Looker response
       var values = data;
 
