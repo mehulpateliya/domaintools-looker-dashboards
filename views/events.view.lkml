@@ -303,6 +303,34 @@ view: thread_type {
     sql: ${TABLE}.events_metadata__id_derived;;
   }
 }
+
+view: threat_type_filter_view {
+  derived_table: {
+    sql: SELECT
+       distinct(events__security_result.threat_name)  AS threat_type,
+      events.metadata.id  AS events_metadata__id_derived
+      FROM `datalake.events` AS events
+      LEFT JOIN UNNEST(events.security_result) as events__security_result
+      WHERE (events.metadata.log_type = 'UDM')
+      GROUP BY
+          1,2
+      ORDER BY
+          1;;
+  }
+  dimension:  threat_type{
+    type: string
+    sql: CASE
+      WHEN ${TABLE}.threat_type IS NULL
+      THEN "Not a Threat"
+      ELSE
+        INITCAP(${TABLE}.threat_type)
+      END;;
+  }
+  dimension: metadata__id_derived {
+    type: string
+    sql: ${TABLE}.events_metadata__id_derived;;
+  }
+}
 #Enrichment-explorer
 view: all_threat_evidence {
   derived_table: {
@@ -1502,12 +1530,6 @@ view: events {
         INITCAP(${events__security_result.threat_name})
       END;;
   }
-
-  # dimension: filter_user_attribute {
-  #   type: number
-  #   sql: {{ _user_attribute['high_risk_range'] }};;
-  #   label: "FIlter"
-  # }
   measure:  domain_age_difference{
     type: number
     sql: TIMESTAMP_DIFF(TIMESTAMP_SECONDS(${metadata__event_timestamp__seconds}), TIMESTAMP_SECONDS(${principal__domain__first_seen_time__seconds}), DAY) ;;
@@ -15461,6 +15483,12 @@ view: events {
     sql: ${TABLE}.principal.hostname ;;
     group_label: "Principal"
     group_item_label: "Hostname"
+  }
+  dimension: principal__hostname_for_filter {
+    type: string
+    sql: CASE
+        WHEN ${TABLE}.metadata.log_type = 'UDM' THEN ${TABLE}.principal.hostname
+    END  ;;
   }
   dimension: principal__investigation__comments {
     hidden: yes
