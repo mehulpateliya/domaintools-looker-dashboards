@@ -108,7 +108,7 @@
       Domain: events.principal__hostname_for_filter
       Age: events.domain_age
       Last Enriched: events.Event_DateTime_time
-      Threat Type: events.Threat_type_filter
+      Threat Type: thread_type.threat_type_enrichment_filter
       Risk Score: security_result_main_risk_score.events__security_result_risk_score
     row: 0
     col: 0
@@ -184,4 +184,4 @@
     model: domaintools
     explore: events
     listens_to_filters: ['Last Enriched', 'Age', 'Risk Score']
-    field: threat_type_filter_view.threat_type
+    field: events.Threat_type_filter

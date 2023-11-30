@@ -284,6 +284,14 @@ view: thread_type {
       FROM `datalake.events` AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result
       WHERE (events.metadata.log_type = 'UDM')
+      {% if thread_type.threat_type_enrichment_filter != "'Not a Threat'" %}
+          and events__security_result.threat_name = lower({% threat_type_enrichment_filter._parameter_value %})
+      #   and events__security_result.threat_name = 'spam'
+      # {% elsif threat_type_enrichment_filter._parameter_value == "'Phishing'" %}
+      #   and events__security_result.threat_name = 'phishing'
+      # {% elsif threat_type_enrichment_filter._parameter_value == "'Malware'" %}
+      #   and events__security_result.threat_name = 'malware'
+      {% endif %}
       GROUP BY
           2
       ORDER BY
@@ -301,6 +309,9 @@ view: thread_type {
   dimension: metadata__id_derived {
     type: string
     sql: ${TABLE}.events_metadata__id_derived;;
+  }
+  filter: threat_type_enrichment_filter {
+    type: string
   }
 }
 
@@ -1521,13 +1532,19 @@ view: events {
   filter: domain_age_for_filter {
     type: number
   }
+  dimension: threat_types_enrichment {
+    type: string
+    sql: CASE
+        WHEN ${TABLE}.metadata.log_type = 'UDM' THEN ${events__security_result.threat_name}
+    END  ;;
+  }
   dimension: Threat_type_filter {
     type: string
     sql: CASE
-      WHEN ${events__security_result.threat_name} IS NULL
+      WHEN ${threat_types_enrichment} IS NULL
       THEN "Not a Threat"
       ELSE
-        INITCAP(${events__security_result.threat_name})
+        INITCAP(${threat_types_enrichment})
       END;;
   }
   measure:  domain_age_difference{
