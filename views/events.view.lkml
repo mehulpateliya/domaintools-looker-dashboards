@@ -279,23 +279,15 @@ view: events__about__labels__tld {
 view: thread_type {
   derived_table: {
     sql: SELECT
-       STRING_AGG(DISTINCT(events__security_result.threat_name), ' , ' ORDER BY events__security_result.threat_name)  AS threat_type,
-      events.metadata.id  AS events_metadata__id_derived
-      FROM `datalake.events` AS events
-      LEFT JOIN UNNEST(events.security_result) as events__security_result
-      WHERE (events.metadata.log_type = 'UDM')
-      {% if thread_type.threat_type_enrichment_filter != "'Not a Threat'" %}
-          and events__security_result.threat_name = lower({% threat_type_enrichment_filter._parameter_value %})
-      #   and events__security_result.threat_name = 'spam'
-      # {% elsif threat_type_enrichment_filter._parameter_value == "'Phishing'" %}
-      #   and events__security_result.threat_name = 'phishing'
-      # {% elsif threat_type_enrichment_filter._parameter_value == "'Malware'" %}
-      #   and events__security_result.threat_name = 'malware'
-      {% endif %}
-      GROUP BY
-          2
-      ORDER BY
-          1;;
+    STRING_AGG(DISTINCT(events__security_result.threat_name), ' , ' ORDER BY events__security_result.threat_name)  AS threat_type,
+    events.metadata.id  AS events_metadata__id_derived
+    FROM `datalake.events` AS events
+    LEFT JOIN UNNEST(events.security_result) as events__security_result
+    WHERE (events.metadata.log_type = 'UDM')
+    GROUP BY
+    2
+    ORDER BY
+    1;;
   }
   dimension:  thread_type{
     type: string
@@ -310,38 +302,8 @@ view: thread_type {
     type: string
     sql: ${TABLE}.events_metadata__id_derived;;
   }
-  filter: threat_type_enrichment_filter {
-    type: string
-  }
 }
 
-view: threat_type_filter_view {
-  derived_table: {
-    sql: SELECT
-       distinct(events__security_result.threat_name)  AS threat_type,
-      events.metadata.id  AS events_metadata__id_derived
-      FROM `datalake.events` AS events
-      LEFT JOIN UNNEST(events.security_result) as events__security_result
-      WHERE (events.metadata.log_type = 'UDM')
-      GROUP BY
-          1,2
-      ORDER BY
-          1;;
-  }
-  dimension:  threat_type{
-    type: string
-    sql: CASE
-      WHEN ${TABLE}.threat_type IS NULL
-      THEN "Not a Threat"
-      ELSE
-        INITCAP(${TABLE}.threat_type)
-      END;;
-  }
-  dimension: metadata__id_derived {
-    type: string
-    sql: ${TABLE}.events_metadata__id_derived;;
-  }
-}
 #Enrichment-explorer
 view: all_threat_evidence {
   derived_table: {
@@ -1128,7 +1090,7 @@ unpivot (domain_name for domain_name_column in ( events_principal__hostname,
     sql: ${TABLE}.domain;;
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/rawLogScanResults?searchQuery={{ enrichment_log_all_domains_view.domain }}&startTime={{ enrichment_log_all_domains_view.lower_date }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&selectedList=RawLogScanViewTimeline"
+      url: "@{chronicle_url}/rawLogScanResults?searchQuery={{ value }}&startTime={{ enrichment_log_all_domains_view.lower_date }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&selectedList=RawLogScanViewTimeline"
     }
   }
   dimension: CURRENT_TIMESTAMP_DATE {
@@ -1143,12 +1105,21 @@ unpivot (domain_name for domain_name_column in ( events_principal__hostname,
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(min(${TABLE}.first_observed)) );;
   }
   dimension: recent_enriched {
-    label: "Most Recent Enriched"
+    label: "Most Recent Enriched (UTC)"
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(${TABLE}.recent_enriched));;
   }
   dimension: first_observed {
-    label: "First Ingested"
+    label: "First Ingested (UTC)"
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(${TABLE}.first_observed));;
+  }
+  dimension: iris_redirect {
+    label: "View in Iris"
+    sql: "link" ;;
+    link: {
+      label: "View in DomainTools"
+      url: "https://iris.domaintools.com/investigate/search/?q={{enrichment_log_all_domains_view.domain}}"
+    }
+    html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
 }
 
@@ -1176,12 +1147,9 @@ view: events {
   }
   #application_diagnostics
   dimension: cloud_function_url {
-    label: "View logs for cloud functions"
+    label: "View logs of Cloud function"
     sql: "link" ;;
-    link: {
-      label: "View logs for cloud functions"
-      url: "https://console.cloud.google.com/functions/details/@{cloud_function_region}/@{function_name}?project=@{google_cloud_project_id}&tab=logs"
-    }
+    html: <a href="https://console.cloud.google.com/functions/details/@{cloud_function_region}/@{function_name}?project=@{google_cloud_project_id}&tab=logs" target="_blank">Link</a>;;
   }
   #Enrichment-explorer
   dimension: domain_age {

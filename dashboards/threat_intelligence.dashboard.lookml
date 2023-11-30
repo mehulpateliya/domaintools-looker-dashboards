@@ -236,6 +236,18 @@
     col: 12
     width: 12
     height: 6
+  - name: ''
+    type: text
+    title_text: ''
+    subtitle_text: ''
+    body_text: '[{"type":"h1","children":[{"text":"This dashboard is populated based
+      on the enriched domain events ingested in the Chronicle.","fontSize":"14px","backgroundColor":"rgb(255,
+      255, 255)","color":"rgb(23, 43, 77)"}],"align":"center"}]'
+    rich_content_json: '{"format":"slate"}'
+    row: 0
+    col: 0
+    width: 24
+    height: 2
   filters:
   - name: Time Range
     title: Time Range

@@ -108,13 +108,27 @@
       Domain: events.principal__hostname_for_filter
       Age: events.domain_age
       Last Enriched: events.Event_DateTime_time
-      Threat Type: thread_type.threat_type_enrichment_filter
+      Threat Type: thread_type.thread_type
       Risk Score: security_result_main_risk_score.events__security_result_risk_score
     row: 0
     col: 0
     width: 24
     height: 12
   filters:
+  - name: Last Enriched
+    title: Last Enriched
+    type: field_filter
+    default_value: 7 day
+    allow_multiple_values: false
+    required: false
+    ui_config:
+      type: advanced
+      display: popover
+      options: []
+    model: domaintools
+    explore: events
+    listens_to_filters: []
+    field: events.Event_DateTime_time
   - name: Domain
     title: Domain
     type: field_filter
@@ -126,7 +140,7 @@
       display: inline
     model: domaintools
     explore: events
-    listens_to_filters: ['Last Enriched', 'Age', 'Risk Score']
+    listens_to_filters: ['Last Enriched', 'Age', 'Risk Score', 'Threat Type']
     field: events.principal__hostname_for_filter
   - name: Age
     title: Age
@@ -144,20 +158,6 @@
     explore: events
     listens_to_filters: []
     field: events.domain_age
-  - name: Last Enriched
-    title: Last Enriched
-    type: field_filter
-    default_value: 7 day
-    allow_multiple_values: false
-    required: false
-    ui_config:
-      type: advanced
-      display: popover
-      options: []
-    model: domaintools
-    explore: events
-    listens_to_filters: []
-    field: events.Event_DateTime_time
   - name: Risk Score
     title: Risk Score
     type: field_filter
@@ -179,7 +179,7 @@
     allow_multiple_values: true
     required: false
     ui_config:
-      type: dropdown_menu
+      type: advanced
       display: inline
     model: domaintools
     explore: events

@@ -235,12 +235,6 @@ explore: events {
     sql_on: ${thread_type.metadata__id_derived} = ${events.metadata__id} ;;
     relationship: one_to_many
   }
-  join: threat_type_filter_view {
-    view_label: "Events: Threat filter"
-    type: left_outer
-    sql_on: ${threat_type_filter_view.metadata__id_derived} = ${events.metadata__id} ;;
-    relationship: one_to_many
-  }
   # hidden: yes
   join: events__about {
     view_label: "Events: About"

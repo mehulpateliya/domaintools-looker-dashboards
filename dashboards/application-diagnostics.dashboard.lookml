@@ -97,7 +97,7 @@
     explore: events
     type: looker_grid
     fields: [enrichment_log_all_domains_view.domain, enrichment_log_all_domains_view.first_observed,
-      enrichment_log_all_domains_view.recent_enriched]
+      enrichment_log_all_domains_view.recent_enriched, enrichment_log_all_domains_view.iris_redirect]
     sorts: [enrichment_log_all_domains_view.first_observed desc]
     limit: 1000
     column_limit: 50
