@@ -24,3 +24,14 @@ constant: google_cloud_project_id {
   value: "dtgc-37955"
   export: override_required
 }
+
+visualization: {
+  id: "custom_pie_chart"
+  label: "custom_pie_chart"
+  file: "Custom/custom_pie_chart.js"
+  dependencies: [
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/helpers.min.js"
+  ]
+}
