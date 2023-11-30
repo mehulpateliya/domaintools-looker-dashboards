@@ -12,7 +12,7 @@
     fields: [events.another_fields, events.domain_count]
     filters:
       events.another_fields: "-NULL"
-      events.metadata__log_type: "UDM"
+      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
     sorts: [events.domain_count desc]
     limit: 20
     column_limit: 50
@@ -56,7 +56,7 @@
     defaults_version: 1
     hidden_pivots: {}
     listen:
-      Enrichment Filter Value: events.enrichment_filter_value
+      Domain Profile Filter Value: events.enrichment_filter_value
       Time Range: events.Event_DateTime_minute
     row: 12
     col: 0
@@ -77,8 +77,8 @@
     explore: events
     listens_to_filters: []
     field: events.Event_DateTime_minute
-  - name: Enrichment Filter Value
-    title: Enrichment Filter Value
+  - name: Domain Profile Filter Value
+    title: Domain Profile Filter Value
     type: field_filter
     default_value: IP^_Country^_Code
     allow_multiple_values: true

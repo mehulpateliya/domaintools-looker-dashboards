@@ -8,7 +8,7 @@ view: unique_hostname_enriched_with_latest_time {
           events.principal.hostname as events_principal__hostname,
           MAX(events.metadata.event_timestamp.seconds) AS events_event_timestamp_time,
         FROM datalake.events AS events
-        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)
+        WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL') AND (events.principal.hostname IS NOT NULL)
         GROUP BY events_principal__hostname;;
   }
   dimension_group: event_timestamp {
@@ -283,7 +283,7 @@ view: thread_type {
     events.metadata.id  AS events_metadata__id_derived
     FROM `datalake.events` AS events
     LEFT JOIN UNNEST(events.security_result) as events__security_result
-    WHERE (events.metadata.log_type = 'UDM')
+    WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL')
     GROUP BY
     2
     ORDER BY
@@ -313,7 +313,7 @@ view: all_threat_evidence {
       FROM `datalake.events` AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result
       LEFT JOIN UNNEST(detection_fields) as events__security_result__detection_fields
-      WHERE (events__security_result__detection_fields.key ) = 'evidence' AND (events.metadata.log_type = 'UDM' )
+      WHERE (events__security_result__detection_fields.key ) = 'evidence' AND (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' )
       GROUP BY
           2
       ORDER BY
@@ -337,7 +337,7 @@ view: security_result_main_risk_score {
           offset
       FROM datalake.events  AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      WHERE (events.metadata.log_type = 'UDM' AND offset = 0)
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND offset = 0)
       GROUP BY
           1,
           2,
@@ -362,7 +362,7 @@ view: security_result_proximity {
           offset
       FROM datalake.events  AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      WHERE (events.metadata.log_type = 'UDM' AND offset = 1)
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND offset = 1)
       GROUP BY
           1,
           2,
@@ -387,7 +387,7 @@ view: security_result_threat_profile_malware {
           offset
       FROM datalake.events  AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      WHERE (events.metadata.log_type = 'UDM' AND offset = 3)
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND offset = 3)
       GROUP BY
           1,
           2,
@@ -412,7 +412,7 @@ view: security_result_threat_profile_phishing {
           offset
       FROM datalake.events  AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      WHERE (events.metadata.log_type = 'UDM' AND offset = 4)
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND offset = 4)
       GROUP BY
           1,
           2,
@@ -437,7 +437,7 @@ view: security_result_threat_profile_spam {
           offset
       FROM datalake.events  AS events
       LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as offset
-      WHERE (events.metadata.log_type = 'UDM' AND offset = 5)
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND offset = 5)
       GROUP BY
           1,
           2,
@@ -531,7 +531,7 @@ view: monitor_tag_ref_list_name {
       LEFT JOIN UNNEST(events.about) as events__about
       LEFT JOIN UNNEST(labels) as events__about__labels__tag_list_name ON events__about__labels__tag_list_name.key = 'monitoring_tag_list_name'
       LEFT JOIN UNNEST(labels) as events__about__labels__timestamp ON events__about__labels__timestamp.key = 'timestamp'
-      WHERE (events.metadata.log_type = 'UDM' ) and events__about__labels__timestamp.value is not null
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and events__about__labels__timestamp.value is not null
       and events__about__labels__tag_list_name.value is not null
       GROUP BY
           1,
@@ -561,7 +561,7 @@ view: monitor_domain_ref_list_name {
       LEFT JOIN UNNEST(events.about) as events__about
       LEFT JOIN UNNEST(labels) as events__about__labels__monitor_list_name ON events__about__labels__monitor_list_name.key = 'monitoring_domain_list_name'
       LEFT JOIN UNNEST(labels) as events__about__labels__timestamp ON events__about__labels__timestamp.key = 'timestamp'
-      WHERE (events.metadata.log_type = 'UDM' ) and events__about__labels__timestamp.value is not null
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and events__about__labels__timestamp.value is not null
       and events__about__labels__monitor_list_name.value is not null
       GROUP BY
           1,
@@ -631,7 +631,7 @@ view: ip_country_code_fields_view {
     events.metadata.id AS metadata__id
   FROM `datalake.events` AS events
   LEFT JOIN UNNEST(events.about) AS events__about
-  WHERE (events.metadata.log_type = 'UDM') and  {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+  WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL') and  {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
   GROUP BY
     1,
     2,
@@ -675,7 +675,7 @@ LEFT JOIN UNNEST(events.principal.labels) as events__principal__labels_isp ON ev
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_isp ON events__about__labels_isp.key='isp'
 
-      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
       GROUP BY
       1,
       2,
@@ -718,7 +718,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_asn ON events__about__labels_asn.key='asn'
 
-      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
       GROUP BY
       1,
       2,
@@ -761,7 +761,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_hash ON events__about__labels_ssl_hash.key='hash'
 
-      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
       GROUP BY
       1,
       2,
@@ -804,7 +804,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_subject ON events__about__labels_ssl_subject.key='subject'
 
-      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
       GROUP BY
       1,
       2,
@@ -847,7 +847,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels_ssl_issuer_common_name ON events__about__labels_ssl_issuer_common_name.key='issuer_common_name'
 
-      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
       GROUP BY
       1,
       2,
@@ -890,7 +890,7 @@ FROM `datalake.events`  AS events
 LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels__organization ON events__about__labels__organization.key = 'organization'
 
-      WHERE (events.metadata.log_type = 'UDM' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
+      WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' ) and {% condition  events.Event_DateTime_minute %} events.metadata.event_timestamp.seconds {% endcondition %}
       GROUP BY
       1,
       2,
@@ -982,7 +982,7 @@ view: enrichment_log_all_domains_view {
     LEFT JOIN UNNEST(events.principal.network.dns.questions) as events__principal__network__dns__questions
     LEFT JOIN UNNEST(events__intermediary.network.dns.questions) as events__intermediary__network__dns__questions
     WHERE  {% condition time_range_filter %} TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds) {% endcondition %}
-    and events.metadata.log_type != "UDM"
+    and events.metadata.log_type != "DOMAINTOOLS_THREATINTEL"
     GROUP BY
         1,
         2,
@@ -1034,7 +1034,7 @@ view: enrichment_log_all_domains_view {
       select events.principal.hostname as enriched_hostname,
     (events.metadata.event_timestamp.seconds) as events_timestamp_seconds
 
-    from datalake.events as events where events.metadata.log_type="UDM" and events.principal.hostname is not null
+    from datalake.events as events where events.metadata.log_type="DOMAINTOOLS_THREATINTEL" and events.principal.hostname is not null
     )
 
     select  domain_name as domain, min(events_timestamp) as first_observed, max(enriched_domains.events_timestamp_seconds) as recent_enriched  from enrichment_log_all_domains_fields
@@ -1142,7 +1142,7 @@ view: events {
     type: count
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=metadata.log_type=\"UDM\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{chronicle_url}/search?query=metadata.log_type=\"DOMAINTOOLS_THREATINTEL\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
   #application_diagnostics
@@ -1503,7 +1503,7 @@ view: events {
   dimension: threat_types_enrichment {
     type: string
     sql: CASE
-        WHEN ${TABLE}.metadata.log_type = 'UDM' THEN ${events__security_result.threat_name}
+        WHEN ${TABLE}.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' THEN ${events__security_result.threat_name}
     END  ;;
   }
   dimension: Threat_type_filter {
@@ -15472,7 +15472,7 @@ view: events {
   dimension: principal__hostname_for_filter {
     type: string
     sql: CASE
-        WHEN ${TABLE}.metadata.log_type = 'UDM' THEN ${TABLE}.principal.hostname
+        WHEN ${TABLE}.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' THEN ${TABLE}.principal.hostname
     END  ;;
   }
   dimension: principal__investigation__comments {
@@ -33992,7 +33992,7 @@ view: alert_hostnames {
   derived_table: {
     sql:
         select events.principal.hostname as events_principal__hostname, events.metadata.id as events_metadata_id
-        FROM datalake.events AS events where (events.metadata.log_type = 'UDM' )
+        FROM datalake.events AS events where (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' )
         and (events.principal.hostname ) IS NOT NULL
         and TIMESTAMP_DIFF(TIMESTAMP_SECONDS(events.metadata.event_timestamp.seconds), TIMESTAMP_SECONDS(events.principal.domain.first_seen_time.seconds), DAY) <= cast({{ _filters['alert_hostnames.age_difference'] | sql_quote }} as INT64)
         and {% condition  events.event_timestamp_time %} events.metadata.event_timestamp.seconds {% endcondition %}
@@ -34035,7 +34035,7 @@ view: main_risk_score {
             ROW_NUMBER() OVER (PARTITION BY events.principal.hostname ORDER BY events.metadata.event_timestamp.seconds DESC) AS rank
           FROM datalake.events  AS events
           LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as `offset`
-          WHERE (events.metadata.log_type = 'UDM' AND `offset` = 0)
+          WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND `offset` = 0)
           )
           SELECT
             events__security_result_risk_score,
@@ -34068,7 +34068,7 @@ view: main_risk_score_each_event {
             `offset`
           FROM datalake.events  AS events
           LEFT JOIN UNNEST(events.security_result) as events__security_result with offset as `offset`
-          WHERE (events.metadata.log_type = 'UDM' AND `offset` = 0)
+          WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' AND `offset` = 0)
           )
           SELECT
             events__security_result_risk_score,
@@ -34106,7 +34106,7 @@ view: events__about_registrant_name {
         FROM datalake.events AS events
         LEFT JOIN UNNEST(events.about) as events__about
 LEFT JOIN UNNEST(labels) as events__about__labels__registrant_name ON events__about__labels__registrant_name.key = 'registrant_name'
-        WHERE (events.metadata.log_type = 'UDM') AND (events.principal.hostname IS NOT NULL)  AND  events__about__labels__registrant_name.value is not null
+        WHERE (events.metadata.log_type = 'DOMAINTOOLS_THREATINTEL') AND (events.principal.hostname IS NOT NULL)  AND  events__about__labels__registrant_name.value is not null
         GROUP BY events_metadata_id, events__about__labels__registrant_name__value ;;
   }
   dimension: events_metadata_id {
