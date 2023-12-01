@@ -1543,7 +1543,7 @@ view: events {
   }
 
   dimension: event_timestamp_risky_domains {
-    label: "Event Timestamp"
+    label: "Event Timestamp (UTC)"
     sql: ${events.event_timestamp_time} ;;
   }
   measure: event_counts_suspicious_domains {
@@ -1761,7 +1761,7 @@ view: events {
   measure: min_timestamp {
     type: string
     sql: FORMAT_TIMESTAMP("%FT%TZ", TIMESTAMP_SECONDS(MIN(${TABLE}.metadata.event_timestamp.seconds)) );;
-    label: "First Observed"
+    label: "First Observed (UTC)"
   }
 
   dimension: metadata__ingestion_labels {

@@ -27,7 +27,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Young Domain Threshold: alert_hostnames.age_difference
-    row: 0
+    row: 2
     col: 0
     width: 12
     height: 6
@@ -63,7 +63,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Young Domain Threshold: alert_hostnames.age_difference
-    row: 12
+    row: 14
     col: 0
     width: 24
     height: 6
@@ -134,7 +134,7 @@
     listen:
       Time Range: events.event_timestamp_time
       High Risk Range: main_risk_score.events__security_result_risk_score
-    row: 6
+    row: 8
     col: 0
     width: 12
     height: 6
@@ -147,7 +147,7 @@
       events.event_counts_risky_domain]
     filters:
       events.principal__hostname_young_domains: "-NULL,-EMPTY"
-      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
+      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
     sorts: [events.event_counts_risky_domain desc]
     limit: 10
     column_limit: 50
@@ -205,7 +205,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Medium Risk Range: main_risk_score.events__security_result_risk_score
-    row: 6
+    row: 8
     col: 12
     width: 12
     height: 6
@@ -232,7 +232,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Suspicious Domain Range: main_risk_score.events__security_result_risk_score
-    row: 0
+    row: 2
     col: 12
     width: 12
     height: 6
