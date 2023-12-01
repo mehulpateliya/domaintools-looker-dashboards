@@ -19,7 +19,7 @@
       events__about_registrant_name.events__about__labels__registrant_name__value, events.principal__domain__admin__office_address__country_or_region,
       events.iris_redirect]
     filters:
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.Event_DateTime_time desc]
     limit: 1000
     column_limit: 50

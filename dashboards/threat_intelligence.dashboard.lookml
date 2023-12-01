@@ -12,7 +12,7 @@
     type: single_value
     fields: [alert_hostnames.unique_domains]
     filters:
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     limit: 1000
     custom_color_enabled: true
     show_single_value_title: true
@@ -40,7 +40,7 @@
       events.min_timestamp, events.max_timestamp, events.event_counts]
     filters:
       alert_hostnames.events_principal__hostname: "-NULL,-EMPTY"
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.max_timestamp desc 0]
     limit: 1000
     column_limit: 50
@@ -76,7 +76,7 @@
       main_risk_score.events__security_result_risk_score]
     filters:
       events.principal__hostname_young_domains: "-NULL,-EMPTY"
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.event_counts_risky_domain desc]
     limit: 10
     column_limit: 50
@@ -147,7 +147,7 @@
       events.event_counts_risky_domain]
     filters:
       events.principal__hostname_young_domains: "-NULL,-EMPTY"
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.event_counts_risky_domain desc]
     limit: 10
     column_limit: 50
@@ -216,7 +216,7 @@
     type: single_value
     fields: [events.event_counts_suspicious_domains]
     filters:
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     limit: 500
     column_limit: 50
     custom_color_enabled: true

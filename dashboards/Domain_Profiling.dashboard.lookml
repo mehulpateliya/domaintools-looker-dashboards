@@ -12,7 +12,7 @@
     fields: [events.another_fields, events.domain_count]
     filters:
       events.another_fields: "-NULL"
-      events.metadata__log_type: "DOMAINTOOLS_THREATINTEL"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.domain_count desc]
     limit: 5000
     column_limit: 50

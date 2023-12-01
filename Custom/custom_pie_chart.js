@@ -67,8 +67,7 @@
             cell.links[0].label_value;
           other_links.push(cell.links[0]);
 
-          sum =
-            sum + currentValue[queryResponse.fields.measure_like[0].name].value;
+          sum = sum + currentValue[queryResponse.fields.measure_like[0].name].value;
         }
       });
       // add Other label and data
@@ -79,8 +78,8 @@
         value: sum,
       });
       var finalCharData = {
-        datasets: [{ data: FinalData }],
-        labels: finalLabel,
+        datasets: [{ data: FinalData, backgroundColor: ["#1A73E8", "#12B5CB", "#E52592", "#E8710A", "#F9AB00", "#7CB342", "#9334E6", "#80868B", "#079c98", "#A8A116", "#EA4335", "#FF8168", "#76abf1", "#71d3e0", "#ef7cbe", "#f1aa6c", "#fbcd66", "#b0d18e", "#be85f0", "#b3b6b9"] }],
+        labels: finalLabel
       };
       // Update the chart with the data
       this.chart.data = finalCharData;
