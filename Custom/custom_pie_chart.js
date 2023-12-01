@@ -22,8 +22,10 @@
       this.chart = new Chart(canvas, {
         type: "pie",
         options: {
-          legend: {
-            display: false,
+          plugins: {
+            legend: {
+              position: 'right', // This sets the legend position to the right
+            }
           },
           onClick: function (event, elements) {
             if (elements && elements.length > 0) {

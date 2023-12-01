@@ -242,12 +242,16 @@
     subtitle_text: ''
     body_text: '[{"type":"h1","children":[{"text":"This dashboard is populated based
       on the enriched domain events ingested in the Chronicle.","fontSize":"14px","backgroundColor":"rgb(255,
-      255, 255)","color":"rgb(23, 43, 77)"}],"align":"center"}]'
+      255, 255)","color":"rgb(23, 43, 77)"}],"align":"center"},{"type":"p","align":"center","id":1701422863753,"children":[{"text":"Young
+      Domain is considered based on the (ingested timestamp of the enriched domain
+      event - first_seen of the domain) <= Young Domain Threshold within the Time
+      Range."},{"fontSize":"14px","backgroundColor":"rgb(255, 255, 255)","color":"rgb(23,
+      43, 77)","text":"\n"}]}]'
     rich_content_json: '{"format":"slate"}'
     row: 0
     col: 0
     width: 24
-    height: 2
+    height: 3
   filters:
   - name: Time Range
     title: Time Range
