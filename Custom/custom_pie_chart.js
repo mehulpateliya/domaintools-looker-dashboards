@@ -40,7 +40,7 @@
         },
       });
     },
-    update: function (data, element, config, queryResponse, details, done) {
+    updateAsync: function (data, element, config, queryResponse, details, doneRendering) {
       // Extract the data from Looker response
       var values = data;
 
@@ -87,7 +87,7 @@
       this.chart.update();
 
       // Signal the completion of rendering
-      done();
+      doneRendering();
     },
   });
 })(looker, Chart);
