@@ -1,5 +1,5 @@
 - dashboard: application_diagnostics
-  title: Application Diagnostics
+  title: 'Application Diagnostics Dashboard'
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
