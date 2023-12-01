@@ -8,7 +8,7 @@
     name: Domain Profiles
     model: domaintools
     explore: events
-    type: domaintools_looker::custom_pie_chart
+    type: domaintools_dashboards::custom_pie_chart
     fields: [events.another_fields, events.domain_count]
     filters:
       events.another_fields: "-NULL"
