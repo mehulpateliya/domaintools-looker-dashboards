@@ -16,6 +16,7 @@
     create: function (element, config) {
       var canvas = document.createElement("canvas");
       canvas.setAttribute("id", "customPieChartCanvas");
+      canvas.style.margin = 'auto';
       element.appendChild(canvas);
 
       // Initialize the Chart.js instance
@@ -90,8 +91,6 @@
         datasets: [{ data: FinalData, backgroundColor: ["#1A73E8", "#12B5CB", "#E52592", "#E8710A", "#F9AB00", "#7CB342", "#9334E6", "#80868B", "#079c98", "#A8A116", "#EA4335", "#FF8168", "#76abf1", "#71d3e0", "#ef7cbe", "#f1aa6c", "#fbcd66", "#b0d18e", "#be85f0", "#b3b6b9"] }],
         labels: finalLabel
       };
-      this.chart.canvas.style.height = '100%';
-      this.chart.canvas.style.width = '100%';
       // Update the chart with the data
       this.chart.data = finalCharData;
       this.chart.update();

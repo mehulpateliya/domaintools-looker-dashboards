@@ -61,7 +61,7 @@
     row: 12
     col: 0
     width: 24
-    height: 7
+    height: 12
   filters:
   - name: Time Range
     title: Time Range
