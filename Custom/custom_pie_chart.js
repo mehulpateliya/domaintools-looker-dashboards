@@ -14,6 +14,13 @@
       return true;
     },
     create: function (element, config) {
+
+        var div = document.createElement("div");
+        div.setAttribute("id", "no-data-div");
+        div.textContent = 'No Data Available';
+        div.style.display = "none"
+        element.appendChild(div);
+
       var canvas = document.createElement("canvas");
       canvas.setAttribute("id", "customPieChartCanvas");
       canvas.style.margin = "auto";
@@ -54,8 +61,14 @@
       doneRendering
     ) {
       // Extract the data from Looker response
+
       var values = data;
       if (values && values.length != 0) {
+          var div = document.getElementById("no-data-div");
+          div.style.display = "none"
+          var canvas = document.getElementById("customPieChartCanvas");
+          canvas.style.display = "block"
+          // element.innerHTML = ""
         // Generate the chart data
         var FinalData = [];
         var finalLabel = [];
@@ -125,10 +138,10 @@
         this.chart.data = finalCharData;
         this.chart.update();
       } else {
-        var canvas = document.getElementById("customPieChartCanvas");
-        const ctx = canvas.getContext("2d");
-        ctx.font = "1rem serif";
-        ctx.fillText("No Results", 50, 50);
+          var canvas = document.getElementById("customPieChartCanvas");
+          canvas.style.display = "none"
+        var div = document.getElementById("no-data-div");
+          div.style.display = "block"
       }
       // Signal the completion of rendering
         doneRendering();
