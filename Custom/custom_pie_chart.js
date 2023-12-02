@@ -94,10 +94,10 @@
     else {
         var canvas = document.getElementById("customPieChartCanvas")
         const ctx = canvas.getContext("2d");
-        ctx.font = "50px serif";
-        ctx.fillText("No Data Available");
+        ctx.font = "30px serif";
+        ctx.fillText("No Data Available", 50, 50);
       // Signal the completion of rendering
       doneRendering();
-    },
+    }
   });
 })(looker, Chart);
