@@ -17,8 +17,11 @@
 
         var div = document.createElement("div");
         div.setAttribute("id", "no-data-div");
-        div.textContent = 'No Data Available';
+        div.textContent = 'No Results';
         div.style.display = "none"
+        div.style.margin = "15px"
+        div.style.fontSize = "1.5rem"
+        div.style.textAlign = "center"
         element.appendChild(div);
 
       var canvas = document.createElement("canvas");
@@ -98,12 +101,15 @@
           }
         });
         // add Other label and data
-        finalLabel.push("Other");
-        FinalData.push({
-          rendered: sum.toString(),
-          links: other_links,
-          value: sum,
-        });
+        if(values.length >= 20)
+        {
+          finalLabel.push("Other");
+          FinalData.push({
+            rendered: sum.toString(),
+            links: other_links,
+            value: sum,
+          });
+        }
         var finalCharData = {
           datasets: [
             {
@@ -140,7 +146,7 @@
       } else {
           var canvas = document.getElementById("customPieChartCanvas");
           canvas.style.display = "none"
-        var div = document.getElementById("no-data-div");
+          var div = document.getElementById("no-data-div");
           div.style.display = "block"
       }
       // Signal the completion of rendering
