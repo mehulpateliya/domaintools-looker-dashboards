@@ -48,14 +48,14 @@
     updateAsync: function (data, element, config, queryResponse, details, doneRendering) {
       // Extract the data from Looker response
       var values = data;
-      if(values.length == 0){
-        this.chart.canvas.innerHTML = `
-              <div style="align-items: center;">
-              <h3>No Data Available</h3>
-              </div>
-            `;
-      }
-      else{
+      if(values && values.length != 0){
+      //  this.chart.canvas.innerHTML = `
+      //        <div style="align-items: center;">
+      //        <h3>No Data Available</h3>
+      //        </div>
+      //      `;
+      //}
+      //else{
       // Generate the chart data
       var FinalData = [];
       var finalLabel = [];
