@@ -12,7 +12,7 @@
     type: single_value
     fields: [alert_hostnames.unique_domains]
     filters:
-      events.metadata__log_type: "UDM"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     limit: 1000
     custom_color_enabled: true
     show_single_value_title: true
@@ -27,7 +27,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Young Domain Threshold: alert_hostnames.age_difference
-    row: 0
+    row: 2
     col: 0
     width: 12
     height: 6
@@ -40,7 +40,7 @@
       events.min_timestamp, events.max_timestamp, events.event_counts]
     filters:
       alert_hostnames.events_principal__hostname: "-NULL,-EMPTY"
-      events.metadata__log_type: "UDM"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.max_timestamp desc 0]
     limit: 1000
     column_limit: 50
@@ -63,7 +63,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Young Domain Threshold: alert_hostnames.age_difference
-    row: 12
+    row: 14
     col: 0
     width: 24
     height: 6
@@ -76,7 +76,7 @@
       main_risk_score.events__security_result_risk_score]
     filters:
       events.principal__hostname_young_domains: "-NULL,-EMPTY"
-      events.metadata__log_type: "UDM"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.event_counts_risky_domain desc]
     limit: 10
     column_limit: 50
@@ -134,7 +134,7 @@
     listen:
       Time Range: events.event_timestamp_time
       High Risk Range: main_risk_score.events__security_result_risk_score
-    row: 6
+    row: 8
     col: 0
     width: 12
     height: 6
@@ -147,7 +147,7 @@
       events.event_counts_risky_domain]
     filters:
       events.principal__hostname_young_domains: "-NULL,-EMPTY"
-      events.metadata__log_type: '"UDM"'
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.event_counts_risky_domain desc]
     limit: 10
     column_limit: 50
@@ -205,7 +205,7 @@
     listen:
       Time Range: events.event_timestamp_time
       Medium Risk Range: main_risk_score.events__security_result_risk_score
-    row: 6
+    row: 8
     col: 12
     width: 12
     height: 6
@@ -216,7 +216,7 @@
     type: single_value
     fields: [events.event_counts_suspicious_domains]
     filters:
-      events.metadata__log_type: "UDM"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     limit: 500
     column_limit: 50
     custom_color_enabled: true
@@ -232,10 +232,26 @@
     listen:
       Time Range: events.event_timestamp_time
       Suspicious Domain Range: main_risk_score.events__security_result_risk_score
-    row: 0
+    row: 2
     col: 12
     width: 12
     height: 6
+  - name: ''
+    type: text
+    title_text: ''
+    subtitle_text: ''
+    body_text: '[{"type":"h1","children":[{"text":"This dashboard is populated based
+      on the enriched domain events ingested in the Chronicle.","fontSize":"14px","backgroundColor":"rgb(255,
+      255, 255)","color":"rgb(23, 43, 77)"}],"align":"center"},{"type":"p","align":"center","id":1701422863753,"children":[{"text":"Young
+      Domain is considered based on the (ingested timestamp of the enriched domain
+      event - first_seen of the domain) <= Young Domain Threshold within the Time
+      Range."},{"fontSize":"14px","backgroundColor":"rgb(255, 255, 255)","color":"rgb(23,
+      43, 77)","text":"\n"}]}]'
+    rich_content_json: '{"format":"slate"}'
+    row: 0
+    col: 0
+    width: 24
+    height: 3
   filters:
   - name: Time Range
     title: Time Range

@@ -1,11 +1,6 @@
 project_name: "domaintools"
 
-# # Use local_dependency: To enable referencing of another project
-# # on this instance with include: statements
-#
-# local_dependency: {
-#   project: "name_of_other_project"
-# }
+
 constant: connection_name {
   value: "chronicle"
   export: override_required
@@ -28,4 +23,15 @@ constant: cloud_function_region {
 constant: google_cloud_project_id {
   value: "dtgc-37955"
   export: override_required
+}
+
+visualization: {
+  id: "custom_pie_chart"
+  label: "custom_pie_chart"
+  file: "Custom/custom_pie_chart.js"
+  dependencies: [
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/helpers.min.js"
+  ]
 }

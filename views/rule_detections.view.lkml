@@ -10,8 +10,7 @@ view: latest_version_timestamp {
         field: rule_detections.rule_name
       }
       sorts: [rule_detections.version_timestamp__seconds: desc]
-      expression_custom_filter: ${rule_detections.rule_name} = "domain_from_monitoring_list" ;;
-      # filters: [latest_version_timestamp.rule_name =  rule_detections.rule_name]
+      expression_custom_filter: ${rule_detections.rule_name} = "monitoring_list_domain" ;;
       limit: 1
     }
   }
@@ -30,8 +29,7 @@ view: latest_version_timestamp_for_tags {
         field: rule_detections.rule_name
       }
       sorts: [rule_detections.version_timestamp__seconds: desc]
-      expression_custom_filter: ${rule_detections.rule_name} = "domain_with_specified_tag" ;;
-      # filters: [latest_version_timestamp.rule_name =  rule_detections.rule_name]
+      expression_custom_filter: ${rule_detections.rule_name} = "monitoring_tags_domain_observed" ;;
       limit: 1
     }
   }

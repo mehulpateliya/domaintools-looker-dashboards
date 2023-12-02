@@ -4,7 +4,6 @@ include: "/views/**/*.view.lkml"
 include: "/dashboards/**/*.dashboard"
 
 explore: events {
-  # sql_always_where: ${metadata__log_type} = 'UDM' ;;
   join: unique_hostname_enriched_with_latest_time {
     view_label: "Events: Unique Hostname enriched with latest time"
     type: left_outer

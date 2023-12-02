@@ -1,5 +1,5 @@
 - dashboard: application_diagnostics
-  title: Application Diagnostics
+  title: 'Application Diagnostics Dashboard'
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
@@ -13,7 +13,7 @@
     fields: [events.event_timestamp_time, events.number_enriched_domain_count]
     filters:
       events.principal__hostname: "-NULL"
-      events.metadata__log_type: "UDM"
+      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.event_timestamp_time desc]
     limit: 5000
     column_limit: 5000
@@ -97,7 +97,7 @@
     explore: events
     type: looker_grid
     fields: [enrichment_log_all_domains_view.domain, enrichment_log_all_domains_view.first_observed,
-      enrichment_log_all_domains_view.recent_enriched]
+      enrichment_log_all_domains_view.recent_enriched, enrichment_log_all_domains_view.iris_redirect]
     sorts: [enrichment_log_all_domains_view.first_observed desc]
     limit: 1000
     column_limit: 50
