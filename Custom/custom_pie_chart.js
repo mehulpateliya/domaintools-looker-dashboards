@@ -71,7 +71,7 @@
           div.style.display = "none"
           var canvas = document.getElementById("customPieChartCanvas");
           canvas.style.display = "block"
-          // element.innerHTML = ""
+
         // Generate the chart data
         var FinalData = [];
         var finalLabel = [];
@@ -110,6 +110,7 @@
             value: sum,
           });
         }
+
         var finalCharData = {
           datasets: [
             {
