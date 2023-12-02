@@ -127,11 +127,11 @@
       } else {
         var canvas = document.getElementById("customPieChartCanvas");
         const ctx = canvas.getContext("2d");
-        ctx.font = "30px serif";
-        ctx.fillText("No Data Available", 50, 50);
-        // Signal the completion of rendering
-        doneRendering();
+        ctx.font = "1rem serif";
+        ctx.fillText("No Results", 50, 50);
       }
+      // Signal the completion of rendering
+        doneRendering();
     },
   });
 })(looker, Chart);
