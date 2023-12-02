@@ -1090,7 +1090,7 @@ unpivot (domain_name for domain_name_column in ( events_principal__hostname,
     sql: ${TABLE}.domain;;
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/rawLogScanResults?searchQuery={{ value }}&startTime={{ enrichment_log_all_domains_view.lower_date }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&selectedList=RawLogScanViewTimeline"
+      url: "@{chronicle_url}/rawLogScanResults?searchQuery={{ value }}&startTime={{ enrichment_log_all_domains_view.lower_date }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&regex=1&selectedList=RawLogScanViewTimeline"
     }
   }
   dimension: CURRENT_TIMESTAMP_DATE {

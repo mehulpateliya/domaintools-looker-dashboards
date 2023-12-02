@@ -93,11 +93,9 @@
     }
     else {
         var canvas = document.getElementById("customPieChartCanvas")
-        canvas.innerHTML = `<div style="align-items: center;">
-                    <h2>No Data Available</h2>
-                    </div>
-                  `;
-      }
+        const ctx = canvas.getContext("2d");
+        ctx.font = "50px serif";
+        ctx.fillText("No Data Available");
       // Signal the completion of rendering
       doneRendering();
     },
