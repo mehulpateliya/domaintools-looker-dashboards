@@ -12,7 +12,7 @@
     type: single_value
     fields: [rule_detections.detection_count]
     filters:
-      rule_detections.rule_name: '"domain_from_monitoring_list"'
+      rule_detections.rule_name: '"monitoring_list_domain"'
     sorts: [rule_detections.detection_count desc 0]
     limit: 500
     column_limit: 50
@@ -80,7 +80,7 @@
       rule_detections.count]
     pivots: [rule_detections__detection__assets.hostname]
     filters:
-      rule_detections.rule_name: '"domain_from_monitoring_list"'
+      rule_detections.rule_name: '"monitoring_list_domain"'
     sorts: [rule_detections__detection__assets.hostname, rule_detections.detection_timestamp__seconds_time]
     limit: 1000
     column_limit: 50
@@ -140,7 +140,7 @@
       rule_detections.count]
     pivots: [rule_detections__detection__assets.hostname]
     filters:
-      rule_detections.rule_name: '"domain_with_specified_tag"'
+      rule_detections.rule_name: '"monitoring_tags_domain_observed"'
     sorts: [rule_detections__detection__assets.hostname, rule_detections.detection_timestamp__seconds_time]
     limit: 1000
     column_limit: 50
@@ -198,7 +198,7 @@
     type: single_value
     fields: [rule_detections.detection_count]
     filters:
-      rule_detections.rule_name: '"domain_with_specified_tag"'
+      rule_detections.rule_name: '"monitoring_tags_domain_observed"'
     limit: 500
     column_limit: 50
     filter_expression: "${rule_detections.version_timestamp__seconds} = ${latest_version_timestamp_for_tags.version_timestamp__seconds}"

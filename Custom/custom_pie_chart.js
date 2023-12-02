@@ -17,6 +17,8 @@
       var canvas = document.createElement("canvas");
       canvas.setAttribute("id", "customPieChartCanvas");
       canvas.style.margin = 'auto';
+      canvas.style.height = '80%';
+      canvas.style.width = '80%';
       element.appendChild(canvas);
 
       // Initialize the Chart.js instance
