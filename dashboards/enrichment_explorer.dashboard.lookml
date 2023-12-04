@@ -11,16 +11,14 @@
     explore: events
     type: looker_grid
     fields: [events.principal__hostname_drill_down, events.domain_age, events.principal__domain__status,
-      security_result_main_risk_score.events__security_result_risk_score, events.Event_DateTime_time,
+      security_result_main_risk_score.events__security_result_risk_score, events.event_timestamp_time,
       security_result_proximity.events__security_result_risk_score, thread_type.thread_type,
       all_threat_evidence.events__security_result__detection_fields_evidence, security_result_threat_profile_malware.events__security_result_risk_score,
       security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
       events__about_registrant_name.events__about__labels__registrant_name__value, events.principal__domain__admin__office_address__country_or_region,
       events.iris_redirect]
-    filters:
-      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
-    sorts: [events.Event_DateTime_time desc]
+    sorts: [events.event_timestamp_time desc]
     limit: 1000
     column_limit: 50
     filter_expression: "${events.metadata__event_timestamp__seconds}=${unique_hostname_enriched_with_latest_time.events_event_timestamp_time}"
@@ -52,7 +50,7 @@
       events.domain_age: Age (in days)
       security_result_main_risk_score.events__security_result_risk_score: Overall
         Risk Score
-      events.Event_DateTime_time: 'Last Enriched DateTime (UTC)'
+      events.event_timestamp_time: 'Last Enriched DateTime (UTC)'
       security_result_proximity.events__security_result_risk_score: Proximity Score
       security_result_threat_profile_malware.events__security_result_risk_score: Threat
         Profile Malware
@@ -98,16 +96,16 @@
       events.principal__hostname_drill_down: left
     column_order: ["$$$_row_numbers_$$$", events.principal__hostname_drill_down, events.domain_age,
       events.principal__domain__status, security_result_main_risk_score.events__security_result_risk_score,
-      events.Event_DateTime_time, security_result_proximity.events__security_result_risk_score,
+      events.event_timestamp_time, security_result_proximity.events__security_result_risk_score,
       thread_type.thread_type, all_threat_evidence.events__security_result__detection_fields_evidence,
       security_result_threat_profile_malware.events__security_result_risk_score, security_result_threat_profile_phishing.events__security_result_risk_score,
       security_result_threat_profile_spam.events__security_result_risk_score, events.principal__domain__registrar,
       events__about_registrant_name.events__about__labels__registrant_name__value,
       events.principal__domain__admin__office_address__country_or_region, events.iris_redirect]
     listen:
-      Domain: events.principal__hostname_for_filter
+      Domain: events.principal__hostname
       Age: events.domain_age
-      Last Enriched: events.Event_DateTime_time
+      Last Enriched: events.event_timestamp_time
       Threat Type: thread_type.thread_type
       Risk Score: security_result_main_risk_score.events__security_result_risk_score
     row: 0
@@ -128,7 +126,7 @@
     model: domaintools
     explore: events
     listens_to_filters: []
-    field: events.Event_DateTime_time
+    field: events.event_timestamp_time
   - name: Domain
     title: Domain
     type: field_filter
@@ -141,7 +139,7 @@
     model: domaintools
     explore: events
     listens_to_filters: ['Last Enriched', 'Age', 'Risk Score', 'Threat Type']
-    field: events.principal__hostname_for_filter
+    field: events.principal__hostname
   - name: Age
     title: Age
     type: field_filter

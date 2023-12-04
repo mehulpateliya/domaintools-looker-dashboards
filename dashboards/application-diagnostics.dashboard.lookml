@@ -13,7 +13,6 @@
     fields: [events.event_timestamp_time, events.number_enriched_domain_count]
     filters:
       events.principal__hostname: "-NULL"
-      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.event_timestamp_time desc]
     limit: 5000
     column_limit: 5000
