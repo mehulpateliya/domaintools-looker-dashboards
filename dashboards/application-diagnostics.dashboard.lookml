@@ -66,8 +66,8 @@
     col: 0
     width: 24
     height: 8
-  - title: View logs for cloud functions
-    name: View logs for cloud functions
+  - title: View logs of Cloud functions
+    name: View logs of Cloud functions
     model: domaintools
     explore: events
     type: single_value
