@@ -972,22 +972,6 @@ view: events {
     sql: ${TABLE}.metadata.event_timestamp.seconds ;;
   }
   #Enrichment-explorer
-  # dimension_group: Event_DateTime {
-  #   type: time
-  #   timeframes: [
-  #     raw,
-  #     time,
-  #     date,
-  #     week,
-  #     month,
-  #     hour,
-  #     minute,
-  #     year
-  #   ]
-  #   datatype: epoch
-  #   sql: ${TABLE}.metadata.event_timestamp.seconds ;;
-  # }
-  #Enrichment-explorer
   dimension: principal__hostname_drill_down{
     type: string
     sql: ${TABLE}.principal.hostname ;;
@@ -1299,12 +1283,6 @@ view: events {
   filter: domain_age_for_filter {
     type: number
   }
-  # dimension: threat_types_enrichment {
-  #   type: string
-  #   sql: CASE
-  #       WHEN ${TABLE}.metadata.log_type = 'DOMAINTOOLS_THREATINTEL' THEN ${events__security_result.threat_name}
-  #   END  ;;
-  # }
   dimension: Threat_type_filter {
     type: string
     sql: CASE
