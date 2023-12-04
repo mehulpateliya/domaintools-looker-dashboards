@@ -12,7 +12,6 @@
     fields: [events.another_fields, events.domain_count]
     filters:
       events.another_fields: "-NULL"
-      events.metadata__log_type: '"DOMAINTOOLS_THREATINTEL"'
     sorts: [events.domain_count desc]
     limit: 5000
     column_limit: 50
@@ -57,7 +56,7 @@
     hidden_pivots: {}
     listen:
       Domain Profile Filter Value: events.enrichment_filter_value
-      Time Range: events.Event_DateTime_minute
+      Time Range: events.event_timestamp_time
     row: 12
     col: 0
     width: 24
@@ -76,7 +75,7 @@
     model: domaintools
     explore: events
     listens_to_filters: []
-    field: events.Event_DateTime_minute
+    field: events.event_timestamp_time
   - name: Domain Profile Filter Value
     title: Domain Profile Filter Value
     type: field_filter

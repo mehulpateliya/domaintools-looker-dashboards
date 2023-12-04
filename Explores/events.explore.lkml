@@ -4,6 +4,7 @@ include: "/views/**/*.view.lkml"
 include: "/dashboards/**/*.dashboard"
 
 explore: events {
+  sql_always_where: ${metadata__log_type} =  "DOMAINTOOLS_THREATINTEL" ;;
   join: unique_hostname_enriched_with_latest_time {
     view_label: "Events: Unique Hostname enriched with latest time"
     type: left_outer
@@ -132,13 +133,6 @@ explore: events {
     view_label: "Events: IP Country code"
     type: left_outer
     sql_on: ${ip_country_code_fields_view.metadata__id} = ${events.metadata__id} ;;
-    relationship: one_to_many
-  }
-  join: enrichment_log_all_domains_view {
-    view_label: "Events: Enrichment log all domains"
-    type: left_outer
-    sql_on: ${enrichment_log_all_domains_view.domain} = ${events.principal__hostname} ;;
-    sql_where:  ${enrichment_log_all_domains_view.domain} is not null;;
     relationship: one_to_many
   }
   join: ip_isn_fields_view {
