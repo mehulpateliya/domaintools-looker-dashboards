@@ -94,11 +94,11 @@
   - title: Domain Enrichment Log
     name: Domain Enrichment Log
     model: domaintools
-    explore: events
+    explore: application_diagnotics_events
     type: looker_grid
-    fields: [enrichment_log_all_domains_view.domain, enrichment_log_all_domains_view.first_observed,
-      enrichment_log_all_domains_view.recent_enriched, enrichment_log_all_domains_view.iris_redirect]
-    sorts: [enrichment_log_all_domains_view.first_observed desc]
+    fields: [application_diagnotics_events.domain, application_diagnotics_events.first_observed,
+            application_diagnotics_events.recent_enriched, application_diagnotics_events.iris_redirect]
+    sorts: [application_diagnotics_events.first_observed desc]
     limit: 1000
     column_limit: 50
     show_view_names: false
@@ -143,7 +143,7 @@
     totals_color: "#808080"
     defaults_version: 1
     listen:
-      Time Range: enrichment_log_all_domains_view.time_range_filter
+      Time Range: application_diagnotics_events.time_range_filter
     row: 3
     col: 0
     width: 24
