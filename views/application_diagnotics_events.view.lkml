@@ -211,7 +211,7 @@ view: application_diagnotics_events {
     sql: ${TABLE}.domain;;
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/rawLogScanResults?searchQuery={{ value }}&startTime={{ application_diagnotics_events.first_observed }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&regex=1&selectedList=RawLogScanViewTimeline"
+      url: "@{CHRONICLE_URL}/rawLogScanResults?searchQuery={{ value }}&startTime={{ application_diagnotics_events.first_observed }}&endTime={{ CURRENT_TIMESTAMP_DATE }}&regex=1&selectedList=RawLogScanViewTimeline"
     }
   }
   dimension: CURRENT_TIMESTAMP_DATE {

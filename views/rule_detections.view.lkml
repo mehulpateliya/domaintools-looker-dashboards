@@ -127,7 +127,7 @@ view: rule_detections {
     label: "Detection Count"
     link: {
       label: "View Detections"
-      url: "@{chronicle_url}/ruleDetections?ruleId={{rule_detections.rule_id}}&selectedList=RuleDetectionsViewTimeline&startTime={{rule_detections.lower_date}}&endTime={{rule_detections.upper_date}}"
+      url: "@{CHRONICLE_URL}/ruleDetections?ruleId={{rule_detections.rule_id}}&selectedList=RuleDetectionsViewTimeline&startTime={{rule_detections.lower_date}}&endTime={{rule_detections.upper_date}}"
     }
   }
   measure: upper_date {

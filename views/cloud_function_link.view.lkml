@@ -5,6 +5,6 @@ view: cloud_function_link {
   dimension: cloud_function_url {
     label: "View logs of Cloud function"
     sql: ${TABLE}.cloud_function_url;;
-    html: <a href="https://console.cloud.google.com/functions/details/@{google_cloud_function_region}/@{google_cloud_function_name}?project=@{google_cloud_project_id}&tab=logs" target="_blank">Link</a>;;
+    html: <a href="https://console.cloud.google.com/functions/details/@{GOOGLE_CLOUD_FUNCTION_REGION}/@{GOOGLE_CLOUD_FUNCTION_NAME}?project=@{GOOGLE_CLOUD_PROJECT_ID}&tab=logs" target="_blank">Link</a>;;
   }
 }

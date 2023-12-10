@@ -941,7 +941,7 @@ view: events {
     type: count
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=metadata.log_type=\"DOMAINTOOLS_THREATINTEL\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{CHRONICLE_URL}/search?query=metadata.log_type=\"DOMAINTOOLS_THREATINTEL\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
   #Enrichment-explorer
@@ -972,7 +972,7 @@ view: events {
     label: "Domain"
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{CHRONICLE_URL}/search?query=principal.hostname=\"{{ events.principal__hostname_drill_down }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
   #Enrichment-explorer
@@ -1262,7 +1262,7 @@ view: events {
     sql: "link" ;;
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{CHRONICLE_URL}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
   }
@@ -1293,18 +1293,18 @@ view: events {
   }
   dimension: monitor_tag_link {
     sql: ${monitor_tag_ref_list_name.events__about__labels__tag_list_name_value} ;;
-    html: <a href="@{chronicle_url}/?refLists=id:{{value}}" target="_blank">Link</a>;;
+    html: <a href="@{CHRONICLE_URL}/?refLists=id:{{value}}" target="_blank">Link</a>;;
   }
   dimension: monitor_domain_link {
     sql: ${monitor_domain_ref_list_name.events__about__labels__monitor_list_name_value} ;;
-    html: <a href="@{chronicle_url}/?refLists=id:{{value}}" target="_blank">Link</a>;;
+    html: <a href="@{CHRONICLE_URL}/?refLists=id:{{value}}" target="_blank">Link</a>;;
   }
   measure: event_counts {
     type: count
     label: "Events"
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{CHRONICLE_URL}/search?query=principal.hostname = \"{{ events.principal__hostname }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
   measure: event_counts_risky_domain {
@@ -1507,7 +1507,7 @@ view: events {
     html: <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/link.svg" width="17" height="17" alt="Chronicle" /> ;;
     link: {
       label: "View in Chronicle"
-      url: "@{chronicle_url}/search?query=metadata.id=b\"{{ value | url_encode }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
+      url: "@{CHRONICLE_URL}/search?query=metadata.id=b\"{{ value | url_encode }}\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
   dimension: metadata__ingested_timestamp__nanos {
