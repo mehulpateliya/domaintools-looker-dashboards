@@ -5,7 +5,7 @@
 
 **(2) Centralized Place for Analysis** -  Proactive monitoring of domain indicators and tags originating from DomainTools Iris Investigate and Iris Detect in a centralized location.
 
-**(3) Democratization of Data** - The Domain Profiling dashboard offers a breakdown of enriched domains based on various criteria, including IPs, Registrars, and Server Types.
+**(3) Empowering Enriched Domain Information** - The Domain Profiling dashboard offers a breakdown of enriched domains based on various criteria, including IPs, Registrars, and Server Types.
 
 ## Block Structure
 For more information on the Block structure and customization, refer to [Looker Marketplace Documnetation](https://docs.looker.com/data-modeling/marketplace/customize-blocks#marketplace_blocks_that_use_refinements)
