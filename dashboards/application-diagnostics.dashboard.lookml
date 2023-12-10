@@ -69,11 +69,11 @@
   - title: View logs of Cloud functions
     name: View logs of Cloud functions
     model: domaintools
-    explore: events
+    explore: cloud_function_link
     type: single_value
-    fields: [events.cloud_function_url]
-    sorts: [events.cloud_function_url]
-    limit: 500
+    fields: [cloud_function_link.cloud_function_url]
+    sorts: [cloud_function_link.cloud_function_url]
+    limit: 1
     column_limit: 50
     custom_color_enabled: true
     show_single_value_title: true

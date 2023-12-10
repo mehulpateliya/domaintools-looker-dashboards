@@ -944,12 +944,6 @@ view: events {
       url: "@{chronicle_url}/search?query=metadata.log_type=\"DOMAINTOOLS_THREATINTEL\"&startTime={{ events.lower_date }}&endTime={{ events.upper_date }}"
     }
   }
-  #application_diagnostics
-  dimension: cloud_function_url {
-    label: "View logs of Cloud function"
-    sql: "link" ;;
-    html: <a href="https://console.cloud.google.com/functions/details/@{cloud_function_region}/@{function_name}?project=@{google_cloud_project_id}&tab=logs" target="_blank">Link</a>;;
-  }
   #Enrichment-explorer
   dimension: domain_age {
     type: number
